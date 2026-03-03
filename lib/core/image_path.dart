@@ -10,4 +10,7 @@ abstract class ImagePath {
   static String onboardingOne = "assets/image/onboarding_one.png";
   static String onboardingTwo = "assets/image/onboarding_two.png";
   static String onboardingThree = "assets/image/onboarding_three.png";
+  /// Gender selection (onboarding)
+  static String genderMale = "assets/image/male.png";
+  static String genderFemale = "assets/image/female.png";
 }
