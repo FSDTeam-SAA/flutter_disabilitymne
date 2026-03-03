@@ -41,24 +41,24 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Get.back(),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.chevron_left, color: Colors.white, size: 28),
-                        SizedBox(width: 4),
-                        Text(
-                          'Back',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // GestureDetector(
+                  //   onTap: () => Get.back(),
+                  //   child: const Row(
+                  //     mainAxisSize: MainAxisSize.min,
+                  //     children: [
+                  //       Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                  //       SizedBox(width: 4),
+                  //       Text(
+                  //         'Back',
+                  //         style: TextStyle(
+                  //           fontSize: 17,
+                  //           fontWeight: FontWeight.w500,
+                  //           color: Colors.white,
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ClipRRect(
