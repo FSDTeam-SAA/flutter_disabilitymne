@@ -6,6 +6,7 @@ import 'package:disabilitymne/core/common/widget/app_text_field.dart';
 import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 import 'package:disabilitymne/features/auth/sign_up_screen.dart';
 import 'package:disabilitymne/features/auth/forgot_password_screen.dart';
+import 'package:disabilitymne/features/onboarding/gender_selection_screen.dart';
 
 /// Sign in screen - email, password, remember me, forgot password.
 class SignInScreen extends StatefulWidget {
@@ -34,7 +35,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   void _signIn() {
     if (_formKey.currentState?.validate() ?? false) {
-      // TODO: Implement sign in
+      // TODO: Call API for sign in; on success navigate to onboarding
+      Get.offAll(() => const GenderSelectionScreen());
     }
   }
 
