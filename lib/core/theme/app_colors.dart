@@ -11,6 +11,15 @@ class AppColors {
   static const Color gradientTop = Color(0xFF3A83EA);
   static const Color gradientBottom = Color(0xFF45B881);
 
+  /// Button gradient (#4D7EA9 → #89C9E6)
+  static const Color gradientButtonStart = Color(0xFF4D7EA9);
+  static const Color gradientButtonEnd = Color(0xFF89C9E6);
+  static const LinearGradient buttonGradient = LinearGradient(
+    colors: [gradientButtonStart, gradientButtonEnd],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,

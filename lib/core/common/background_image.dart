@@ -1,5 +1,34 @@
 import 'package:flutter/material.dart';
 
+/// Wraps the entire app with splash_bg.png - use in MaterialApp builder for full-app background
+class GlobalAppBackground extends StatelessWidget {
+  final Widget? child;
+  final String imagePath;
+
+  const GlobalAppBackground({
+    super.key,
+    this.child,
+    this.imagePath = "assets/image/splash_bg.png",
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final content = child ?? const SizedBox.shrink();
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned.fill(
+          child: Image.asset(
+            imagePath,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned.fill(child: content),
+      ],
+    );
+  }
+}
+
 class AuthBackgroundImage extends StatelessWidget {
   final Widget child;
   final String imagePath;
@@ -7,7 +36,7 @@ class AuthBackgroundImage extends StatelessWidget {
   const AuthBackgroundImage({
     super.key,
     required this.child,
-    this.imagePath = "assets/image/ab.png",
+    this.imagePath = "assets/image/splash_bg.png",
   });
 
   @override
@@ -35,7 +64,7 @@ class OnboardingBackgroundImage extends StatelessWidget {
   const OnboardingBackgroundImage({
     super.key,
     required this.child,
-    this.imagePath = "assets/image/ob.png",
+    this.imagePath = "assets/image/splash_bg.png",
   });
 
   @override
@@ -63,7 +92,7 @@ class AppBackgroundImage extends StatelessWidget {
   const AppBackgroundImage({
     super.key,
     required this.child,
-    this.imagePath = "assets/image/hb.png",
+    this.imagePath = "assets/image/splash_bg.png",
   });
 
   @override
@@ -88,7 +117,7 @@ class ProfileBackgroundImage extends StatelessWidget {
   const ProfileBackgroundImage({
     super.key,
     required this.child,
-    this.imagePath = "assets/image/pb.png",
+    this.imagePath = "assets/image/splash_bg.png",
   });
 
   @override

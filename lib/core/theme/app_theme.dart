@@ -5,7 +5,7 @@ import 'app_colors.dart';
 class AppTheme {
   static ThemeData get light => ThemeData(
     fontFamily: 'NotoSansKR',
-    scaffoldBackgroundColor: AppColors.background,
+    scaffoldBackgroundColor: Colors.transparent,
     //primaryColor: AppColors.pinkColor,
     colorScheme: ColorScheme.light(
       primary: AppColors.primarybutton,

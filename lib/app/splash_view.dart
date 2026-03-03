@@ -1,53 +1,65 @@
-// import 'dart:async';
-// import 'package:app_pigeon/app_pigeon.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_busineskal/app/app_manager.dart';
-// import 'package:flutter_busineskal/features/auth/presentation/screens/login_screen.dart';
-// import 'package:flutter_busineskal/features/nabber_screen.dart';
-// import 'package:flutter_busineskal/features/onbording/common/app_logo.dart';
-// import 'package:get/get.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:disabilitymne/core/image_path.dart';
+import 'package:disabilitymne/app/features/language/language_screen.dart';
 
-// class SplashView extends StatefulWidget {
-//   const SplashView({super.key});
+class SplashView extends StatefulWidget {
+  const SplashView({super.key});
 
-//   @override
-//   State<SplashView> createState() => _SplashViewState();
-// }
+  @override
+  State<SplashView> createState() => _SplashViewState();
+}
 
-// class _SplashViewState extends State<SplashView> {
-//   late Timer timer;
+class _SplashViewState extends State<SplashView> {
+  late Timer _timer;
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     timer = Timer(const Duration(milliseconds: 1000), _navigateNext);
-//   }
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 2), _navigateNext);
+  }
 
-//   void _navigateNext() {
-//     final appManager = Get.find<AppManager>();
+  void _navigateNext() {
+    Get.offAll(() => const LanguageScreen());
+  }
 
-//     if (appManager.currentAuthStatus is Authenticated) {
-//       // User is logged in → go to AppGround
-//       Navigator.push(
-//         context,
-//         MaterialPageRoute(builder: (context) => AppGround()),
-//       );
-//     } else {
-//       // User not logged in → go to Login screen
-//       Navigator.push(context, 
-//         MaterialPageRoute(builder: (context) => LoginScreen()),
-//       );
-//     }
-//   }
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
 
-//   @override
-//   void dispose() {
-//     timer.cancel();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(body: Center(child: AppLogo()));
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(flex: 2),
+              Image.asset(
+                ImagePath.appLogo,
+                height: 140,
+                fit: BoxFit.contain,
+              ),
+              const Spacer(flex: 2),
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(height: 48),
+              const Spacer(flex: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
