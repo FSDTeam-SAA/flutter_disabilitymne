@@ -1,10 +1,10 @@
+import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/app/controller/language_controller.dart';
-import 'package:disabilitymne/app/features/onboarding/onboarding_screen.dart';
+import 'package:disabilitymne/features/onboarding/onboarding_screen.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/core/image_path.dart';
-import 'package:disabilitymne/core/common/widget/gradient_button.dart';
 
 class LanguageScreen extends StatelessWidget {
   const LanguageScreen({super.key});
@@ -67,7 +67,7 @@ class LanguageScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              GradientButton(
+              CustomButton(
                 text: 'Next',
                 onPressed: () => Get.offAll(() => const OnboardingScreen()),
               ),

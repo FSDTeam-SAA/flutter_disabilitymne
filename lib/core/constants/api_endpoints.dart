@@ -83,10 +83,7 @@ class _RemoteServer {
       'https://backend-busineskal-5d2d.onrender.com/api/v1';
 }
 
-class _LocalHostWifi {
-  static const String socketUrl = 'http://10.10.5.46:5001';
-  static const String baseUrl = 'http://10.10.5.46:5001/api/v1';
-}
+
 
 class _Auth {
   @protected

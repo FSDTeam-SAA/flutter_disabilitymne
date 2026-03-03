@@ -13,14 +13,18 @@ base class BaseRepository {
   }) async {
     try {
       return await tryFunc().then((value) => Right(value));
-    } on ServerException catch (e) {
+    } on ServerException catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
       return Left(
         DataCRUDFailure(
           failure: Failure.severFailure,
           fullError: 'Server failed!',
         ),
       );
-    } on NoDataException catch (e) {
+    } on NoDataException catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
       return Left(
         DataCRUDFailure(failure: Failure.noData, fullError: "Doesn't exist!"),
       );
