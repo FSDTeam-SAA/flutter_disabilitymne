@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
-import 'package:disabilitymne/features/auth/otp_verify_screen.dart';
+import 'package:disabilitymne/features/auth/presentation/otp_verify_screen.dart';
 
 /// Reset password - enter email to receive OTP.
 class ForgotPasswordScreen extends StatefulWidget {

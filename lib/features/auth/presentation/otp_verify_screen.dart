@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/otp_input.dart';
-import 'package:disabilitymne/features/auth/new_password_screen.dart';
+import 'package:disabilitymne/features/auth/presentation/new_password_screen.dart';
 
 /// OTP verification screen - enter 6-digit OTP.
 class OtpVerifyScreen extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
-import 'package:disabilitymne/features/auth/sign_in_screen.dart';
+import 'package:disabilitymne/features/auth/presentation/sign_in_screen.dart';
 
 /// New password screen - set new password and confirm.
 class NewPasswordScreen extends StatefulWidget {

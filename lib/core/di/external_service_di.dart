@@ -1,4 +1,6 @@
 import 'package:app_pigeon/app_pigeon.dart';
+import 'package:disabilitymne/features/auth/services/auth_interface.dart';
+import 'package:disabilitymne/features/auth/services/auth_interface_impl.dart';
 import 'package:get/get.dart';
 import '../constants/api_endpoints.dart';
 
@@ -10,6 +12,9 @@ void externalServiceDI() {
   );
   Get.put<AuthorizedPigeon>(appPigeon);
   Get.put<AppPigeon>(appPigeon);
+
+  // Auth Interface Implementation
+  Get.lazyPut<AuthInterface>(() => AuthInterfaceImpl(Get.find()));
 }
 
 class MyRefreshTokenManager implements RefreshTokenManagerInterface {

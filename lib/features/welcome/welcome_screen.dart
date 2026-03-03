@@ -2,8 +2,8 @@ import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
-import 'package:disabilitymne/features/auth/sign_in_screen.dart';
-import 'package:disabilitymne/features/auth/sign_up_screen.dart';
+import 'package:disabilitymne/features/auth/presentation/sign_in_screen.dart';
+import 'package:disabilitymne/features/auth/presentation/sign_up_screen.dart';
 
 /// Welcome / landing screen after onboarding - Create Account & Sign in.
 class WelcomeScreen extends StatelessWidget {

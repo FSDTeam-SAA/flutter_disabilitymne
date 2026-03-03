@@ -77,10 +77,10 @@ base class ApiEndpoints {
 
 class _RemoteServer {
   static const String socketUrl =
-      'https://backend-busineskal-5d2d.onrender.com';
+      'https://disabilitymne-backend.onrender.com';
 
   static const String baseUrl =
-      'https://backend-busineskal-5d2d.onrender.com/api/v1';
+      'https://disabilitymne-backend.onrender.com/api/v1';
 }
 
 

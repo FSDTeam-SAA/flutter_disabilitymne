@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
@@ -54,25 +55,12 @@ class AppManager extends GetxController {
       );
       _authStatus = authStatus;
       await _initializeControllers();
-      // if (Get.isRegistered<ProfileController>()) {
-      //   Get.delete<ProfileController>();
-      // }
-      // Get.put(ProfileController());
+      if (Get.isRegistered<ProfileController>()) {
+        Get.delete<ProfileController>();
+      }
+      Get.put(ProfileController());
 
-      // // Refresh Categories and Cart
-      // if (Get.isRegistered<CategoryController>()) {
-      //   Get.find<CategoryController>().fetchCategories();
-      // }
-      // if (Get.isRegistered<CartController>()) {
-      //   Get.find<CartController>().getCart();
-      // }
-
-      // Get.offAll(() => AppGround());
-
-      // navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      //   RouteNames.home,
-      //   (route) => false,
-      // );
+      Get.offAll(() => Scaffold());//home screen
     }
     update();
     // if (authStatus != null && authStatus != _authStatus) {
