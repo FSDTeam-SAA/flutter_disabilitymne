@@ -1,10 +1,11 @@
+import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
-import 'package:disabilitymne/app/features/welcome/welcome_screen.dart';
-import 'package:disabilitymne/app/features/auth/sign_up_screen.dart';
-import 'package:disabilitymne/app/features/auth/forgot_password_screen.dart';
+import 'package:disabilitymne/features/welcome/welcome_screen.dart';
+import 'package:disabilitymne/features/auth/sign_up_screen.dart';
+import 'package:disabilitymne/features/auth/forgot_password_screen.dart';
 
 /// Sign in screen - email, password, remember me, forgot password.
 class SignInScreen extends StatefulWidget {
@@ -166,7 +167,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ],
                   ),
                   const SizedBox(height: 28),
-                  _SignInButton(onPressed: _signIn),
+                  CustomButton(onPressed: _signIn, text: 'Sign In'),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -202,36 +203,3 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 }
 
-class _SignInButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _SignInButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF89C9E6), Color(0xFF4D7EA9)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        alignment: Alignment.center,
-        child: const Text(
-          'Sign in',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}

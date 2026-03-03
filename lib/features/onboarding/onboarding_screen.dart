@@ -1,7 +1,8 @@
+import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
-import 'package:disabilitymne/app/features/welcome/welcome_screen.dart';
+import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 
 /// Single screen displaying all 3 onboarding slides in a swipeable PageView.
 class OnboardingScreen extends StatefulWidget {
@@ -173,11 +174,11 @@ class _BottomSection extends StatelessWidget {
               children: List.generate(
                 totalPages,
                 (index) => Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 5),
-                  width: 18,
-                  height: 18,
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  width: 24,
+                  height: 8,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(4),
                     color: index == currentPage
                         ? const Color(0xFF5A84AB)
                         : Colors.white,
@@ -206,7 +207,7 @@ class _BottomSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 120),
-            _OnboardingButton(
+            CustomButton(
               text: 'Next',
               onPressed: onNext,
             ),
@@ -217,53 +218,6 @@ class _BottomSection extends StatelessWidget {
   }
 }
 
-class _OnboardingButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
-
-  const _OnboardingButton({
-    required this.text,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xFF89C9E6),
-              Color(0xFF4D7EA9),
-            ],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _OnboardingPage {
   final String imagePath;

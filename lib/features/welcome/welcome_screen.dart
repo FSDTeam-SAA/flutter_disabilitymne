@@ -1,8 +1,9 @@
+import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
-import 'package:disabilitymne/app/features/auth/sign_in_screen.dart';
-import 'package:disabilitymne/app/features/auth/sign_up_screen.dart';
+import 'package:disabilitymne/features/auth/sign_in_screen.dart';
+import 'package:disabilitymne/features/auth/sign_up_screen.dart';
 
 /// Welcome / landing screen after onboarding - Create Account & Sign in.
 class WelcomeScreen extends StatelessWidget {
@@ -36,8 +37,9 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(flex: 3),
-              _CreateAccountButton(
+              CustomButton(
                 onPressed: () => Get.to(() => const SignUpScreen()),
+                text: 'Create Account',
               ),
               const SizedBox(height: 16),
               _SignInButton(
@@ -52,39 +54,6 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-class _CreateAccountButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _CreateAccountButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF89C9E6), Color(0xFF4D7EA9)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        alignment: Alignment.center,
-        child: const Text(
-          'Create Account',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _SignInButton extends StatelessWidget {
   final VoidCallback onPressed;
