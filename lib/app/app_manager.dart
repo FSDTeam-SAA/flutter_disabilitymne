@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
+import 'package:disabilitymne/features/onboarding/gender_selection_screen.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,7 +61,7 @@ class AppManager extends GetxController {
       }
       Get.put(ProfileController());
 
-      Get.offAll(() => Scaffold());//home screen
+      Get.offAll(() => GenderSelectionScreen());//home screen
     }
     update();
     // if (authStatus != null && authStatus != _authStatus) {
