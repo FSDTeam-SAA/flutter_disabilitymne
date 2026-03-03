@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
-import 'package:disabilitymne/app/features/language/language_screen.dart';
+import 'package:disabilitymne/features/language/language_screen.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
