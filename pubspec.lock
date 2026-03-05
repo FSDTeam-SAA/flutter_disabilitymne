@@ -344,6 +344,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.20.2"
   js:
     dependency: transitive
     description:
@@ -525,6 +533,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  sleek_circular_slider:
+    dependency: "direct main"
+    description:
+      name: sleek_circular_slider
+      sha256: "89c7d0d37befc9818a2b53ef6ff126c43b70485dabb189b734d46106db190931"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   socket_io_client:
     dependency: transitive
     description:
@@ -573,6 +589,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_core
+      sha256: "080c4a57f12cb03869c863f6b33fb170ce9653ac741281f11ff8e067dc96fe99"
+      url: "https://pub.dev"
+    source: hosted
+    version: "32.2.8"
+  syncfusion_flutter_gauges:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_gauges
+      sha256: "11ec00997cf37c5b02c00689b7083875f0f77561b43fbe760997eda30a321a99"
+      url: "https://pub.dev"
+    source: hosted
+    version: "32.2.8"
   term_glyph:
     dependency: transitive
     description:
