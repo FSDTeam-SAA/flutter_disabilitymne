@@ -1,5 +1,6 @@
 import 'package:disabilitymne/core/notifiers/snackbar_notifier.dart';
 import 'package:disabilitymne/features/auth/controller/signin_controller.dart';
+import 'package:disabilitymne/features/auth/controller/signup_controller.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface_impl.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
@@ -12,5 +13,6 @@ void initServices() {
 Get.lazyPut<AuthInterface>(() => AuthInterfaceImpl(Get.find()));
   Get.lazyPut(() => SnackbarNotifier(context: Get.context!));
   Get.lazyPut(() => LoginController(Get.find()));
-  Get.put(ProfileController());
+  Get.lazyPut(() => ProfileController());
+  Get.put(SignupController(Get.find<AuthInterface>()));
 }

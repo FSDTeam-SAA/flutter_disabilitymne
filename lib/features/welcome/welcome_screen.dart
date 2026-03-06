@@ -38,7 +38,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const Spacer(flex: 3),
               CustomButton(
-                onPressed: () => Get.to(() => const SignUpScreen()),
+                onPressed: () => Get.to(() => SignUpScreen()),
                 text: 'Create Account',
               ),
               const SizedBox(height: 16),

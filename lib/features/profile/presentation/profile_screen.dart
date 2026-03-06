@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
+import 'package:disabilitymne/features/profile/presentation/my_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -141,7 +142,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         icon: Icons.person_outline,
                         title: "My Profile",
                         subtitle: "View personal details",
-                        onTap: () {},
+                        onTap: () {
+                          Get.to(() => MyProfileScreen());
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.note_outlined,

@@ -1,43 +1,32 @@
+import 'package:disabilitymne/features/auth/controller/create_new_password_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
 import 'package:disabilitymne/features/auth/presentation/sign_in_screen.dart';
+import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 
-/// New password screen - set new password and confirm.
-class NewPasswordScreen extends StatefulWidget {
+class NewPasswordScreen extends StatelessWidget {
   final String email;
   final String otp;
 
-  const NewPasswordScreen({super.key, required this.email, required this.otp});
+  NewPasswordScreen({super.key, required this.email, required this.otp});
 
-  @override
-  State<NewPasswordScreen> createState() => _NewPasswordScreenState();
-}
-
-class _NewPasswordScreenState extends State<NewPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _passwordController = TextEditingController();
-  final _confirmController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
+
+  late final ResetPasswordController controller = Get.put(
+    ResetPasswordController(
+      authInterface: Get.find<AuthInterface>(),
+      email: email,
+      otp: otp,
+    ),
+  );
 
   static const Color _darkBlue = Color(0xFF1E253F);
   static const Color _linkBlue = Color(0xFF89C9E6);
 
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    _confirmController.dispose();
-    super.dispose();
-  }
-
-  void _continue() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // TODO: API call to reset password
-      Get.offAll(() => const SignInScreen());
-    }
-  }
+  final RxBool obscurePassword = true.obs;
+  final RxBool obscureConfirm = true.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -53,15 +42,12 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 12),
+
                   GestureDetector(
                     onTap: () => Get.back(),
                     child: const Row(
                       children: [
-                        Icon(
-                          Icons.chevron_left,
-                          color: Colors.white,
-                          size: 28,
-                        ),
+                        Icon(Icons.chevron_left, color: Colors.white, size: 28),
                         SizedBox(width: 4),
                         Text(
                           'Back',
@@ -74,7 +60,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 32),
+
                   Center(
                     child: Image.asset(
                       ImagePath.appLogo,
@@ -82,7 +70,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                       fit: BoxFit.contain,
                     ),
                   ),
+
                   const SizedBox(height: 32),
+
                   const Text(
                     'New password',
                     textAlign: TextAlign.center,
@@ -92,7 +82,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                       color: Colors.white,
                     ),
                   ),
+
                   const SizedBox(height: 8),
+
                   Text(
                     'Enter your new password and confirm password',
                     textAlign: TextAlign.center,
@@ -101,95 +93,89 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                       color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
+
                   const SizedBox(height: 32),
-                  AppTextField(
-                    label: 'New Password',
-                    hint: 'Enter your New Password',
-                    prefixIcon: Icons.lock_outline,
-                    obscureText: _obscurePassword,
-                    controller: _passwordController,
-                    textInputAction: TextInputAction.next,
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Enter new password' : null,
-                    suffix: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: _linkBlue,
-                        size: 22,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
+
+                  Obx(() => AppTextField(
+                        label: 'New Password',
+                        hint: 'Enter your New Password',
+                        prefixIcon: Icons.lock_outline,
+                        obscureText: obscurePassword.value,
+                        controller: controller.passwordController,
+                        suffix: IconButton(
+                          icon: Icon(
+                            obscurePassword.value
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: _linkBlue,
+                          ),
+                          onPressed: () =>
+                              obscurePassword.value = !obscurePassword.value,
+                        ),
+                      )),
+
                   const SizedBox(height: 20),
-                  AppTextField(
-                    label: 'Confirm Password',
-                    hint: 'Enter your Confirm Password',
-                    prefixIcon: Icons.lock_outline,
-                    obscureText: _obscureConfirm,
-                    controller: _confirmController,
-                    textInputAction: TextInputAction.done,
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Confirm password';
-                      if (v != _passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                    suffix: IconButton(
-                      icon: Icon(
-                        _obscureConfirm
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: _linkBlue,
-                        size: 22,
+
+                  Obx(() => AppTextField(
+                        label: 'Confirm Password',
+                        hint: 'Enter your Confirm Password',
+                        prefixIcon: Icons.lock_outline,
+                        obscureText: obscureConfirm.value,
+                        controller: controller.confirmPasswordController,
+                        suffix: IconButton(
+                          icon: Icon(
+                            obscureConfirm.value
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: _linkBlue,
+                          ),
+                          onPressed: () =>
+                              obscureConfirm.value = !obscureConfirm.value,
+                        ),
+                      )),
+
+                  const SizedBox(height: 28),
+
+                  Obx(
+                    () => GestureDetector(
+                      onTap: controller.isLoading.value
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                controller.resetPassword(() {
+                                  Get.offAll(() => const SignInScreen());
+                                });
+                              }
+                            },
+                      child: Container(
+                        height: 54,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF89C9E6), Color(0xFF4D7EA9)],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: controller.isLoading.value
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                'Continue',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
-                      onPressed: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
                     ),
                   ),
-                  const SizedBox(height: 28),
-                  _ContinueButton(onPressed: _continue),
+
                   SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContinueButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _ContinueButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF89C9E6), Color(0xFF4D7EA9)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        alignment: Alignment.center,
-        child: const Text(
-          'Continue',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
           ),
         ),
       ),
