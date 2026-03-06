@@ -59,9 +59,15 @@ final class AuthInterfaceImpl extends AuthInterface {
   }
 
   @override
-  FutureRequest<Success<dynamic>> logout() {
-    // TODO: implement logout
-    throw UnimplementedError();
+  FutureRequest<Success> logout() async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.post(ApiEndpoints.logout);
+        debugPrint('LOGOUT RESPONSE => ${response.data}');
+        await appPigeon.logOut();
+        return Success(message: extractSuccessMessage(response));
+      },
+    );
   }
 
   @override

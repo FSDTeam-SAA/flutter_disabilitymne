@@ -1,3 +1,4 @@
+import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,7 +13,7 @@ class AppGround extends StatelessWidget {
     Scaffold(),
     Scaffold(),
     Scaffold(),
-    Scaffold(),
+    ProfileScreen(),
   ];
 
   final List<IconData> icons = const [
