@@ -1,7 +1,9 @@
+import 'package:disabilitymne/features/onboarding/widget/custom_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
-import 'package:disabilitymne/features/onboarding/weight_selection_screen.dart';
+
+import 'fitness_goals_screen.dart';
 
 /// Step 2 of 8: How Old Are You? — age slider 13–90, matches design.
 class AgeSelectionScreen extends StatefulWidget {
@@ -20,7 +22,7 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
   double _age = 26;
 
   static const Color _darkBlue = Color(0xFF0D1B2A);
-  static const Color _accentBlue = Color(0xFF89C9E6);
+  static const Color _accentBlue = Color(0xFF0088FF);
   static const Color _trackInactive = Color(0xFF6B7280);
 
   int get _ageInt => _age.round();
@@ -33,39 +35,9 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Back + Step 2 of 8
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Get.back(),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.chevron_left, color: Colors.white, size: 28),
-                        SizedBox(width: 4),
-                        Text(
-                          'Back',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    'Step $_currentStep of $_totalSteps',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Top left: Back button (icon + text) | right: Step 2 of 8
+            CustomBackButton(currentStep: _currentStep, totalSteps: _totalSteps),
+      
             // Progress bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -169,7 +141,9 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
             Padding(
               padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
               child: CustomButton(
-                onPressed: () => Get.to(() => const WeightSelectionScreen()),
+                onPressed: (){
+                  Get.to(FitnessGoals());
+                },
                 text: 'Continue',
               ),
             ),

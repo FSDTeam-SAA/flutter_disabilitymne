@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/common/background_image.dart';
 import 'package:disabilitymne/app/splash_view.dart';
+/*
+[12:16 pm, 03/03/2026] Younus Akon: aliulakon8@gmail.com
+[12:16 pm, 03/03/2026] Younus Akon: aaaaaaaa
+*/
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

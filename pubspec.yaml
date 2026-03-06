@@ -38,6 +38,8 @@ dependencies:
   get: ^4.7.2
   image_picker: ^1.2.0
   dartz: ^0.10.1
+  syncfusion_flutter_gauges: ^32.2.8
+  sleek_circular_slider: ^2.0.1
 
 dev_dependencies:
   flutter_test:
