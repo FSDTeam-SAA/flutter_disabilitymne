@@ -1,32 +1,19 @@
-import 'package:disabilitymne/features/auth/controller/create_new_password_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
-import 'package:disabilitymne/features/auth/presentation/sign_in_screen.dart';
+import 'package:disabilitymne/features/auth/controller/forget_password_controller.dart';
+import 'package:disabilitymne/features/auth/presentation/screens/otp_verify_screen.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 
-class NewPasswordScreen extends StatelessWidget {
-  final String email;
-  final String otp;
+class ForgotPasswordScreen extends StatelessWidget {
+  ForgotPasswordScreen({super.key});
 
-  NewPasswordScreen({super.key, required this.email, required this.otp});
-
-  final _formKey = GlobalKey<FormState>();
-
-  late final ResetPasswordController controller = Get.put(
-    ResetPasswordController(
-      authInterface: Get.find<AuthInterface>(),
-      email: email,
-      otp: otp,
-    ),
+  final ForgetPasswordController controller = Get.put(
+    ForgetPasswordController(Get.find<AuthInterface>()),
   );
 
   static const Color _darkBlue = Color(0xFF1E253F);
-  static const Color _linkBlue = Color(0xFF89C9E6);
-
-  final RxBool obscurePassword = true.obs;
-  final RxBool obscureConfirm = true.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -37,12 +24,11 @@ class NewPasswordScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
-              key: _formKey,
+              key: controller.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 12),
-
                   GestureDetector(
                     onTap: () => Get.back(),
                     child: const Row(
@@ -60,9 +46,7 @@ class NewPasswordScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
                   Center(
                     child: Image.asset(
                       ImagePath.appLogo,
@@ -70,11 +54,9 @@ class NewPasswordScreen extends StatelessWidget {
                       fit: BoxFit.contain,
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
                   const Text(
-                    'New password',
+                    'Reset password',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 26,
@@ -82,76 +64,48 @@ class NewPasswordScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(
-                    'Enter your new password and confirm password',
+                    'Enter your email to receive the OTP',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: Colors.white.withOpacity(0.8),
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
-                  Obx(() => AppTextField(
-                        label: 'New Password',
-                        hint: 'Enter your New Password',
-                        prefixIcon: Icons.lock_outline,
-                        obscureText: obscurePassword.value,
-                        controller: controller.passwordController,
-                        suffix: IconButton(
-                          icon: Icon(
-                            obscurePassword.value
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            color: _linkBlue,
-                          ),
-                          onPressed: () =>
-                              obscurePassword.value = !obscurePassword.value,
-                        ),
-                      )),
-
-                  const SizedBox(height: 20),
-
-                  Obx(() => AppTextField(
-                        label: 'Confirm Password',
-                        hint: 'Enter your Confirm Password',
-                        prefixIcon: Icons.lock_outline,
-                        obscureText: obscureConfirm.value,
-                        controller: controller.confirmPasswordController,
-                        suffix: IconButton(
-                          icon: Icon(
-                            obscureConfirm.value
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            color: _linkBlue,
-                          ),
-                          onPressed: () =>
-                              obscureConfirm.value = !obscureConfirm.value,
-                        ),
-                      )),
-
+                  AppTextField(
+                    label: 'Your Email',
+                    hint: 'Enter your Email',
+                    prefixIcon: Icons.mail_outline,
+                    keyboardType: TextInputType.emailAddress,
+                    controller: controller.emailController,
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Enter your email' : null,
+                  ),
                   const SizedBox(height: 28),
-
                   Obx(
                     () => GestureDetector(
                       onTap: controller.isLoading.value
                           ? null
                           : () {
-                              if (_formKey.currentState!.validate()) {
-                                controller.resetPassword(() {
-                                  Get.offAll(() => const SignInScreen());
-                                });
-                              }
+                              controller.sendOtp(() {
+                                Get.to(
+                                  () => OtpVerifyScreen(
+                                    email: controller.emailController.text
+                                        .trim(),
+                                  ),
+                                );
+                              });
                             },
                       child: Container(
+                        width: double.infinity,
                         height: 54,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFF89C9E6), Color(0xFF4D7EA9)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -161,17 +115,17 @@ class NewPasswordScreen extends StatelessWidget {
                                 color: Colors.white,
                               )
                             : const Text(
-                                'Continue',
+                                'SEND OTP',
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                       ),
                     ),
                   ),
-
                   SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
                 ],
               ),

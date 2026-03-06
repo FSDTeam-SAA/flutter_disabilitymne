@@ -49,7 +49,7 @@
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/auth/model/verify_otp_model.dart';
-import 'package:disabilitymne/features/auth/presentation/new_password_screen.dart';
+import 'package:disabilitymne/features/auth/presentation/screens/new_password_screen.dart';
 
 class VerifyOtpController extends GetxController {
   final AuthInterface authInterface;

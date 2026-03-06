@@ -4,7 +4,7 @@ import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/features/auth/controller/signup_controller.dart';
-import 'package:disabilitymne/features/auth/presentation/sign_in_screen.dart';
+import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 
 class SignUpScreen extends StatelessWidget {

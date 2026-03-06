@@ -8,9 +8,9 @@ class AppTheme {
     scaffoldBackgroundColor: Colors.transparent,
     //primaryColor: AppColors.pinkColor,
     colorScheme: ColorScheme.light(
-      primary: AppColors.primarybutton,
+      primary: AppColors.white,
       //primary: AppColors.pinkColor,
-      secondary: AppColors.primarybutton,
+      secondary: AppColors.white,
       //primaryContainer: AppColors.pinkColor,
     ),
   );

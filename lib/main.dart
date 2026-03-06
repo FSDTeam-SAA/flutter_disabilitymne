@@ -1,6 +1,7 @@
 import 'package:disabilitymne/app/app_manager.dart';
 import 'package:disabilitymne/core/di/external_service_di.dart';
 import 'package:disabilitymne/core/di/internal_service_di.dart';
+import 'package:disabilitymne/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/common/background_image.dart';
@@ -38,10 +39,7 @@ class _MyAppState extends State<MyApp> {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Disability Fitness Center',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        scaffoldBackgroundColor: Colors.transparent,
-      ),
+      theme: AppTheme.light,
       builder: (context, child) => GlobalAppBackground(child: child),
       home: const SplashView(),
     );
