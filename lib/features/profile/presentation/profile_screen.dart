@@ -1,6 +1,13 @@
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
+import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
+import 'package:disabilitymne/features/profile/presentation/daily_notes_screen.dart';
+import 'package:disabilitymne/features/profile/presentation/help_support_screen.dart';
+import 'package:disabilitymne/features/profile/presentation/language_accessibility_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/my_profile_screen.dart';
+import 'package:disabilitymne/features/profile/presentation/notification_screen.dart';
+import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen.dart';
+import 'package:disabilitymne/features/profile/presentation/terms_condition_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,8 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           side: const BorderSide(color: Colors.grey),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: () {
           Get.back();
@@ -45,8 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF314E94),
           foregroundColor: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: () {
           Get.find<AuthInterface>().logout();
@@ -93,8 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         SizedBox(height: 4),
                         Text(
                           "Good morning!",
-                          style:
-                              TextStyle(color: Colors.white70, fontSize: 14),
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                       ],
                     ),
@@ -147,10 +151,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                       _SettingsTile(
+                        icon: Icons.lock_outline,
+                        title: "Change Password",
+                        subtitle: "Update your password",
+                        onTap: () {
+                          Get.to(() => ChangePasswordScreen());
+                        },
+                      ),
+                      _SettingsTile(
                         icon: Icons.note_outlined,
                         title: "Daily Notes",
                         subtitle: "View Notes you have added daily",
-                        onTap: () {},
+                        onTap: () {
+                          Get.to(() => const DailyNotesScreen());
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.workspace_premium_outlined,
@@ -162,31 +176,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         icon: Icons.language,
                         title: "Language & Accessibility",
                         subtitle: "English/Serbian",
-                        onTap: () {},
+                        onTap: () {
+                          Get.to(() => const LanguageAccessibilityScreen());
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.notifications_none,
                         title: "Notification Settings",
                         subtitle: "Manage alerts",
-                        onTap: () {},
+                        onTap: () {
+                          Get.to(() => const NotificationScreen());
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.support_agent_outlined,
                         title: "Help & Support",
                         subtitle: "FAQs and contact",
-                        onTap: () {},
+                        onTap: () {
+                          Get.to(() => const HelpSupportScreen());
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.privacy_tip_outlined,
                         title: "Privacy & Legal",
                         subtitle: "Privacy policy & data",
-                        onTap: () {},
+                        onTap: () {
+                          Get.to(() => const PrivacyLegalScreen());
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.description_outlined,
                         title: "Terms of Service",
                         subtitle: "App usage terms and conditions",
-                        onTap: () {},
+                        onTap: () {
+                          Get.to(() => const TermsConditionScreen());
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.lock_outline,
