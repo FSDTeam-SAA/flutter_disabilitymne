@@ -92,10 +92,10 @@ class _Auth {
   static const String logout = '$_authRoute/logout';
   static const String socialLogin = '$_authRoute/social-login';
   static const String signup = '$_authRoute/register';
-  static const String forgetPassword = '$_authRoute/forget';
+  static const String forgetPassword = '$_authRoute/forgot-password/send-otp';
   static const String refreshToken = '$_authRoute/refresh-token';
-  static const String verifyCode = '$_authRoute/verify';
-  static const String resetPassword = '$_authRoute/reset-password';
+  static const String verifyCode = '$_authRoute/forgot-password/verify-otp';
+  static const String resetPassword = '$_authRoute/reset-password/reset';
 }
 
 //------------------------------ Help&Support -----------------------------
