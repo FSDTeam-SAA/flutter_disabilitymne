@@ -24,9 +24,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void showLogoutDialog({required VoidCallback onConfirm}) {
     Get.defaultDialog(
       backgroundColor: Colors.white,
-      title: "Logout",
-      middleText: "Are you sure you want to logout?",
-      titleStyle: const TextStyle(
+      title: "Are you sure?",
+      middleText: "Want to sign out from your application",
+      titleStyle: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
         color: Colors.black,
@@ -56,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onPressed: () {
           Get.find<AuthInterface>().logout();
         },
-        child: const Text("Logout"),
+        child: Text("Logout"),
       ),
     );
   }
