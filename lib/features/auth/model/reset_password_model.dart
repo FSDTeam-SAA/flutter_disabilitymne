@@ -10,4 +10,13 @@ class ResetPasswordModel {
     this.newPassword,
     this.confirmPassword,
   );
+
+  Map<String, dynamic> toJson() {
+    return {
+      "email": email,
+      "otp": otp,
+      "newPassword": newPassword,
+      "confirmPassword": confirmPassword,
+    };
+  }
 }

@@ -12,4 +12,14 @@ class SignupModel {
     required this.password,
     required this.confirmPassword,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "firstName": firstName,
+      "email": email,
+      "phone": phone,
+      "password": password,
+      "confirmPassword": confirmPassword,
+    };
+  }
 }
