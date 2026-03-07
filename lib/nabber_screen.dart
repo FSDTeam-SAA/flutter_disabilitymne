@@ -12,7 +12,7 @@ class AppGround extends StatelessWidget {
       Get.put(AppGroundController(), permanent: true);
 
   final List<Widget> pages = [
-    Scaffold(),
+    HomeScreen(),
     ProgramsScreen(),
     Scaffold(),
     Scaffold(),
