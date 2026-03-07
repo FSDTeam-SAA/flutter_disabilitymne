@@ -56,6 +56,25 @@ class AppColors {
 
   static const Color appber = Color(0xFFECEDFD);
 
+  /// Profile screen (dark theme from design)
+  static const Color profileBackground = Color(0xFF121927);
+  static const Color profileCardBackground = Color(0xFF1C2533);
+  static const Color profileTextPrimary = Color(0xFFE0E0E0);
+  static const Color profileTextSecondary = Color(0xFFA0A8B7);
+  static const Color profileBorder = Color(0xFF3B4250);
+  static const Color profileSignOutRed = Color(0xFFFF3B30);
+  static const Color profileActiveTab = Color(0xFF4A90E2);
+  static const Color profileEmojiAccent = Color(0xFFFFCC00);
+
+  /// Border: #85C4E2 at 40% opacity
+  static const Color borderLightBlue40 = Color(0x6685C4E2);
+
+  /// Bottom nav bar (image design)
+  static const Color bottomNavBackground = Color(0xFF0F1624);
+  static const Color bottomNavActiveBackground = Color(0xFF1A2332);
+  static const Color bottomNavGlow = Color(0xFF6B8CB0);
+  static const Color bottomNavProfileIcon = Color(0xFF87CEEB);
+
   /// [delete]
   // static const Color containerPolicyColor = Color(0xff2A2A2A);
 

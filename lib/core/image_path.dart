@@ -13,4 +13,15 @@ abstract class ImagePath {
   /// Gender selection (onboarding)
   static String genderMale = "assets/image/male_2.png";
   static String genderFemale = "assets/image/female_2.png";
+
+  /// Profile screen menu icons (dark blue bg + light blue border style)
+  static String profileMyProfile = "assets/image/profile_icons/my_profile_icon.png";
+  static String profileDailyNotes = "assets/image/profile_icons/daily_notes_icon.png";
+  static String profileSubscriptionCrown = "assets/image/profile_icons/subscription_crown_icon.png";
+  static String profileLanguageGlobe = "assets/image/profile_icons/language_globe_icon.png";
+  static String profileNotificationsBell = "assets/image/profile_icons/notifications_bell_icon.png";
+  static String profileHelpHeadset = "assets/image/profile_icons/help_support_headset_icon.png";
+  static String profilePrivacyShield = "assets/image/profile_icons/privacy_legal_shield_icon.png";
+  static String profileTermsDocument = "assets/image/profile_icons/terms_of_service_document_icon.png";
+  static String profilePrivacySecurity = "assets/image/profile_icons/privacy_security_shield_lock_icon.png";
 }

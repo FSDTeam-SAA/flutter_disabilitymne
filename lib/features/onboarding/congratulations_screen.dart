@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:disabilitymne/features/onboarding/fitness_goals_screen.dart';
 
 /// Congratulations screen after payment — shows plan name, trophy, features, "Start Your Journey".
 /// Monthly/Six Month: one message. Premium: plan active + coach contact in 24h.
@@ -22,6 +21,11 @@ class CongratulationsScreen extends StatelessWidget {
   ];
 
   bool get _isPremium => planName.toLowerCase() == 'premium';
+  bool get _isFreeTrial => planName.toLowerCase().contains('free');
+
+  static const List<String> _featuresFreeTrial = [
+    'Full Home Workout Program Recipes',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +76,7 @@ class CongratulationsScreen extends StatelessWidget {
               // Congratulations!
               Center(
                 child: Text(
-                  'Congratulations!',
+                  _isFreeTrial ? "You're all set!" : 'Congratulations!',
                   style: TextStyle(
                     fontSize: (28 * scaleW).clamp(24, 32),
                     fontWeight: FontWeight.bold,
@@ -81,43 +85,71 @@ class CongratulationsScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: (16 * scaleH).clamp(12, 20)),
-              // Your {plan} plan is now active. (plan in golden)
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: (24 * scaleW).clamp(20, 32)),
-                child: Center(
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
+              if (_isFreeTrial) ...[
+                // Your free trial is now active.
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: (24 * scaleW).clamp(20, 32)),
+                  child: Center(
+                    child: Text(
+                      'Your free trial is now active.',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: (16 * scaleW).clamp(15, 18),
                         color: Colors.white,
                         height: 1.4,
                       ),
-                      children: [
-                        const TextSpan(text: 'Your '),
-                        TextSpan(
-                          text: planName,
-                          style: TextStyle(
-                            color: _golden,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const TextSpan(text: ' plan is now active.'),
-                      ],
                     ),
                   ),
                 ),
-              ),
-              SizedBox(height: (8 * scaleH).clamp(4, 12)),
-              Center(
-                child: Text(
-                  "Let's build strength together.",
-                  style: TextStyle(
-                    fontSize: (16 * scaleW).clamp(15, 18),
-                    color: Colors.white,
+                SizedBox(height: (8 * scaleH).clamp(4, 12)),
+                Center(
+                  child: Text(
+                    "Let's build strength together.",
+                    style: TextStyle(
+                      fontSize: (16 * scaleW).clamp(15, 18),
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
+              ] else ...[
+                // Your {plan} plan is now active. (plan in golden)
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: (24 * scaleW).clamp(20, 32)),
+                  child: Center(
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: (16 * scaleW).clamp(15, 18),
+                          color: Colors.white,
+                          height: 1.4,
+                        ),
+                        children: [
+                          const TextSpan(text: 'Your '),
+                          TextSpan(
+                            text: planName,
+                            style: TextStyle(
+                              color: _golden,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const TextSpan(text: ' plan is now active.'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: (8 * scaleH).clamp(4, 12)),
+                Center(
+                  child: Text(
+                    "Let's build strength together.",
+                    style: TextStyle(
+                      fontSize: (16 * scaleW).clamp(15, 18),
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(height: (16 * scaleH).clamp(12, 22)),
               // Congratulations image — full widget section (fills available width)
               Expanded(
@@ -128,7 +160,9 @@ class CongratulationsScreen extends StatelessWidget {
                     final h = constraints.maxHeight;
                     final side = (w < h ? w : h).clamp(220.0, 320.0);
                     return Image.asset(
-                      'assets/image/congratulations.png',
+                      _isFreeTrial
+                          ? 'assets/image/congratulations_2.png'
+                          : 'assets/image/congratulations_2.png',
                       width: side,
                       height: side,
                       fit: BoxFit.contain,
@@ -177,7 +211,7 @@ class CongratulationsScreen extends StatelessWidget {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _features
+                      children: (_isFreeTrial ? _featuresFreeTrial : _features)
                           .map(
                             (f) => Padding(
                               padding: const EdgeInsets.only(bottom: 14),
@@ -239,7 +273,7 @@ class _StartJourneyButton extends StatelessWidget {
     final height = (54 * scale).clamp(50.0, 58.0);
     final fontSize = (17 * scale).clamp(16.0, 18.0);
     return GestureDetector(
-      onTap: () => Get.offAll(() => const FitnessGoals()),
+      onTap: (){},
       child: Container(
         width: double.infinity,
         height: height,
