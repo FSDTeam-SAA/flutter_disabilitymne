@@ -1,3 +1,5 @@
+import 'package:disabilitymne/core/theme/app_colors.dart';
+import 'package:disabilitymne/features/home/presentation/home_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,8 +10,8 @@ class AppGround extends StatelessWidget {
   final AppGroundController controller =
       Get.put(AppGroundController(), permanent: true);
 
-  final List<Widget> pages = [
-    Scaffold(),
+  final List<Widget> pages = const [
+    HomeScreen(),
     Scaffold(),
     Scaffold(),
     Scaffold(),
@@ -74,10 +76,12 @@ class AppGround extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        icons[index],
+                        isSelected && index == 0
+                            ? Icons.home_rounded
+                            : icons[index],
                         size: 28,
                         color: isSelected
-                            ? Colors.white
+                            ? AppColors.gradientButtonEnd
                             : Colors.white70,
                       ),
                       const SizedBox(height: 4),
@@ -85,7 +89,7 @@ class AppGround extends StatelessWidget {
                         labels[index],
                         style: TextStyle(
                           color: isSelected
-                              ? Colors.white
+                              ? AppColors.gradientButtonEnd
                               : Colors.white70,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
