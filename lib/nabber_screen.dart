@@ -1,4 +1,5 @@
 import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/program_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -10,7 +11,7 @@ class AppGround extends StatelessWidget {
 
   final List<Widget> pages = [
     Scaffold(),
-    Scaffold(),
+    ProgramsScreen(),
     Scaffold(),
     Scaffold(),
     ProfileScreen(),

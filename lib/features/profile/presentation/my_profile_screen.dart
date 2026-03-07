@@ -37,7 +37,10 @@ class MyProfileScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Icon(Icons.edit_outlined, color: Colors.white),
+                    Image(
+                      image: AssetImage("assets/icon/user-edit.png"),
+                      width: 24,
+                    ),
                   ],
                 ),
 
@@ -47,25 +50,25 @@ class MyProfileScreen extends StatelessWidget {
                 Stack(
                   children: [
                     const CircleAvatar(
-                      radius: 60,
+                      radius: 80,
                       backgroundImage: NetworkImage(
                         "https://i.pravatar.cc/300",
                       ),
                     ),
 
                     Positioned(
-                      bottom: 0,
-                      right: 0,
+                      bottom: 8,
+                      right: 8,
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.blue,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(color: Colors.white, width: 3),
                         ),
-                        padding: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(2),
                         child: const Icon(
-                          Icons.edit,
-                          size: 16,
+                          Icons.photo_filter_sharp,
+                          size: 24,
                           color: Colors.white,
                         ),
                       ),
