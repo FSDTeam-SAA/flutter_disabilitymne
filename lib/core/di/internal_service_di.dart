@@ -10,9 +10,9 @@ import '../../app/app_manager.dart';
 void initServices() {
   Get.put<AppManager>(AppManager(), permanent: true);
 
-Get.lazyPut<AuthInterface>(() => AuthInterfaceImpl(Get.find()));
-  Get.lazyPut(() => SnackbarNotifier(context: Get.context!));
-  Get.lazyPut(() => LoginController(Get.find()));
-  Get.lazyPut(() => ProfileController());
+  Get.lazyPut<AuthInterface>(() => AuthInterfaceImpl(Get.find()));
+  Get.lazyPut(() => SnackbarNotifier(context: Get.context!), fenix: true);
+  Get.lazyPut(() => LoginController(Get.find()), fenix: true);
+  Get.lazyPut(() => ProfileController(), fenix: true);
   Get.put(SignupController(Get.find<AuthInterface>()));
 }

@@ -42,11 +42,7 @@ class ForgetPasswordController extends GetxController {
         },
       );
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }

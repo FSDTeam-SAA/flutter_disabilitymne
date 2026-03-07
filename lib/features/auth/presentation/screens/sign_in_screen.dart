@@ -16,19 +16,14 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  late final LoginController controller;
+  late LoginController controller;
 
   static const Color _darkBlue = Color(0xFF0D1B2A);
   static const Color _linkBlue = Color(0xFF89C9E6);
 
   @override
-  void initState() {
-    super.initState();
-    controller = Get.find<LoginController>();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    controller = Get.find<LoginController>();
     return Scaffold(
       backgroundColor: _darkBlue,
       body: SafeArea(
@@ -185,9 +180,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             : () {
                                 controller.login(
                                   onSuccess: () {
-                                    Get.offAll(
-                                      () => Scaffold(),
-                                    );
+                                    Get.offAll(() => Scaffold());
                                   },
                                   needVerifyAccount: () {
                                     Get.snackbar(

@@ -20,7 +20,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final controller = Get.find<ProfileController>();
+  late ProfileController controller;
 
   void showLogoutDialog({required VoidCallback onConfirm}) {
     Get.defaultDialog(
@@ -64,6 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    controller = Get.find<ProfileController>();
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BackgroundImage(
