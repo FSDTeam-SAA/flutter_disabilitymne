@@ -1,6 +1,7 @@
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/home/presentation/home_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/program_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -10,9 +11,9 @@ class AppGround extends StatelessWidget {
   final AppGroundController controller =
       Get.put(AppGroundController(), permanent: true);
 
-  final List<Widget> pages = const [
-    HomeScreen(),
+  final List<Widget> pages = [
     Scaffold(),
+    ProgramsScreen(),
     Scaffold(),
     Scaffold(),
     ProfileScreen(),

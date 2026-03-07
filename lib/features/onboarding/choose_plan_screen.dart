@@ -1,4 +1,5 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
+import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/onboarding/congratulations_screen.dart';
@@ -21,18 +22,19 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     return double.tryParse(cleaned) ?? 0;
   }
 
-  static const Color _darkBlue = Color(0xFF1A2B3A);
   static const Color _green = Color(0xFF34C759);
-  static const Color _greenFill = Color(0x3334C759); // 20% opacity
+  static const Color _greenFill = Color(0xFF204A47); // 20% opacity
   /// Monthly plan: #0088FF
   static const Color _monthlyBlue = Color(0xFF0088FF);
-  static const Color _monthlyBlueFill = Color(0x330088FF);
+  static const Color _monthlyBlueFill = Color(0xFF163D67);
+
   /// Six month plan: #FFCC00
   static const Color _sixMonthYellow = Color(0xFFFFCC00);
-  static const Color _sixMonthYellowFill = Color(0x33FFCC00);
+  static const Color _sixMonthYellowFill = Color(0xFF484731);
+
   /// Premium: #FF8D28
   static const Color _premiumOrange = Color(0xFFFF8D28);
-  static const Color _premiumOrangeFill = Color(0x33FF8D28);
+  static const Color _premiumOrangeFill = Color(0xFF5B402F);
 
   static const List<PlanItem> _plans = [
     PlanItem(
@@ -43,10 +45,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       accentColor: _green,
       accentFill: _greenFill,
       isPremium: false,
-      features: [
-        'Full Home Workout Program',
-        'Recipes',
-      ],
+      features: ['Full Home Workout Program', 'Recipes'],
     ),
     PlanItem(
       id: 'monthly',
@@ -98,105 +97,115 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   ];
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _darkBlue,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: GestureDetector(
-                onTap: () => Get.back(),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
+      backgroundColor: Colors.transparent,
+      body: BackgroundImage(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: GestureDetector(
+                  onTap: () => Get.back(),
+                  child: Row(
+                    children: [
+                      Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                      SizedBox(width: 4),
+                      Text(
+                        'Back',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        
+              /// SCROLLABLE CONTENT
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   children: [
-                    Icon(Icons.chevron_left, color: Color(0xFF4FC3F7), size: 28),
-                    SizedBox(width: 4),
-                    Text(
-                      'Back',
+                    const SizedBox(height: 16),
+        
+                    const Text(
+                      'Choose your plan',
                       style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
+        
+                    const SizedBox(height: 8),
+        
+                    Text(
+                      'Start your disability fitness journey',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+        
+                    const SizedBox(height: 24),
+        
+                    ...List.generate(_plans.length, (index) {
+                      final plan = _plans[index];
+                      final isSelected = _selectedIndex == index;
+        
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _PlanCard(
+                          plan: plan,
+                          isSelected: isSelected,
+                          onTap: () => setState(() => _selectedIndex = index),
+                        ),
+                      );
+                    }),
+        
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Choose your plan',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Start your disability fitness journey',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView(
+        
+              /// BUTTON (FIXED BOTTOM)
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  ...List.generate(_plans.length, (index) {
-                    final plan = _plans[index];
-                    final isSelected = _selectedIndex == index;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _PlanCard(
-                        plan: plan,
-                        isSelected: isSelected,
-                        onTap: () => setState(() => _selectedIndex = index),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: CustomButton(
-                onPressed: () {
-                  if (_selectedIndex == 0) {
-                    Get.to(() => const CongratulationsScreen(planName: 'Free Trial'));
-                  } else {
-                    final plan = _plans[_selectedIndex];
-                    final amount = _parseAmount(plan.price);
-                    final planName = plan.title
-                        .replaceFirst(' Plan', '')
-                        .replaceFirst(' plan', '');
-                    Get.to(() => SelectPaymentMethodScreen(
-                      amount: amount,
-                      planName: planName,
-                    ));
-                  }
-                },
-                text: _selectedIndex == 0
-                    ? 'Continue 7 days free Trial'
-                    : 'Continue to payment',
-              ),
-      )
+                child: CustomButton(
+                  onPressed: () {
+                    if (_selectedIndex == 0) {
+                      Get.to(
+                        () => const CongratulationsScreen(planName: 'Free Trial'),
+                      );
+                    } else {
+                      final plan = _plans[_selectedIndex];
+                      final amount = _parseAmount(plan.price);
+                      final planName = plan.title
+                          .replaceFirst(' Plan', '')
+                          .replaceFirst(' plan', '');
         
-       , SizedBox(height: 8.0),
+                      Get.to(
+                        () => SelectPaymentMethodScreen(
+                          amount: amount,
+                          planName: planName,
+                        ),
+                      );
+                    }
+                  },
+                  text: _selectedIndex == 0
+                      ? 'Continue 7 days free Trial'
+                      : 'Continue to payment',
+                ),
+              ),
         
-          ],
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
@@ -238,13 +247,9 @@ class _PlanCard extends StatelessWidget {
     required this.onTap,
   });
 
-  static const Color _cardBg = Color(0xFF2C3E50);
-
   @override
   Widget build(BuildContext context) {
-    final priceColor = isSelected && plan.mostPopular
-        ? Colors.white
-        : plan.accentColor;
+    final priceColor = plan.accentColor;
 
     return GestureDetector(
       onTap: onTap,
@@ -255,18 +260,21 @@ class _PlanCard extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
             decoration: BoxDecoration(
-              color: isSelected ? plan.accentFill : _cardBg,
+              color: isSelected
+                  ? plan.accentFill.withValues(alpha: 0.1)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? plan.accentColor : _cardBg.withValues(alpha: 0.6),
+                color: plan.accentColor,
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isSelected ? 0.25 : 0.15),
-                  blurRadius: isSelected ? 8 : 4,
-                  offset: Offset(0, isSelected ? 3 : 2),
-                ),
+                if (isSelected)
+                  BoxShadow(
+                    color: plan.accentColor.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
               ],
             ),
             child: Column(
@@ -283,7 +291,7 @@ class _PlanCard extends StatelessWidget {
                           Text(
                             plan.title,
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -292,7 +300,7 @@ class _PlanCard extends StatelessWidget {
                           Text(
                             plan.description,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 16,
                               color: Colors.white.withValues(alpha: 0.75),
                             ),
                           ),
@@ -302,7 +310,7 @@ class _PlanCard extends StatelessWidget {
                     Text(
                       plan.price,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: priceColor,
                       ),
@@ -310,30 +318,32 @@ class _PlanCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                ...plan.features.map((f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/image/check_icon.png',
-                            width: 18,
-                            height: 18,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              f,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white.withValues(alpha: 0.9),
-                              ),
+                ...plan.features.map(
+                  (f) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/image/check_icon.png',
+                          width: 18,
+                          height: 18,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            f,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
-                        ],
-                      ),
-                    )),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -342,16 +352,19 @@ class _PlanCard extends StatelessWidget {
               top: -8,
               right: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: plan.accentColor,
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFFF8D28),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
                   'Most popular',
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
