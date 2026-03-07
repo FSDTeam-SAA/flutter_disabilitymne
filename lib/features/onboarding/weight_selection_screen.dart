@@ -398,54 +398,6 @@ class _ValueDisplay extends StatelessWidget {
   }
 }
 
-class _PlusMinusButtons extends StatelessWidget {
-  final VoidCallback onMinus;
-  final VoidCallback onPlus;
-  final bool isDark;
-
-  const _PlusMinusButtons({required this.onMinus, required this.onPlus, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _RoundButton(icon: Icons.remove, onPressed: onMinus, isDark: isDark),
-        const SizedBox(width: 32),
-        _RoundButton(icon: Icons.add, onPressed: onPlus, isDark: isDark),
-      ],
-    );
-  }
-}
-
-class _RoundButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
-  final bool isDark;
-
-  const _RoundButton({required this.icon, required this.onPressed, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.white,
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onPressed();
-        },
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 56,
-          height: 56,
-          child: Icon(icon, color: isDark ? Colors.white : Colors.grey.shade800, size: 28),
-        ),
-      ),
-    );
-  }
-}
 
 /// Paints: bottom-half semicircle arc, optional fill to needle, major/minor ticks, curved labels, needle + pivot.
 class _SemicircularGaugePainter extends CustomPainter {
@@ -465,11 +417,7 @@ class _SemicircularGaugePainter extends CustomPainter {
 
   static const double _pi = math.pi;
 
-  /// Full-scale angle (used only for any full-scale logic).
-  double _valueToAngle(double kg) {
-    final t = (kg - minKg) / (maxKg - minKg);
-    return _pi * (1 - t);
-  }
+
 
   /// Arc: higher values left, lower right (swipe left = increase, swipe right = decrease).
   /// More spacing (π/10) so labels don’t overlap the center pill.
@@ -502,48 +450,20 @@ class _SemicircularGaugePainter extends CustomPainter {
     canvas.drawPath(arcPath, Paint()..color = arcColor..style = PaintingStyle.fill);
     canvas.drawPath(arcPath, Paint()..color = trackStroke..style = PaintingStyle.stroke..strokeWidth = 2);
 
-    // Optional: filled “progress” from left (min) to current value
-    // final fillPath = Path()
-    //   ..moveTo(cx - radius, cy)
-    //   ..arcTo(arcRect, _pi, -(valueKg - minKg) / (maxKg - minKg) * _pi, false)
-    //   ..lineTo(cx, cy)
-    //   ..close();
-    // final fillPaint = Paint()
-    //   ..shader = LinearGradient(
-    //     begin: Alignment.centerLeft,
-    //     end: Alignment.centerRight,
-    //     colors: [arcColor.withValues(alpha: 0.5), arcColor],
-    //   ).createShader(Rect.fromLTWH(0, 0, w, h))
-    //   ..style = PaintingStyle.fill;
-    // canvas.drawPath(fillPath, fillPaint);
 
     // Major (every 5) and minor (every 1) ticks
-    final majorPaint = Paint()
+Paint()
       ..color = trackStroke
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
-    final minorPaint = Paint()
+   Paint()
       ..color = trackStroke.withValues(alpha: 0.7)
       ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round;
 
-    final tickLengthMajor = 12.0;
-    final tickLengthMinor = 6.0;
+
     final labelRadius = radius + 48;
 
-    // for (double kg = minKg; kg <= maxKg; kg += 1) {
-    //   final angle = _valueToAngle(kg);
-    //   final cos = math.cos(angle);
-    //   final sin = math.sin(angle);
-    //   final isMajor = (kg - minKg).abs() % 5 < 0.5;
-    //   final len = isMajor ? tickLengthMajor : tickLengthMinor;
-    //   final paint = isMajor ? majorPaint : minorPaint;
-    //   canvas.drawLine(
-    //     Offset(cx + (radius - len) * cos, cy - (radius - len) * sin),
-    //     Offset(cx + radius * cos, cy - radius * sin),
-    //     paint,
-    //   );
-    // }
 
     // Labels along a proper circular arc (same radius) so they don’t stack — like reference
     final textStyle = TextStyle(
