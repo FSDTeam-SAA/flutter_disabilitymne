@@ -1,9 +1,9 @@
+import 'package:disabilitymne/features/onboarding/weight_selection_screen.dart';
 import 'package:disabilitymne/features/onboarding/widget/custom_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 
-import 'fitness_goals_screen.dart';
 
 /// Step 2 of 8: How Old Are You? — age slider 13–90, matches design.
 class AgeSelectionScreen extends StatefulWidget {
@@ -142,7 +142,10 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
               padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
               child: CustomButton(
                 onPressed: (){
-                  Get.to(FitnessGoals());
+                  // Get.to(FitnessGoals());
+
+                                Get.to( GoalWeightScreen());
+
                 },
                 text: 'Continue',
               ),

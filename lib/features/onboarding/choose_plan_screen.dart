@@ -1,7 +1,7 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:disabilitymne/features/onboarding/fitness_goals_screen.dart';
+import 'package:disabilitymne/features/onboarding/congratulations_screen.dart';
 import 'package:disabilitymne/features/onboarding/select_payment_method_screen.dart';
 
 /// Payment package selection: Free Trial, Monthly, Six Month, Premium.
@@ -170,27 +170,31 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               ),
             ),
 
-      CustomButton(
-              onPressed: () {
-                if (_selectedIndex == 0) {
-                  Get.to(() => const FitnessGoals());
-                } else {
-                  final plan = _plans[_selectedIndex];
-                  final amount = _parseAmount(plan.price);
-                  final planName = plan.title
-                      .replaceFirst(' Plan', '')
-                      .replaceFirst(' plan', '');
-                  Get.to(() => SelectPaymentMethodScreen(
-                    amount: amount,
-                    planName: planName,
-                  ));
-                }
-              },
-              text: _selectedIndex == 0
-                  ? 'Continue 7 days free Trial'
-                  : 'Continue to payment',
-            )
-          
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: CustomButton(
+                onPressed: () {
+                  if (_selectedIndex == 0) {
+                    Get.to(() => const CongratulationsScreen(planName: 'Free Trial'));
+                  } else {
+                    final plan = _plans[_selectedIndex];
+                    final amount = _parseAmount(plan.price);
+                    final planName = plan.title
+                        .replaceFirst(' Plan', '')
+                        .replaceFirst(' plan', '');
+                    Get.to(() => SelectPaymentMethodScreen(
+                      amount: amount,
+                      planName: planName,
+                    ));
+                  }
+                },
+                text: _selectedIndex == 0
+                    ? 'Continue 7 days free Trial'
+                    : 'Continue to payment',
+              ),
+      )
+        
+       , SizedBox(height: 8.0),
         
           ],
         ),
