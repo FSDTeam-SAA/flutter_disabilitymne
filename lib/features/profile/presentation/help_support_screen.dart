@@ -1,3 +1,4 @@
+import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -24,7 +25,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF152033),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -41,44 +42,46 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildLabel("User Email"),
-            const SizedBox(height: 8),
-            _buildTextField(
-              controller: _emailController,
-              hint: "Enter your Email",
-              icon: Icons.person_outline,
-            ),
-            const SizedBox(height: 20),
-            _buildLabel("Subject"),
-            const SizedBox(height: 8),
-            _buildTextField(
-              controller: _subjectController,
-              hint: "Problem Heading",
-            ),
-            const SizedBox(height: 20),
-            _buildLabel("Description"),
-            const SizedBox(height: 8),
-            _buildTextField(
-              controller: _descriptionController,
-              hint: "Description",
-              maxLines: 5,
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                "${_descriptionController.text.length}/300",
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+      body: BackgroundImage(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLabel("User Email"),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _emailController,
+                hint: "Enter your Email",
+                icon: Icons.person_outline,
               ),
-            ),
-            const SizedBox(height: 40),
-            _buildSubmitButton(),
-          ],
+              const SizedBox(height: 20),
+              _buildLabel("Subject"),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _subjectController,
+                hint: "Problem Heading",
+              ),
+              const SizedBox(height: 20),
+              _buildLabel("Description"),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _descriptionController,
+                hint: "Description",
+                maxLines: 5,
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "${_descriptionController.text.length}/300",
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+              ),
+              const SizedBox(height: 40),
+              _buildSubmitButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -103,9 +106,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF223148).withOpacity(0.5),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF4B7FA8)),
+        border: Border.all(color: Color(0xFF575757)),
       ),
       child: TextField(
         controller: controller,

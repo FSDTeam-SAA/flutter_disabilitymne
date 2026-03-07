@@ -1,29 +1,20 @@
+import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/profile/controller/change_password_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class ChangePasswordScreen extends StatelessWidget {
   ChangePasswordScreen({super.key});
 
-  final ChangePasswordController controller =
-      Get.put(ChangePasswordController());
+  final ChangePasswordController controller = Get.put(
+    ChangePasswordController(),
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF1C2B4A),
-              Color(0xFF0B132B),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+      backgroundColor: Colors.transparent,
+      body: BackgroundImage(
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -97,10 +88,7 @@ class ChangePasswordScreen extends StatelessWidget {
                       child: Ink(
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF8EC5FC),
-                              Color(0xFF3F8CFF),
-                            ],
+                            colors: [Color(0xFF8EC5FC), Color(0xFF3F8CFF)],
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -141,15 +129,17 @@ class ChangePasswordScreen extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.white54),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.white38),
+          borderSide: const BorderSide(color: Color(0xFF97BBD3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.white70),
+          borderSide: const BorderSide(color: Color(0xFF97BBD3)),
         ),
       ),
     );

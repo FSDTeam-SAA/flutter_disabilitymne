@@ -1,3 +1,4 @@
+import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -16,7 +17,7 @@ class _LanguageAccessibilityScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF152033),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -33,25 +34,27 @@ class _LanguageAccessibilityScreenState
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildLanguageCard(
-              title: "English",
-              subtitle: "Continue in English",
-              flag:
-                  "🇬🇧", // Using emoji as placeholder for now, can be replaced with image
-              value: "English",
-            ),
-            const SizedBox(height: 12),
-            _buildLanguageCard(
-              title: "Serbian",
-              subtitle: "Continue in Serbian",
-              flag: "🇷🇸",
-              value: "Serbian",
-            ),
-          ],
+      body: BackgroundImage(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              _buildLanguageCard(
+                title: "English",
+                subtitle: "Continue in English",
+                flag:
+                    "🇬🇧", // Using emoji as placeholder for now, can be replaced with image
+                value: "English",
+              ),
+              const SizedBox(height: 12),
+              _buildLanguageCard(
+                title: "Serbian",
+                subtitle: "Continue in Serbian",
+                flag: "🇷🇸",
+                value: "Serbian",
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -75,10 +78,10 @@ class _LanguageAccessibilityScreenState
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Colors.blue : const Color(0xFF4B7FA8),
+            color: isSelected ? Color(0xFF97BBD3) : const Color(0xFF4B7FA8),
             width: isSelected ? 2 : 1,
           ),
-          color: const Color(0xFF152033),
+          color: Colors.transparent,
         ),
         child: Row(
           children: [

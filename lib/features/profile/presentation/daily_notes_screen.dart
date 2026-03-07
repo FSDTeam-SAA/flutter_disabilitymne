@@ -1,3 +1,4 @@
+import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -47,7 +48,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
               .toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF152033),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -64,19 +65,21 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          _buildCategoryFilter(),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: filteredNotes.length,
-              itemBuilder: (context, index) {
-                return _buildNoteCard(filteredNotes[index]);
-              },
+      body: BackgroundImage(
+        child: Column(
+          children: [
+            _buildCategoryFilter(),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: filteredNotes.length,
+                itemBuilder: (context, index) {
+                  return _buildNoteCard(filteredNotes[index]);
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -128,7 +131,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF223148).withOpacity(0.5),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF4B7FA8)),
       ),

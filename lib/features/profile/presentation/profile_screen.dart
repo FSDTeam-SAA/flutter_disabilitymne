@@ -1,3 +1,4 @@
+import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
@@ -64,194 +65,199 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF152033),
-      body: SizedBox(
-        width: double.infinity,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
+      backgroundColor: Colors.transparent,
+      body: BackgroundImage(
+        child: SizedBox(
+          width: double.infinity,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
 
-                /// Header
-                Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 24,
-                      backgroundImage: NetworkImage(
-                        "https://i.pravatar.cc/300",
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          "Welcome Evan 👋",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          "Good morning!",
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                /// Progress Cards
-                Row(
-                  children: const [
-                    Expanded(
-                      child: _StatCard(
-                        title: "Streak",
-                        value: "7",
-                        icon: Icons.local_fire_department_outlined,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: _StatCard(
-                        title: "Workouts",
-                        value: "9",
-                        icon: Icons.fitness_center,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: _StatCard(
-                        title: "Calories",
-                        value: "0%",
-                        icon: Icons.local_fire_department,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                /// Settings List
-                Expanded(
-                  child: ListView(
+                  /// Header
+                  Row(
                     children: [
-                      _SettingsTile(
-                        icon: Icons.person_outline,
-                        title: "My Profile",
-                        subtitle: "View personal details",
-                        onTap: () {
-                          Get.to(() => MyProfileScreen());
-                        },
+                      const CircleAvatar(
+                        radius: 24,
+                        backgroundImage: NetworkImage(
+                          "https://i.pravatar.cc/300",
+                        ),
                       ),
-                      _SettingsTile(
-                        icon: Icons.lock_outline,
-                        title: "Change Password",
-                        subtitle: "Update your password",
-                        onTap: () {
-                          Get.to(() => ChangePasswordScreen());
-                        },
-                      ),
-                      _SettingsTile(
-                        icon: Icons.note_outlined,
-                        title: "Daily Notes",
-                        subtitle: "View Notes you have added daily",
-                        onTap: () {
-                          Get.to(() => const DailyNotesScreen());
-                        },
-                      ),
-                      _SettingsTile(
-                        icon: Icons.workspace_premium_outlined,
-                        title: "Subscription & Billing",
-                        subtitle: "Manage your plan",
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.language,
-                        title: "Language & Accessibility",
-                        subtitle: "English/Serbian",
-                        onTap: () {
-                          Get.to(() => const LanguageAccessibilityScreen());
-                        },
-                      ),
-                      _SettingsTile(
-                        icon: Icons.notifications_none,
-                        title: "Notification Settings",
-                        subtitle: "Manage alerts",
-                        onTap: () {
-                          Get.to(() => const NotificationScreen());
-                        },
-                      ),
-                      _SettingsTile(
-                        icon: Icons.support_agent_outlined,
-                        title: "Help & Support",
-                        subtitle: "FAQs and contact",
-                        onTap: () {
-                          Get.to(() => const HelpSupportScreen());
-                        },
-                      ),
-                      _SettingsTile(
-                        icon: Icons.privacy_tip_outlined,
-                        title: "Privacy & Legal",
-                        subtitle: "Privacy policy & data",
-                        onTap: () {
-                          Get.to(() => const PrivacyLegalScreen());
-                        },
-                      ),
-                      _SettingsTile(
-                        icon: Icons.description_outlined,
-                        title: "Terms of Service",
-                        subtitle: "App usage terms and conditions",
-                        onTap: () {
-                          Get.to(() => const TermsConditionScreen());
-                        },
-                      ),
-                      _SettingsTile(
-                        icon: Icons.lock_outline,
-                        title: "Privacy & Security",
-                        subtitle: "View personal details",
-                        onTap: () {},
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      /// Sign Out
-                      Center(
-                        child: TextButton.icon(
-                          onPressed: () {
-                            showLogoutDialog(
-                              onConfirm: () {
-                                Get.find<AuthInterface>().logout();
-                              },
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.logout,
-                            size: 24,
-                            color: Colors.red,
-                          ),
-                          label: const Text(
-                            "Sign Out",
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Welcome Evan 👋",
                             style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            "Good morning!",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  /// Progress Cards
+                  Row(
+                    children: const [
+                      Expanded(
+                        child: _StatCard(
+                          title: "Streak",
+                          value: "7",
+                          icon: Icons.local_fire_department_outlined,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: _StatCard(
+                          title: "Workouts",
+                          value: "9",
+                          icon: Icons.fitness_center,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: _StatCard(
+                          title: "Calories",
+                          value: "0%",
+                          icon: Icons.local_fire_department,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  /// Settings List
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        _SettingsTile(
+                          icon: Icons.person_outline,
+                          title: "My Profile",
+                          subtitle: "View personal details",
+                          onTap: () {
+                            Get.to(() => MyProfileScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.lock_outline,
+                          title: "Change Password",
+                          subtitle: "Update your password",
+                          onTap: () {
+                            Get.to(() => ChangePasswordScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.note_outlined,
+                          title: "Daily Notes",
+                          subtitle: "View Notes you have added daily",
+                          onTap: () {
+                            Get.to(() => const DailyNotesScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.workspace_premium_outlined,
+                          title: "Subscription & Billing",
+                          subtitle: "Manage your plan",
+                          onTap: () {},
+                        ),
+                        _SettingsTile(
+                          icon: Icons.language,
+                          title: "Language & Accessibility",
+                          subtitle: "English/Serbian",
+                          onTap: () {
+                            Get.to(() => const LanguageAccessibilityScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.notifications_none,
+                          title: "Notification Settings",
+                          subtitle: "Manage alerts",
+                          onTap: () {
+                            Get.to(() => const NotificationScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.support_agent_outlined,
+                          title: "Help & Support",
+                          subtitle: "FAQs and contact",
+                          onTap: () {
+                            Get.to(() => const HelpSupportScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.privacy_tip_outlined,
+                          title: "Privacy & Legal",
+                          subtitle: "Privacy policy & data",
+                          onTap: () {
+                            Get.to(() => const PrivacyLegalScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.description_outlined,
+                          title: "Terms of Service",
+                          subtitle: "App usage terms and conditions",
+                          onTap: () {
+                            Get.to(() => const TermsConditionScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.lock_outline,
+                          title: "Privacy & Security",
+                          subtitle: "View personal details",
+                          onTap: () {},
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        /// Sign Out
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: () {
+                              showLogoutDialog(
+                                onConfirm: () {
+                                  Get.find<AuthInterface>().logout();
+                                },
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.logout,
+                              size: 24,
                               color: Colors.red,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
+                            ),
+                            label: const Text(
+                              "Sign Out",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 20),
-                    ],
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -1,3 +1,4 @@
+import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -7,10 +8,8 @@ class MyProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        color: Color(0xFF18243A),
-        
+      backgroundColor: Colors.transparent,
+      body: BackgroundImage(
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -70,7 +69,7 @@ class MyProfileScreen extends StatelessWidget {
                           color: Colors.white,
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
 
@@ -127,10 +126,7 @@ class MyProfileScreen extends StatelessWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF7FA9C9),
-                        Color(0xFF4E79A7),
-                      ],
+                      colors: [Color(0xFF7FA9C9), Color(0xFF4E79A7)],
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -160,11 +156,7 @@ class ProfileField extends StatelessWidget {
   final String label;
   final String value;
 
-  const ProfileField({
-    super.key,
-    required this.label,
-    required this.value,
-  });
+  const ProfileField({super.key, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
