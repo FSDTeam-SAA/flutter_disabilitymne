@@ -1,8 +1,6 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
-import 'package:disabilitymne/features/onboarding/payment_details_screen.dart';
-import 'package:disabilitymne/features/onboarding/select_payment_method_screen.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/daily_notes_screen.dart';

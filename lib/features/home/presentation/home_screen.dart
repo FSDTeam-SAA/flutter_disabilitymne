@@ -1,4 +1,5 @@
 import 'package:disabilitymne/core/theme/app_colors.dart';
+import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/daily_tracker/presentation/daily_tracker_screen.dart';
 import 'package:disabilitymne/features/progress/presentation/progress_screen.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const Color _cardBlue = Color(0xFF1A233A);
-  static const Color _screenBg = Color(0xFF0B1A2A);
   static const Color _accentLightBlue = Color(0xFF89C9E6);
   static const Color _seeAllBlue = Color(0xFF85C4E2);
   /// Selected tab background color (#4B7FA8); icon and text stay white
@@ -29,20 +29,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _screenBg,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            _buildAppBar(),
-            SliverToBoxAdapter(child: _buildHeroCard()),
-            SliverToBoxAdapter(child: _buildSectionSpacer()),
-            _buildMyProgramsSection(),
-            SliverToBoxAdapter(child: _buildSectionSpacer()),
-            _buildMyRecipesSection(),
-            SliverToBoxAdapter(child: _buildSectionSpacer()),
-            _buildQuickActionSection(),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          ],
+      backgroundColor: Colors.transparent,
+      body: BackgroundImage(
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              _buildAppBar(),
+              SliverToBoxAdapter(child: _buildHeroCard()),
+              SliverToBoxAdapter(child: _buildSectionSpacer()),
+              _buildMyProgramsSection(),
+              SliverToBoxAdapter(child: _buildSectionSpacer()),
+              _buildMyRecipesSection(),
+              SliverToBoxAdapter(child: _buildSectionSpacer()),
+              _buildQuickActionSection(),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            ],
+          ),
         ),
       ),
     );
