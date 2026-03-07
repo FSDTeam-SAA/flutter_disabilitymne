@@ -16,6 +16,8 @@ void main() {
   externalServiceDI();
   initServices();
   runApp(const MyApp());
+
+  // new commite
 }
 
 class MyApp extends StatefulWidget {
