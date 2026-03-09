@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:chewie/chewie.dart';
 import '../../../../core/theme/text_style.dart';
 import '../../controller/exercise_detail_controller.dart';
 
@@ -57,44 +58,70 @@ class ExerciseDetailScreen extends StatelessWidget {
                   horizontal: 20,
                   vertical: 10,
                 ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        model.demoVideos?.first ?? '',
-                        height: 220,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
+                child: Obx(() {
+                  if (controller.isPlayingVideo.value &&
+                      controller.isVideoInitialized.value &&
+                      controller.chewieController != null) {
+                    return Container(
+                      height: 220,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.black,
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Chewie(controller: controller.chewieController!),
+                    );
+                  }
+
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.network(
+                          model.demoVideos?.isNotEmpty == true
+                              ? model.demoVideos!.first
+                              : (model.exerciseImage ?? ''),
                           height: 220,
                           width: double.infinity,
-                          color: Colors.white10,
-                          child: const Icon(
-                            Icons.image,
-                            color: Colors.white24,
-                            size: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                height: 220,
+                                width: double.infinity,
+                                color: Colors.white10,
+                                child: const Icon(
+                                  Icons.image,
+                                  color: Colors.white24,
+                                  size: 50,
+                                ),
+                              ),
+                        ),
+                      ),
+                      if ((model.demoVideo != null &&
+                              model.demoVideo!.isNotEmpty) ||
+                          (model.demoVideos != null &&
+                              model.demoVideos!.isNotEmpty))
+                        GestureDetector(
+                          onTap: () => controller.playVideo(),
+                          child: Container(
+                            height: 56,
+                            width: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow,
+                              size: 32,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    if (model.demoVideo != null && model.demoVideo!.isNotEmpty)
-                      Container(
-                        height: 56,
-                        width: 56,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.play_arrow,
-                          size: 32,
-                          color: Colors.black,
-                        ),
-                      ),
-                  ],
-                ),
+                    ],
+                  );
+                }),
               ),
 
               const SizedBox(height: 10),
