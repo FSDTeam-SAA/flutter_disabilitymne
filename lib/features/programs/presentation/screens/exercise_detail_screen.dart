@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:chewie/chewie.dart';
 import '../../../../core/theme/text_style.dart';
 import '../../controller/exercise_detail_controller.dart';
+import '../../services/program_interface.dart';
 
 class ExerciseDetailScreen extends StatelessWidget {
   final String id;
@@ -12,7 +13,10 @@ class ExerciseDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(
-      ExerciseDetailController(programInterface: Get.find(), exerciseId: id),
+      ExerciseDetailController(
+        programInterface: Get.find<ProgramInterface>(),
+        exerciseId: id,
+      ),
       tag: id,
     );
 

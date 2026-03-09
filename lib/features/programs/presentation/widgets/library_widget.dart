@@ -3,11 +3,14 @@ import 'package:disabilitymne/features/programs/model/library_model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../services/program_interface.dart';
 
 class LibraryWidget extends StatelessWidget {
   LibraryWidget({super.key});
 
-  final controller = Get.put(LibraryController(programInterface: Get.find()));
+  final controller = Get.put(
+    LibraryController(programInterface: Get.find<ProgramInterface>()),
+  );
 
   @override
   Widget build(BuildContext context) {

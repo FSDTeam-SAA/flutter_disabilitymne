@@ -2,12 +2,13 @@ import 'package:disabilitymne/features/programs/controller/explore_program%20con
 import 'package:disabilitymne/features/programs/presentation/screens/program_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../services/program_interface.dart';
 
 class ExploreWidget extends StatelessWidget {
   ExploreWidget({super.key});
 
   final controller = Get.put(
-    ProgramController(programInterface: Get.find()),
+    ProgramController(programInterface: Get.find<ProgramInterface>()),
   );
 
   @override
@@ -52,18 +53,12 @@ class ExploreWidget extends StatelessWidget {
   }
 }
 
-
 class ProgramCard extends StatelessWidget {
   final String? title;
   final String? image;
   final VoidCallback? onTap;
 
-  const ProgramCard({
-    super.key,
-    this.title,
-    this.image,
-    this.onTap,
-  });
+  const ProgramCard({super.key, this.title, this.image, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -75,8 +70,7 @@ class ProgramCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           image: DecorationImage(
             image: NetworkImage(
-              image ??
-                  "https://via.placeholder.com/400x200.png?text=Program",
+              image ?? "https://via.placeholder.com/400x200.png?text=Program",
             ),
             fit: BoxFit.cover,
           ),
