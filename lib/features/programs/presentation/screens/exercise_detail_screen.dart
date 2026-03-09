@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:chewie/chewie.dart';
 import '../../../../core/theme/text_style.dart';
 import '../../controller/exercise_detail_controller.dart';
-import '../../services/program_interface.dart';
 
 class ExerciseDetailScreen extends StatelessWidget {
   final String id;
@@ -13,10 +12,7 @@ class ExerciseDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(
-      ExerciseDetailController(
-        programInterface: Get.find<ProgramInterface>(),
-        exerciseId: id,
-      ),
+      ExerciseDetailController(programInterface: Get.find(), exerciseId: id),
       tag: id,
     );
 
@@ -78,14 +74,21 @@ class ExerciseDetailScreen extends StatelessWidget {
                     );
                   }
 
+                  // Show Image with Play Button
+                  final videoUrl =
+                      model.demoVideo ??
+                      (model.demoVideos?.isNotEmpty == true
+                          ? model.demoVideos!.first
+                          : '');
+
                   return Stack(
                     alignment: Alignment.center,
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Image.network(
-                          model.demoVideos?.isNotEmpty == true
-                              ? model.demoVideos!.first
+                          videoUrl.isNotEmpty
+                              ? videoUrl
                               : (model.exerciseImage ?? ''),
                           height: 220,
                           width: double.infinity,
@@ -103,10 +106,7 @@ class ExerciseDetailScreen extends StatelessWidget {
                               ),
                         ),
                       ),
-                      if ((model.demoVideo != null &&
-                              model.demoVideo!.isNotEmpty) ||
-                          (model.demoVideos != null &&
-                              model.demoVideos!.isNotEmpty))
+                      if (videoUrl.isNotEmpty)
                         GestureDetector(
                           onTap: () => controller.playVideo(),
                           child: Container(
@@ -196,7 +196,7 @@ class ExerciseDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              /// Target Muscle Groups (as Chips)
+              /// Target Muscle Groups (Chips)
               if (model.muscleGroups != null && model.muscleGroups!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -253,9 +253,9 @@ class ExerciseDetailScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      ...model.keyBenefits!
-                          .map((benefit) => _buildBenefitItem(benefit))
-                          .toList(),
+                      ...model.keyBenefits!.map(
+                        (benefit) => _buildBenefitItem(benefit),
+                      ),
                     ],
                   ),
                 ),

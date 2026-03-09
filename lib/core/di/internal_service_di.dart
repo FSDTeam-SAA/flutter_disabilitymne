@@ -28,6 +28,5 @@ void initServices() {
   Get.put(SignupController(Get.find<AuthInterface>()));
   Get.lazyPut<ProgramInterface>(
     () => ProgramInterfaceImpl(appPigeon: Get.find()),
-    fenix: true,
   );
 }
