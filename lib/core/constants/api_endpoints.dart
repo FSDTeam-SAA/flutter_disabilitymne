@@ -36,15 +36,11 @@ base class ApiEndpoints {
 
   // ---------------------- USER -----------------------------
   /// ### get
-  static String getuserbyId(String id) => _User.getuserbyId(id);
+  static String getProfile = _User.getProfile;
   static String updateProfile = _User.updateProfile;
   static String changePassword = _User.changePassword;
 
-  // ---------------------- Products -----------------------------
-  static const String getAllProducts = _Product.getAllProducts;
 
-  //-------------------------Category --------------------------
-  static const String getAllCategories = _Category.getAllCategories;
 
   //-------------------------cart --------------------------
   static const String addToCart = _Cart.addToCart;
@@ -137,23 +133,12 @@ class _Notification {
 
 // ---------------------- USER -----------------------------
 class _User {
-  static const String _userRoute = '${ApiEndpoints.baseUrl}/user';
-  static String getuserbyId(String id) => '$_userRoute/profile';
+  static const String _userRoute = '${ApiEndpoints.baseUrl}/users';
+  static String getProfile = '$_userRoute/me';
   static String updateProfile = '$_userRoute/profile';
   static String changePassword = '$_userRoute/password';
 }
 
-// ---------------------- Products -----------------------------
-class _Product {
-  static const String _productRoute = '${ApiEndpoints.baseUrl}/product';
-  static const String getAllProducts = _productRoute;
-}
-
-//---------------------- Category -----------------------------
-class _Category {
-  static const String _categoryRoute = '${ApiEndpoints.baseUrl}/category';
-  static const String getAllCategories = '$_categoryRoute/tree/all';
-}
 
 //---------------------- Cart -----------------------------
 class _Cart {

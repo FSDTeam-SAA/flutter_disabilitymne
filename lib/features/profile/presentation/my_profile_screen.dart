@@ -80,7 +80,16 @@ class MyProfileScreen extends GetView<ProfileController> {
                               ? FileImage(
                                   File(controller.pickedImagePath.value!),
                                 )
-                              : const NetworkImage("https://i.pravatar.cc/300")
+                              : (controller.user.value?.profileImage != null &&
+                                    controller
+                                        .user
+                                        .value!
+                                        .profileImage!
+                                        .isNotEmpty)
+                              ? NetworkImage(
+                                  controller.user.value!.profileImage!,
+                                )
+                              : const AssetImage("assets/images/profile.png")
                                     as ImageProvider,
                         ),
                       ),
@@ -114,31 +123,6 @@ class MyProfileScreen extends GetView<ProfileController> {
                 ),
 
                 const SizedBox(height: 10),
-
-                /// Upload Photo Button (Visible only in edit mode)
-                // Obx(
-                //   () => controller.isEditing.value
-                //       ? TextButton.icon(
-                //           onPressed: () => _showImageSourceBottomSheet(context),
-                //           icon: const Icon(
-                //             Icons.cloud_upload_outlined,
-                //             color: Colors.blue,
-                //           ),
-                //           label: const Text(
-                //             "Upload Photo",
-                //             style: TextStyle(
-                //               color: Colors.blue,
-                //               fontSize: 14,
-                //               fontWeight: FontWeight.w600,
-                //             ),
-                //           ),
-                //         )
-                //       : const SizedBox.shrink(),
-                // ),
-
-                const SizedBox(height: 10),
-
-                /// Personal Info
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -154,68 +138,58 @@ class MyProfileScreen extends GetView<ProfileController> {
                 const SizedBox(height: 10),
 
                 Expanded(
-                  child: ListView(
-                    children: [
-                      Obx(
-                        () => ProfileField(
+                  child: Obx(() {
+                    if (controller.isLoading.value) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      );
+                    }
+                    return ListView(
+                      children: [
+                        ProfileField(
                           label: "Name",
                           controller: controller.nameController,
                           enabled: controller.isEditing.value,
                         ),
-                      ),
-                      Obx(
-                        () => ProfileField(
+                        ProfileField(
                           label: "Gender",
                           controller: controller.genderController,
                           enabled: controller.isEditing.value,
                         ),
-                      ),
-                      Obx(
-                        () => ProfileField(
+                        ProfileField(
                           label: "Age",
                           controller: controller.ageController,
                           enabled: controller.isEditing.value,
                         ),
-                      ),
-                      Obx(
-                        () => ProfileField(
+                        ProfileField(
                           label: "Height",
                           controller: controller.heightController,
                           enabled: controller.isEditing.value,
                         ),
-                      ),
-                      Obx(
-                        () => ProfileField(
+                        ProfileField(
                           label: "Weight",
                           controller: controller.weightController,
                           enabled: controller.isEditing.value,
                         ),
-                      ),
-                      Obx(
-                        () => ProfileField(
+                        ProfileField(
                           label: "Your Fitness Goals",
                           controller: controller.fitnessGoalsController,
                           enabled: controller.isEditing.value,
                         ),
-                      ),
-                      Obx(
-                        () => ProfileField(
+                        ProfileField(
                           label: "Your mobility type",
                           controller: controller.mobilityTypeController,
                           enabled: controller.isEditing.value,
                         ),
-                      ),
-                      Obx(
-                        () => ProfileField(
+                        ProfileField(
                           label: "Fitness experience",
                           controller: controller.fitnessExperienceController,
                           enabled: controller.isEditing.value,
                         ),
-                      ),
-
-                      const SizedBox(height: 20),
-                    ],
-                  ),
+                        const SizedBox(height: 20),
+                      ],
+                    );
+                  }),
                 ),
 
                 /// Save Button
