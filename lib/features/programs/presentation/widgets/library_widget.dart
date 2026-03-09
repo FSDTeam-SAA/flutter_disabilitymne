@@ -1,14 +1,19 @@
+import 'package:disabilitymne/features/programs/controller/library_controller.dart';
+import 'package:disabilitymne/features/programs/model/library_model.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/exercise_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../screens/exercise_detail_screen.dart';
 
 class LibraryWidget extends StatelessWidget {
-  const LibraryWidget({super.key});
+  LibraryWidget({super.key});
+
+  final controller = Get.put(LibraryController(programInterface: Get.find()));
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        /// Search
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Container(
@@ -17,9 +22,10 @@ class LibraryWidget extends StatelessWidget {
               color: Colors.white.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const TextField(
-              style: TextStyle(color: Colors.white),
-              decoration: InputDecoration(
+            child: TextField(
+              style: const TextStyle(color: Colors.white),
+              onChanged: controller.searchExercise,
+              decoration: const InputDecoration(
                 hintText: "Search Exercises...",
                 hintStyle: TextStyle(color: Colors.white54),
                 prefixIcon: Icon(Icons.search, color: Colors.white70),
@@ -31,61 +37,32 @@ class LibraryWidget extends StatelessWidget {
 
         const SizedBox(height: 20),
 
-        /// Exercise List
+        /// List
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            children: const [
-              ExerciseCard(
-                title: "Chest Press Machines",
-                subtitle: "Chest • Gym machines",
-              ),
+          child: Obx(() {
+            if (controller.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              ExerciseCard(
-                title: "Banded Bicep Curl",
-                subtitle: "Arms • Resistance Bands",
-              ),
+            if (controller.filteredList.isEmpty) {
+              return const Center(
+                child: Text(
+                  "No Exercise Found",
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
 
-              ExerciseCard(
-                title: "Seated Hip Abductors",
-                subtitle: "Arms • Resistance Bands",
-              ),
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: controller.filteredList.length,
+              itemBuilder: (context, index) {
+                final exercise = controller.filteredList[index];
 
-              ExerciseCard(
-                title: "Leg Extension Machine",
-                subtitle: "Legs • Gym machines",
-              ),
-
-              ExerciseCard(
-                title: "Banded Kneeling Poirj...",
-                subtitle: "Chest • Resistance Bands",
-              ),
-              ExerciseCard(
-                title: "Chest Press Machines",
-                subtitle: "Chest • Gym machines",
-              ),
-
-              ExerciseCard(
-                title: "Banded Bicep Curl",
-                subtitle: "Arms • Resistance Bands",
-              ),
-
-              ExerciseCard(
-                title: "Seated Hip Abductors",
-                subtitle: "Arms • Resistance Bands",
-              ),
-
-              ExerciseCard(
-                title: "Leg Extension Machine",
-                subtitle: "Legs • Gym machines",
-              ),
-
-              ExerciseCard(
-                title: "Banded Kneeling Poirj...",
-                subtitle: "Chest • Resistance Bands",
-              ),
-            ],
-          ),
+                return ExerciseCard(model: exercise);
+              },
+            );
+          }),
         ),
       ],
     );
@@ -93,16 +70,15 @@ class LibraryWidget extends StatelessWidget {
 }
 
 class ExerciseCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
+  final LibraryModel model;
 
-  const ExerciseCard({super.key, required this.title, required this.subtitle});
+  const ExerciseCard({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => ExerciseDetailScreen(title: title, subtitle: subtitle));
+        Get.to(() => ExerciseDetailScreen(id: model.id ?? ''));
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -116,19 +92,21 @@ class ExerciseCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            /// Thumbnail
+            /// Image
             Stack(
               alignment: Alignment.center,
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
-                    "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b",
+                    model.exerciseImage ??
+                        "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b",
                     height: 70,
                     width: 70,
                     fit: BoxFit.cover,
                   ),
                 ),
+
                 Container(
                   height: 28,
                   width: 28,
@@ -153,7 +131,7 @@ class ExerciseCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    model.exerciseName ?? "",
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -162,7 +140,7 @@ class ExerciseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    subtitle,
+                    "${model.muscleGroups?.first ?? ""} • ${model.plan ?? ""}",
                     style: const TextStyle(color: Colors.white60, fontSize: 13),
                   ),
                 ],

@@ -181,8 +181,6 @@ class ProgramDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-
-          /// Start Workout Button
           Positioned(
             bottom: 20,
             left: 20,

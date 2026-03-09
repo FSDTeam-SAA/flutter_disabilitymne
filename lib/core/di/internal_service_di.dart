@@ -6,6 +6,8 @@ import 'package:disabilitymne/features/auth/services/auth_interface_impl.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface_impl.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
+import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/programs/services/program_interface_impl.dart';
 import 'package:get/get.dart';
 import '../../app/app_manager.dart';
 
@@ -24,4 +26,7 @@ void initServices() {
     fenix: true,
   );
   Get.put(SignupController(Get.find<AuthInterface>()));
+  Get.lazyPut<ProgramInterface>(
+  () => ProgramInterfaceImpl(appPigeon: Get.find()),
+);
 }

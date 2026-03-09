@@ -9,38 +9,34 @@ import 'package:flutter/material.dart';
 final class ProfileInterfaceImpl extends ProfileInterface {
   ProfileInterfaceImpl({required this.appPigeon});
   final AppPigeon appPigeon;
-  
 
   @override
-FutureRequest<Success<UserModel>> getProfile(UserModel params) async {
-  return await asyncTryCatch(
-    tryFunc: () async {
-      final response = await appPigeon.get(
-        ApiEndpoints.getProfile,
-        data: params.toJson(),
-      );
+  FutureRequest<Success<UserModel>> getProfile(UserModel params) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.get(
+          ApiEndpoints.getProfile,
+          data: params.toJson(),
+        );
 
-      debugPrint("GET PROFILE RESPONSE => ${response.data}");
+        debugPrint("GET PROFILE RESPONSE => ${response.data}");
 
-      final user = UserModel.fromJson(response.data['data']);
+        final user = UserModel.fromJson(response.data['data']);
 
-      return Success(
-        data: user,
-        message: extractSuccessMessage(response),
-      );
-    },
-  );
-}
+        return Success(data: user, message: extractSuccessMessage(response));
+      },
+    );
+  }
 
   @override
   FutureRequest<Success<dynamic>> updateProfile() {
     // TODO: implement updateProfile
     throw UnimplementedError();
   }
+
   @override
   FutureRequest<Success<dynamic>> changePassword() {
     // TODO: implement changePassword
     throw UnimplementedError();
   }
-
 }
