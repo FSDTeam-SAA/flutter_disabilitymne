@@ -279,6 +279,7 @@
 
 import 'package:disabilitymne/features/programs/controller/explore_program_details_controller.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/ready_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/theme/text_style.dart';
@@ -489,7 +490,9 @@ class ProgramDetailScreen extends StatelessWidget {
                 ),
               ),
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Get.to(() => ReadyStartScreen(program: controller.program));
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
