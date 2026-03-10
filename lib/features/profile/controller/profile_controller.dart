@@ -1,4 +1,5 @@
 import 'package:disabilitymne/features/auth/model/user_model.dart';
+import 'package:disabilitymne/features/profile/model/update_profile_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,6 +26,10 @@ class ProfileController extends GetxController {
   /// image picker
   final RxnString pickedImagePath = RxnString();
   final ImagePicker _picker = ImagePicker();
+
+  /// units
+  final RxString weightUnit = "kg".obs;
+  final RxString heightUnit = "cm".obs;
 
   /// edit mode
   final RxBool isEditing = false.obs;
@@ -65,13 +70,15 @@ class ProfileController extends GetxController {
               ? userData.age.toString()
               : '';
 
-          heightController.text = userData.height != null
-              ? "${userData.height}"
+          heightController.text = userData.height?.value != null
+              ? "${userData.height!.value}"
               : '';
+          heightUnit.value = userData.height?.unit ?? 'cm';
 
-          weightController.text = userData.weightCurrent != null
-              ? "${userData.weightCurrent}"
+          weightController.text = userData.weightCurrent?.value != null
+              ? "${userData.weightCurrent!.value}"
               : '';
+          weightUnit.value = userData.weightCurrent?.unit ?? 'kg';
 
           fitnessGoalsController.text = userData.fitnessGoals?.join(", ") ?? '';
 
@@ -88,19 +95,92 @@ class ProfileController extends GetxController {
   /// ================================
   /// UPDATE PROFILE
   /// ================================
+  // Future<void> updateProfile() async {
+  //   try {
+  //     Get.snackbar(
+  //       "Success",
+  //       "Profile updated successfully",
+  //       snackPosition: SnackPosition.BOTTOM,
+  //       backgroundColor: Colors.green.withOpacity(0.7),
+  //       colorText: Colors.white,
+  //     );
+
+  //     toggleEdit();
+  //   } catch (e) {
+  //     Get.snackbar("Error", e.toString());
+  //   }
+  // }
   Future<void> updateProfile() async {
     try {
-      Get.snackbar(
-        "Success",
-        "Profile updated successfully",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withOpacity(0.7),
-        colorText: Colors.white,
+      isLoading.value = true;
+
+      /// split name
+      final names = nameController.text.trim().split(" ");
+
+      final firstName = names.isNotEmpty ? names.first : "";
+      final lastName = names.length > 1 ? names.sublist(1).join(" ") : "";
+
+      /// fitness goals list
+      final goals = fitnessGoalsController.text
+          .split(",")
+          .map((e) => e.trim())
+          .toList();
+
+      /// create model
+      final params = UserProfileUpdateModel(
+        firstName: firstName,
+        lastName: lastName,
+        phone: user.value?.phone,
+        bio: user.value?.bio,
+        preferredLanguage: user.value?.preferredLanguage,
+        gender: genderController.text,
+        age: int.tryParse(ageController.text),
+
+        /// weight
+        weightCurrent: Measurement(
+          value: int.tryParse(weightController.text),
+          unit: weightUnit.value,
+        ),
+
+        /// height
+        height: Measurement(
+          value: int.tryParse(heightController.text),
+          unit: heightUnit.value,
+        ),
+
+        goalWeight: user.value?.goalWeight,
+
+        fitnessGoals: goals,
+        mobilityType: mobilityTypeController.text,
+        fitnessExperience: fitnessExperienceController.text,
+        onboardingStep: 8,
       );
 
-      toggleEdit();
+      final response = await profileInterface.updateProfile(params);
+
+      response.fold(
+        (failure) {
+          Get.snackbar("Error", failure.uiMessage);
+        },
+        (success) {
+          Get.snackbar(
+            "Success",
+            success.message ?? "Profile updated successfully",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green.withOpacity(0.7),
+            colorText: Colors.white,
+          );
+
+          /// refresh profile
+          getProfile();
+
+          toggleEdit();
+        },
+      );
     } catch (e) {
       Get.snackbar("Error", e.toString());
+    } finally {
+      isLoading.value = false;
     }
   }
 

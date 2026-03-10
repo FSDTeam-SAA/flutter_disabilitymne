@@ -143,7 +143,7 @@ class _Notification {
 class _User {
   static const String _userRoute = '${ApiEndpoints.baseUrl}/users';
   static String getProfile = '$_userRoute/me';
-  static String updateProfile = '$_userRoute/profile';
+  static String updateProfile = '$_userRoute/me';
   static String changePassword = '$_userRoute/password';
 }
 

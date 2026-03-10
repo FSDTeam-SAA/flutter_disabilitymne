@@ -165,11 +165,17 @@ class MyProfileScreen extends GetView<ProfileController> {
                           label: "Height",
                           controller: controller.heightController,
                           enabled: controller.isEditing.value,
+                          isMeasurement: true,
+                          unit: controller.heightUnit,
+                          units: const ["cm", "in"],
                         ),
                         ProfileField(
                           label: "Weight",
                           controller: controller.weightController,
                           enabled: controller.isEditing.value,
+                          isMeasurement: true,
+                          unit: controller.weightUnit,
+                          units: const ["kg", "gm", "lb"],
                         ),
                         ProfileField(
                           label: "Your Fitness Goals",
@@ -196,10 +202,8 @@ class MyProfileScreen extends GetView<ProfileController> {
                 Obx(
                   () => controller.isEditing.value
                       ? GestureDetector(
-                          onTap: () {
-                            controller.updateProfile();
-                            controller
-                                .toggleEdit(); // Exit edit mode after saving
+                          onTap: () async {
+                            await controller.updateProfile();
                           },
                           child: Container(
                             width: double.infinity,
@@ -318,12 +322,18 @@ class ProfileField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final bool enabled;
+  final bool isMeasurement;
+  final RxString? unit;
+  final List<String>? units;
 
   const ProfileField({
     super.key,
     required this.label,
     required this.controller,
     this.enabled = true,
+    this.isMeasurement = false,
+    this.unit,
+    this.units,
   });
 
   @override
@@ -334,7 +344,7 @@ class ProfileField extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: enabled ? Color(0xFF4B7FA8) : const Color(0xFF4B7FA8),
+          color: enabled ? const Color(0xFF4B7FA8) : const Color(0xFF4B7FA8),
           width: enabled ? 1.5 : 1.0,
         ),
       ),
@@ -350,23 +360,61 @@ class ProfileField extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          TextFormField(
-            controller: controller,
-            readOnly: !enabled,
-            cursorColor: Colors.blue,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              disabledBorder: InputBorder.none,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: controller,
+                  readOnly: !enabled,
+                  keyboardType: isMeasurement ? TextInputType.number : null,
+                  cursorColor: Colors.blue,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                  ),
+                ),
+              ),
+              if (isMeasurement && unit != null && units != null)
+                Obx(
+                  () => DropdownButton<String>(
+                    value: unit!.value,
+                    dropdownColor: const Color(0xFF1A1F26),
+                    icon: enabled
+                        ? const Icon(Icons.arrow_drop_down, color: Colors.blue)
+                        : const SizedBox.shrink(),
+                    underline: const SizedBox.shrink(),
+                    onChanged: enabled
+                        ? (String? newValue) {
+                            if (newValue != null) {
+                              unit!.value = newValue;
+                            }
+                          }
+                        : null,
+                    items: units!.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
           ),
         ],
       ),

@@ -64,7 +64,7 @@ class ProgramCard extends StatelessWidget {
       child: Container(
         height: 160,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           image: DecorationImage(
             image: NetworkImage(
               image ?? "https://via.placeholder.com/400x200.png?text=Program",
