@@ -91,25 +91,6 @@ class ProfileController extends GetxController {
 
     isLoading.value = false;
   }
-
-  /// ================================
-  /// UPDATE PROFILE
-  /// ================================
-  // Future<void> updateProfile() async {
-  //   try {
-  //     Get.snackbar(
-  //       "Success",
-  //       "Profile updated successfully",
-  //       snackPosition: SnackPosition.BOTTOM,
-  //       backgroundColor: Colors.green.withOpacity(0.7),
-  //       colorText: Colors.white,
-  //     );
-
-  //     toggleEdit();
-  //   } catch (e) {
-  //     Get.snackbar("Error", e.toString());
-  //   }
-  // }
   Future<void> updateProfile() async {
     try {
       isLoading.value = true;
@@ -165,7 +146,7 @@ class ProfileController extends GetxController {
         (success) {
           Get.snackbar(
             "Success",
-            success.message ?? "Profile updated successfully",
+            success.message,
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green.withOpacity(0.7),
             colorText: Colors.white,
@@ -173,7 +154,6 @@ class ProfileController extends GetxController {
 
           /// refresh profile
           getProfile();
-
           toggleEdit();
         },
       );

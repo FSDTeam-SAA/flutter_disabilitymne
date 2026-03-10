@@ -1,8 +1,12 @@
 import 'package:disabilitymne/features/profile/model/change_password_model.dart';
+import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ChangePasswordController extends GetxController {
+  ChangePasswordController({required this.profileInterface});
+
+  final ProfileInterface profileInterface;
 
   final currentPasswordController = TextEditingController();
   final newPasswordController = TextEditingController();
@@ -10,40 +14,46 @@ class ChangePasswordController extends GetxController {
 
   var isLoading = false.obs;
 
-  void changePassword() async {
-
+  Future<void> changePassword() async {
     final model = ChangePasswordModel(
       currentPassword: currentPasswordController.text,
       newPassword: newPasswordController.text,
-      confirmPassword: confirmPasswordController.text,
+      confirmNewPassword: confirmPasswordController.text,
     );
 
     if (!_validate(model)) return;
 
     isLoading.value = true;
 
-    await Future.delayed(const Duration(seconds: 2)); // simulate API
+    final response = await profileInterface.changePassword(model);
 
     isLoading.value = false;
 
-    Get.snackbar(
-      "Success",
-      "Password changed successfully",
-      snackPosition: SnackPosition.BOTTOM,
+    response.fold(
+      (error) {
+        Get.snackbar("Error", error.uiMessage);
+      },
+      (success) {
+        Get.snackbar(
+          "Success",
+          success.message,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+
+        Get.offAllNamed('/login');
+      },
     );
   }
 
   bool _validate(ChangePasswordModel model) {
-
     if (model.currentPassword.isEmpty ||
         model.newPassword.isEmpty ||
-        model.confirmPassword.isEmpty) {
-
+        model.confirmNewPassword.isEmpty) {
       Get.snackbar("Error", "All fields are required");
       return false;
     }
 
-    if (model.newPassword != model.confirmPassword) {
+    if (model.newPassword != model.confirmNewPassword) {
       Get.snackbar("Error", "Passwords do not match");
       return false;
     }

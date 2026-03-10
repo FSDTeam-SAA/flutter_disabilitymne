@@ -15,6 +15,7 @@ class UserProfileUpdateModel {
   String? mobilityType;
   String? fitnessExperience;
   int? onboardingStep;
+  String? profileImage;
 
   UserProfileUpdateModel({
     this.firstName,
@@ -31,6 +32,7 @@ class UserProfileUpdateModel {
     this.mobilityType,
     this.fitnessExperience,
     this.onboardingStep,
+    this.profileImage,
   });
 
   UserProfileUpdateModel.fromJson(Map<String, dynamic> json) {
@@ -61,6 +63,7 @@ class UserProfileUpdateModel {
     mobilityType = json['mobilityType'];
     fitnessExperience = json['fitnessExperience'];
     onboardingStep = json['onboardingStep'];
+    profileImage = json['profileImage'];
   }
 
   Map<String, dynamic> toJson() {
@@ -90,6 +93,7 @@ class UserProfileUpdateModel {
     data['mobilityType'] = mobilityType;
     data['fitnessExperience'] = fitnessExperience;
     data['onboardingStep'] = onboardingStep;
+    data['profileImage'] = profileImage;
 
     return data;
   }

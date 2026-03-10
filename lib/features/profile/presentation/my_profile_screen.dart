@@ -19,8 +19,6 @@ class MyProfileScreen extends GetView<ProfileController> {
             child: Column(
               children: [
                 const SizedBox(height: 10),
-
-                /// Top AppBar
                 Row(
                   children: [
                     IconButton(
@@ -61,141 +59,173 @@ class MyProfileScreen extends GetView<ProfileController> {
                   ],
                 ),
 
-                const SizedBox(height: 20),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
 
-                /// Profile Image
-                GestureDetector(
-                  onTap: () {
-                    if (controller.isEditing.value) {
-                      _showImageSourceBottomSheet(context);
-                    }
-                  },
-                  child: Stack(
-                    children: [
-                      Obx(
-                        () => CircleAvatar(
-                          radius: 80,
-                          backgroundImage:
-                              controller.pickedImagePath.value != null
-                              ? FileImage(
-                                  File(controller.pickedImagePath.value!),
-                                )
-                              : (controller.user.value?.profileImage != null &&
-                                    controller
-                                        .user
-                                        .value!
-                                        .profileImage!
-                                        .isNotEmpty)
-                              ? NetworkImage(
-                                  controller.user.value!.profileImage!,
-                                )
-                              : const AssetImage("assets/images/profile.png")
-                                    as ImageProvider,
-                        ),
-                      ),
-
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (controller.isEditing.value) {
-                              _showImageSourceBottomSheet(context);
-                            }
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white, width: 3),
-                            ),
-                            padding: const EdgeInsets.all(2),
-                            child: const Icon(
-                              Icons.photo_filter_sharp,
-                              size: 24,
-                              color: Colors.white,
+                        /// Profile Image
+                        Center(
+                          child: Obx(
+                            () => GestureDetector(
+                              onTap: () {
+                                if (controller.isEditing.value) {
+                                  _showImageSourceBottomSheet(context);
+                                }
+                              },
+                              child: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 80,
+                                    backgroundImage:
+                                        controller.pickedImagePath.value != null
+                                        ? FileImage(
+                                            File(
+                                              controller.pickedImagePath.value!,
+                                            ),
+                                          )
+                                        : (controller
+                                                      .user
+                                                      .value
+                                                      ?.profileImage !=
+                                                  null &&
+                                              controller
+                                                  .user
+                                                  .value!
+                                                  .profileImage!
+                                                  .isNotEmpty)
+                                        ? NetworkImage(
+                                            controller
+                                                .user
+                                                .value!
+                                                .profileImage!,
+                                          )
+                                        : const AssetImage(
+                                                "assets/image/app_logo.png",
+                                              )
+                                              as ImageProvider,
+                                  ),
+                                  if (controller.isEditing.value)
+                                    Positioned(
+                                      bottom: 8,
+                                      right: 8,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          if (controller.isEditing.value) {
+                                            _showImageSourceBottomSheet(
+                                              context,
+                                            );
+                                          }
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue,
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 3,
+                                            ),
+                                          ),
+                                          padding: const EdgeInsets.all(2),
+                                          child: const Icon(
+                                            Icons.photo_filter_sharp,
+                                            size: 24,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
 
-                const SizedBox(height: 10),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Personal Info",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                        const SizedBox(height: 20),
+
+                        const Text(
+                          "Personal Info",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        Obx(() {
+                          if (controller.isLoading.value) {
+                            return const Padding(
+                              padding: EdgeInsets.only(top: 40.0),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            );
+                          }
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ProfileField(
+                                label: "Name",
+                                controller: controller.nameController,
+                                enabled: controller.isEditing.value,
+                              ),
+                              ProfileField(
+                                label: "Gender",
+                                controller: controller.genderController,
+                                enabled: controller.isEditing.value,
+                              ),
+                              ProfileField(
+                                label: "Age",
+                                controller: controller.ageController,
+                                enabled: controller.isEditing.value,
+                              ),
+                              ProfileField(
+                                label: "Height",
+                                controller: controller.heightController,
+                                enabled: controller.isEditing.value,
+                                isMeasurement: true,
+                                unit: controller.heightUnit,
+                                units: const ["cm", "in"],
+                              ),
+                              ProfileField(
+                                label: "Weight",
+                                controller: controller.weightController,
+                                enabled: controller.isEditing.value,
+                                isMeasurement: true,
+                                unit: controller.weightUnit,
+                                units: const ["kg", "gm", "lb"],
+                              ),
+                              ProfileField(
+                                label: "Your Fitness Goals",
+                                controller: controller.fitnessGoalsController,
+                                enabled: controller.isEditing.value,
+                              ),
+                              ProfileField(
+                                label: "Your mobility type",
+                                controller: controller.mobilityTypeController,
+                                enabled: controller.isEditing.value,
+                              ),
+                              ProfileField(
+                                label: "Fitness experience",
+                                controller:
+                                    controller.fitnessExperienceController,
+                                enabled: controller.isEditing.value,
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+                          );
+                        }),
+                      ],
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Expanded(
-                  child: Obx(() {
-                    if (controller.isLoading.value) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
-                    }
-                    return ListView(
-                      children: [
-                        ProfileField(
-                          label: "Name",
-                          controller: controller.nameController,
-                          enabled: controller.isEditing.value,
-                        ),
-                        ProfileField(
-                          label: "Gender",
-                          controller: controller.genderController,
-                          enabled: controller.isEditing.value,
-                        ),
-                        ProfileField(
-                          label: "Age",
-                          controller: controller.ageController,
-                          enabled: controller.isEditing.value,
-                        ),
-                        ProfileField(
-                          label: "Height",
-                          controller: controller.heightController,
-                          enabled: controller.isEditing.value,
-                          isMeasurement: true,
-                          unit: controller.heightUnit,
-                          units: const ["cm", "in"],
-                        ),
-                        ProfileField(
-                          label: "Weight",
-                          controller: controller.weightController,
-                          enabled: controller.isEditing.value,
-                          isMeasurement: true,
-                          unit: controller.weightUnit,
-                          units: const ["kg", "gm", "lb"],
-                        ),
-                        ProfileField(
-                          label: "Your Fitness Goals",
-                          controller: controller.fitnessGoalsController,
-                          enabled: controller.isEditing.value,
-                        ),
-                        ProfileField(
-                          label: "Your mobility type",
-                          controller: controller.mobilityTypeController,
-                          enabled: controller.isEditing.value,
-                        ),
-                        ProfileField(
-                          label: "Fitness experience",
-                          controller: controller.fitnessExperienceController,
-                          enabled: controller.isEditing.value,
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    );
-                  }),
                 ),
 
                 /// Save Button

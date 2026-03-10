@@ -3,6 +3,7 @@ import 'package:disabilitymne/core/api_handler/success.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/model/user_model.dart';
+import 'package:disabilitymne/features/profile/model/change_password_model.dart';
 import 'package:disabilitymne/features/profile/model/update_profile_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
@@ -48,8 +49,20 @@ final class ProfileInterfaceImpl extends ProfileInterface {
   }
 
   @override
-  FutureRequest<Success<dynamic>> changePassword() {
-    // TODO: implement changePassword
-    throw UnimplementedError();
+  FutureRequest<Success<void>> changePassword(
+    ChangePasswordModel params,
+  ) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.post(
+          ApiEndpoints.changePassword,
+          data: params.toJson(),
+        );
+
+        debugPrint("CHANGE PASSWORD RESPONSE => ${response.data}");
+
+        return Success(data: null, message: extractSuccessMessage(response));
+      },
+    );
   }
 }

@@ -36,11 +36,7 @@ class ExploreWidget extends StatelessWidget {
               title: program.programName,
               image: program.programThumbnail,
               onTap: () {
-                Get.to(
-                  () => ProgramDetailScreen(
-                    title: program.programName ?? "Program Detail",
-                  ),
-                );
+                Get.to(() => ProgramDetailScreen(program: program));
               },
             ),
           );
