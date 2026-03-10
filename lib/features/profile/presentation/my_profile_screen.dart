@@ -193,7 +193,7 @@ class MyProfileScreen extends GetView<ProfileController> {
                                 enabled: controller.isEditing.value,
                                 isMeasurement: true,
                                 unit: controller.heightUnit,
-                                units: const ["cm", "in"],
+                                units: ProfileController.HEIGHT_UNITS,
                               ),
                               ProfileField(
                                 label: "Weight",
@@ -201,23 +201,30 @@ class MyProfileScreen extends GetView<ProfileController> {
                                 enabled: controller.isEditing.value,
                                 isMeasurement: true,
                                 unit: controller.weightUnit,
-                                units: const ["kg", "gm", "lb"],
+                                units: ProfileController.WEIGHT_UNITS,
                               ),
                               ProfileField(
                                 label: "Your Fitness Goals",
-                                controller: controller.fitnessGoalsController,
                                 enabled: controller.isEditing.value,
+                                isDropdown: true,
+                                selectedValue: controller.selectedFitnessGoal,
+                                dropdownItems: ProfileController.FITNESS_GOALS,
                               ),
                               ProfileField(
                                 label: "Your mobility type",
-                                controller: controller.mobilityTypeController,
                                 enabled: controller.isEditing.value,
+                                isDropdown: true,
+                                selectedValue: controller.selectedMobilityType,
+                                dropdownItems: ProfileController.MOBILITY_TYPES,
                               ),
                               ProfileField(
                                 label: "Fitness experience",
-                                controller:
-                                    controller.fitnessExperienceController,
                                 enabled: controller.isEditing.value,
+                                isDropdown: true,
+                                selectedValue:
+                                    controller.selectedFitnessExperience,
+                                dropdownItems:
+                                    ProfileController.FITNESS_EXPERIENCE_LEVELS,
                               ),
                               const SizedBox(height: 20),
                             ],
@@ -350,20 +357,26 @@ class MyProfileScreen extends GetView<ProfileController> {
 
 class ProfileField extends StatelessWidget {
   final String label;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final bool enabled;
   final bool isMeasurement;
+  final bool isDropdown;
   final RxString? unit;
   final List<String>? units;
+  final RxString? selectedValue;
+  final List<String>? dropdownItems;
 
   const ProfileField({
     super.key,
     required this.label,
-    required this.controller,
+    this.controller,
     this.enabled = true,
     this.isMeasurement = false,
+    this.isDropdown = false,
     this.unit,
     this.units,
+    this.selectedValue,
+    this.dropdownItems,
   });
 
   @override
@@ -393,25 +406,72 @@ class ProfileField extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: TextFormField(
-                  controller: controller,
-                  readOnly: !enabled,
-                  keyboardType: isMeasurement ? TextInputType.number : null,
-                  cursorColor: Colors.blue,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                  ),
-                ),
+                child:
+                    isDropdown && selectedValue != null && dropdownItems != null
+                    ? Obx(
+                        () => DropdownButton<String>(
+                          value: selectedValue!.value.isEmpty
+                              ? null
+                              : selectedValue!.value,
+                          hint: const Text(
+                            "Select Option",
+                            style: TextStyle(color: Colors.white54),
+                          ),
+                          isExpanded: true,
+                          dropdownColor: const Color(0xFF1A1F26),
+                          icon: enabled
+                              ? const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.blue,
+                                )
+                              : const SizedBox.shrink(),
+                          underline: const SizedBox.shrink(),
+                          onChanged: enabled
+                              ? (String? newValue) {
+                                  if (newValue != null) {
+                                    selectedValue!.value = newValue;
+                                  }
+                                }
+                              : null,
+                          items: dropdownItems!.map<DropdownMenuItem<String>>((
+                            String value,
+                          ) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(
+                                value.replaceAll("_", " ").capitalizeFirst ??
+                                    value,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      )
+                    : TextFormField(
+                        controller: controller,
+                        readOnly: !enabled,
+                        keyboardType: isMeasurement
+                            ? TextInputType.number
+                            : null,
+                        cursorColor: Colors.blue,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                        ),
+                      ),
               ),
               if (isMeasurement && unit != null && units != null)
                 Obx(

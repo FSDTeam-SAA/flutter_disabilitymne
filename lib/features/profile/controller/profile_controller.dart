@@ -10,6 +10,32 @@ class ProfileController extends GetxController {
 
   final ProfileInterface profileInterface;
 
+  static const List<String> WEIGHT_UNITS = ["kg", "lbs"];
+  static const List<String> HEIGHT_UNITS = ["cm", "ft"];
+  static const List<String> FITNESS_GOALS = [
+    "build_muscle",
+    "lose_weight",
+    "manage_weight",
+    "boost_energy",
+    "flexibility",
+    "general_wellness",
+  ];
+  static const List<String> MOBILITY_TYPES = [
+    "wheelchair_user",
+    "limited_mobility",
+    "amputee_leg",
+    "amputee_arm",
+    "neurological_condition",
+    "chronic_pain",
+    "visual_impairment",
+    "other",
+  ];
+  static const List<String> FITNESS_EXPERIENCE_LEVELS = [
+    "beginner",
+    "intermediate",
+    "advanced",
+  ];
+
   /// user model
   Rxn<UserModel> user = Rxn<UserModel>();
 
@@ -19,9 +45,11 @@ class ProfileController extends GetxController {
   final ageController = TextEditingController();
   final heightController = TextEditingController();
   final weightController = TextEditingController();
-  final fitnessGoalsController = TextEditingController();
-  final mobilityTypeController = TextEditingController();
-  final fitnessExperienceController = TextEditingController();
+
+  /// Dropdown selections
+  final RxString selectedFitnessGoal = "".obs;
+  final RxString selectedMobilityType = "".obs;
+  final RxString selectedFitnessExperience = "".obs;
 
   /// image picker
   final RxnString pickedImagePath = RxnString();
@@ -80,17 +108,35 @@ class ProfileController extends GetxController {
               : '';
           weightUnit.value = userData.weightCurrent?.unit ?? 'kg';
 
-          fitnessGoalsController.text = userData.fitnessGoals?.join(", ") ?? '';
+          // Initialize dropdowns from user data
+          if (userData.fitnessGoals != null &&
+              userData.fitnessGoals!.isNotEmpty) {
+            final goal = userData.fitnessGoals!.first.toString();
+            if (FITNESS_GOALS.contains(goal)) {
+              selectedFitnessGoal.value = goal;
+            }
+          } else {
+            selectedFitnessGoal.value = "";
+          }
 
-          mobilityTypeController.text = userData.mobilityType ?? '';
+          if (MOBILITY_TYPES.contains(userData.mobilityType)) {
+            selectedMobilityType.value = userData.mobilityType!;
+          } else {
+            selectedMobilityType.value = "";
+          }
 
-          fitnessExperienceController.text = userData.fitnessExperience ?? '';
+          if (FITNESS_EXPERIENCE_LEVELS.contains(userData.fitnessExperience)) {
+            selectedFitnessExperience.value = userData.fitnessExperience!;
+          } else {
+            selectedFitnessExperience.value = "";
+          }
         }
       },
     );
 
     isLoading.value = false;
   }
+
   Future<void> updateProfile() async {
     try {
       isLoading.value = true;
@@ -100,12 +146,6 @@ class ProfileController extends GetxController {
 
       final firstName = names.isNotEmpty ? names.first : "";
       final lastName = names.length > 1 ? names.sublist(1).join(" ") : "";
-
-      /// fitness goals list
-      final goals = fitnessGoalsController.text
-          .split(",")
-          .map((e) => e.trim())
-          .toList();
 
       /// create model
       final params = UserProfileUpdateModel(
@@ -131,9 +171,11 @@ class ProfileController extends GetxController {
 
         goalWeight: user.value?.goalWeight,
 
-        fitnessGoals: goals,
-        mobilityType: mobilityTypeController.text,
-        fitnessExperience: fitnessExperienceController.text,
+        fitnessGoals: selectedFitnessGoal.value.isNotEmpty
+            ? [selectedFitnessGoal.value]
+            : [],
+        mobilityType: selectedMobilityType.value,
+        fitnessExperience: selectedFitnessExperience.value,
         onboardingStep: 8,
       );
 
@@ -220,9 +262,6 @@ class ProfileController extends GetxController {
     ageController.dispose();
     heightController.dispose();
     weightController.dispose();
-    fitnessGoalsController.dispose();
-    mobilityTypeController.dispose();
-    fitnessExperienceController.dispose();
     super.onClose();
   }
 }

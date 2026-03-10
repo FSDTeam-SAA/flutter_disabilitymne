@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:chewie/chewie.dart';
+import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import '../../../../core/theme/text_style.dart';
 import '../../controller/exercise_detail_controller.dart';
 
@@ -12,7 +13,10 @@ class ExerciseDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(
-      ExerciseDetailController(programInterface: Get.find(), exerciseId: id),
+      ExerciseDetailController(
+        programInterface: Get.find<ProgramInterface>(),
+        exerciseId: id,
+      ),
       tag: id,
     );
 

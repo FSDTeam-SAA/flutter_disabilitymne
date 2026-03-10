@@ -3,10 +3,14 @@ import 'package:disabilitymne/features/programs/presentation/screens/program_det
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:disabilitymne/features/programs/services/program_interface.dart';
+
 class ExploreWidget extends StatelessWidget {
   ExploreWidget({super.key});
 
-  final controller = Get.put(ProgramController(programInterface: Get.find()));
+  final controller = Get.put(
+    ProgramController(programInterface: Get.find<ProgramInterface>()),
+  );
 
   @override
   Widget build(BuildContext context) {
