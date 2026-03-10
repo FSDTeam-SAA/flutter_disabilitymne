@@ -1,18 +1,104 @@
+import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 
 class ExerciseScreen extends StatefulWidget {
-  const ExerciseScreen({super.key});
+  final ProgramModel program;
+  final int initialIndex;
+  const ExerciseScreen({
+    super.key,
+    required this.program,
+    this.initialIndex = 0,
+  });
 
   @override
   State<ExerciseScreen> createState() => _ExerciseScreenState();
 }
 
 class _ExerciseScreenState extends State<ExerciseScreen> {
+  late int currentExerciseIndex;
+  VideoPlayerController? _videoPlayerController;
+  ChewieController? _chewieController;
+  bool _isVideoLoading = false;
+
   List<Map<String, TextEditingController>> sets = [
     {"kg": TextEditingController(text: "06"), "reps": TextEditingController()},
     {"kg": TextEditingController(text: "06"), "reps": TextEditingController()},
     {"kg": TextEditingController(text: "08"), "reps": TextEditingController()},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    currentExerciseIndex = widget.initialIndex;
+    _initializeExerciseVideo();
+  }
+
+  @override
+  void dispose() {
+    _disposeVideoPlayer();
+    super.dispose();
+  }
+
+  Future<void> _disposeVideoPlayer() async {
+    await _videoPlayerController?.dispose();
+    _chewieController?.dispose();
+    _videoPlayerController = null;
+    _chewieController = null;
+  }
+
+  Future<void> _initializeExerciseVideo() async {
+    final exercises = widget.program.exercises ?? [];
+    if (exercises.isEmpty || currentExerciseIndex >= exercises.length) return;
+
+    final currentExercise = exercises[currentExerciseIndex];
+    final videoUrl = currentExercise.demoVideo.isNotEmpty
+        ? currentExercise.demoVideo
+        : (currentExercise.demoVideos.isNotEmpty
+              ? currentExercise.demoVideos.first
+              : '');
+
+    if (videoUrl.isEmpty) return;
+
+    setState(() {
+      _isVideoLoading = true;
+    });
+
+    await _disposeVideoPlayer();
+
+    try {
+      _videoPlayerController = VideoPlayerController.networkUrl(
+        Uri.parse(videoUrl),
+      );
+      await _videoPlayerController!.initialize();
+
+      _chewieController = ChewieController(
+        videoPlayerController: _videoPlayerController!,
+        autoPlay: true,
+        looping: true,
+        aspectRatio: _videoPlayerController!.value.aspectRatio,
+        allowFullScreen: true,
+        allowPlaybackSpeedChanging: true,
+        errorBuilder: (context, errorMessage) {
+          return Center(
+            child: Text(
+              errorMessage,
+              style: const TextStyle(color: Colors.white),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint("Error initializing video: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isVideoLoading = false;
+        });
+      }
+    }
+  }
 
   void addSet() {
     setState(() {
@@ -29,8 +115,40 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     });
   }
 
+  void nextExercise() {
+    final totalExercises = widget.program.exercises?.length ?? 0;
+    debugPrint(
+      "Next Exercise clicked. Current Index: $currentExerciseIndex, Total: $totalExercises",
+    );
+
+    if (currentExerciseIndex < totalExercises - 1) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ExerciseScreen(
+            program: widget.program,
+            initialIndex: currentExerciseIndex + 1,
+          ),
+        ),
+      );
+    } else {
+      debugPrint("Exercise completed. Popping back to Program screen.");
+      // Done - Popup to program screen (Pop all exercise screens + ReadyStartScreen)
+      int popCount = totalExercises + 1; // All exercises + ReadyStartScreen
+      int currentPop = 0;
+      Navigator.popUntil(context, (route) {
+        return currentPop++ == popCount;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final exercises = widget.program.exercises ?? [];
+    final currentExercise = exercises.isNotEmpty
+        ? exercises[currentExerciseIndex]
+        : null;
+    final totalExercises = exercises.length;
+
     return Scaffold(
       backgroundColor: const Color(0xff0F1C2E),
       body: SafeArea(
@@ -41,17 +159,26 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
               /// TOP BAR
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Row(
                     children: [
-                      Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
-                      SizedBox(width: 6),
-                      Text("Back", style: TextStyle(color: Colors.white)),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text("Back", style: TextStyle(color: Colors.white)),
                     ],
                   ),
                   Text(
-                    "Exercise 1 of 12",
-                    style: TextStyle(color: Colors.white70),
+                    "Exercise ${currentExerciseIndex + 1} of $totalExercises",
+                    style: const TextStyle(color: Colors.white70),
                   ),
                 ],
               ),
@@ -62,7 +189,9 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: LinearProgressIndicator(
-                  value: 0.1,
+                  value: totalExercises > 0
+                      ? (currentExerciseIndex + 1) / totalExercises
+                      : 0,
                   minHeight: 6,
                   backgroundColor: Colors.white24,
                   color: Colors.lightBlueAccent,
@@ -73,28 +202,68 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
               /// VIDEO CARD
               Container(
-                height: 180,
+                height: 200,
+                width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  image: const DecorationImage(
-                    image: AssetImage("assets/images/exercise.jpg"),
-                    fit: BoxFit.cover,
-                  ),
+                  color: Colors.black,
                 ),
-                child: const Center(
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white70,
-                    child: Icon(
-                      Icons.play_arrow,
-                      size: 35,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
+                clipBehavior: Clip.antiAlias,
+                child:
+                    _chewieController != null &&
+                        _chewieController!
+                            .videoPlayerController
+                            .value
+                            .isInitialized
+                    ? Chewie(controller: _chewieController!)
+                    : Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          if (currentExercise?.image != null &&
+                              currentExercise!.image.isNotEmpty)
+                            Image.network(
+                              currentExercise.image,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          else
+                            Image.asset(
+                              "assets/images/exercise.jpg",
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          if (_isVideoLoading)
+                            const CircularProgressIndicator(color: Colors.white)
+                          else
+                            const CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.white70,
+                              child: Icon(
+                                Icons.play_arrow,
+                                size: 35,
+                                color: Colors.black87,
+                              ),
+                            ),
+                        ],
+                      ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
+
+              if (currentExercise != null)
+                Text(
+                  currentExercise.exerciseName,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+              const SizedBox(height: 10),
 
               /// SET CARD
               Expanded(
@@ -117,7 +286,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFF4B7FA8),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Color(0xFF70AACD)),
+                            border: Border.all(color: const Color(0xFF70AACD)),
                           ),
                           child: const Text(
                             "Save",
@@ -146,19 +315,20 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                                   /// SET TITLE
                                   Text(
                                     "Set ${index + 1}",
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  SizedBox(width: 20),
+                                  const SizedBox(width: 20),
 
                                   /// KG FIELD
                                   SizedBox(
                                     width: 100,
                                     child: TextField(
                                       controller: sets[index]["kg"],
+                                      keyboardType: TextInputType.number,
                                       style: const TextStyle(
                                         color: Colors.white,
                                       ),
@@ -173,6 +343,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                                     width: 100,
                                     child: TextField(
                                       controller: sets[index]["reps"],
+                                      keyboardType: TextInputType.number,
                                       style: const TextStyle(
                                         color: Colors.white,
                                       ),
@@ -180,12 +351,12 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                                     ),
                                   ),
 
-                                  SizedBox(width: 12),
+                                  const SizedBox(width: 12),
 
                                   /// DELETE BUTTON
                                   GestureDetector(
                                     onTap: () => removeSet(index),
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.cancel_outlined,
                                       color: Colors.white,
                                       size: 28,
@@ -210,7 +381,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                           ),
                         ),
                         onPressed: addSet,
-                        child: Text(
+                        child: const Text(
                           "Add New Set",
                           style: TextStyle(
                             color: Colors.white,
@@ -227,22 +398,36 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
               const SizedBox(height: 16),
 
               /// NEXT BUTTON
-              Container(
+              SizedBox(
                 width: double.infinity,
                 height: 50,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xff9BD3FF), Color(0xff5CA9D6)],
+                child: ElevatedButton(
+                  onPressed: nextExercise,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                  child: Text(
-                    "Next Exercise",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xff9BD3FF), Color(0xff5CA9D6)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        currentExerciseIndex < totalExercises - 1
+                            ? "Next Exercise"
+                            : "Done",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -265,15 +450,15 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 10),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: Color(0xFF1A263D)),
+        borderSide: const BorderSide(color: Color(0xFF1A263D)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: Color(0xFF1A263D)),
+        borderSide: const BorderSide(color: Color(0xFF1A263D)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: Color(0xFF1A263D)),
+        borderSide: const BorderSide(color: Color(0xFF1A263D)),
       ),
     );
   }

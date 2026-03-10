@@ -3,7 +3,6 @@ import 'package:disabilitymne/features/programs/model/explore_program_model.dart
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
-import 'package:get/utils.dart';
 
 class ReadyStartScreen extends StatelessWidget {
   final ProgramModel program;
@@ -19,14 +18,10 @@ class ReadyStartScreen extends StatelessWidget {
             child: Column(
               children: [
                 const Spacer(),
-        
+
                 /// Image
-                Image.asset(
-                  "assets/logo/image.png",
-                  height: 200,
-                  width: 200,
-                ),
-        
+                Image.asset("assets/logo/image.png", height: 200, width: 200),
+
                 /// Title
                 const Text(
                   "Ready to start?",
@@ -36,20 +31,17 @@ class ReadyStartScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-        
+
                 const SizedBox(height: 6),
-        
+
                 const Text(
                   "Adaptive Strength Training Sessions",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
-        
+
                 const SizedBox(height: 25),
-        
+
                 /// Info Card
                 Container(
                   padding: const EdgeInsets.all(18),
@@ -58,36 +50,36 @@ class ReadyStartScreen extends StatelessWidget {
                     color: Color(0xFF172435),
                   ),
                   child: Column(
-                    children: const [
+                    children: [
                       InfoRow(
                         icon: Icons.check_circle,
                         color: Colors.green,
-                        text: "12 Exercise",
+                        text: "${program.totalExercises ?? 0} Exercise",
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       InfoRow(
                         icon: Icons.access_time,
                         color: Colors.blue,
-                        text: "30 Minute",
+                        text: "${program.durationMinutes ?? 0} Minute",
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       InfoRow(
                         icon: Icons.calendar_month,
                         color: Colors.blueAccent,
-                        text: "12 Week Program",
+                        text: "${program.weekCount ?? 0} Week Program",
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       InfoRow(
                         icon: Icons.error,
                         color: Colors.red,
-                        text: "Stop if pain occurs",
+                        text: program.safetyNote ?? "Stop if pain occurs",
                       ),
                     ],
                   ),
                 ),
-        
+
                 const SizedBox(height: 30),
-        
+
                 /// Primary Button
                 SizedBox(
                   width: double.infinity,
@@ -101,7 +93,7 @@ class ReadyStartScreen extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Get.to(ExerciseScreen());
+                      Get.to(ExerciseScreen(program: program, initialIndex: 0));
                     },
                     child: const Text(
                       "I'm Ready",
@@ -112,9 +104,9 @@ class ReadyStartScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-        
+
                 const SizedBox(height: 14),
-        
+
                 /// Outline Button
                 SizedBox(
                   width: double.infinity,
@@ -131,14 +123,11 @@ class ReadyStartScreen extends StatelessWidget {
                     },
                     child: const Text(
                       "Back to Programs",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ),
                 ),
-        
+
                 const Spacer(),
               ],
             ),
@@ -167,13 +156,7 @@ class InfoRow extends StatelessWidget {
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 10),
-        Text(
-          text,
-          style: TextStyle(
-            color: color,
-            fontSize: 14,
-          ),
-        )
+        Text(text, style: TextStyle(color: color, fontSize: 14)),
       ],
     );
   }
