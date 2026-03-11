@@ -1,5 +1,7 @@
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 
@@ -135,9 +137,10 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       // Done - Popup to program screen (Pop all exercise screens + ReadyStartScreen)
       int popCount = totalExercises + 1; // All exercises + ReadyStartScreen
       int currentPop = 0;
-      Navigator.popUntil(context, (route) {
-        return currentPop++ == popCount;
-      });
+      // Navigator.popUntil(context, (route) {
+      //   return currentPop++ == popCount;
+      // });
+      Get.to(() => WorkoutCompleteScreen());
     }
   }
 
@@ -421,7 +424,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                       child: Text(
                         currentExerciseIndex < totalExercises - 1
                             ? "Next Exercise"
-                            : "Done",
+                            : "Continue",
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,

@@ -2,6 +2,7 @@ import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/home/presentation/home_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/program_screen.dart';
+import 'package:disabilitymne/features/recipies/presentation/screen/recipies_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -14,7 +15,7 @@ class AppGround extends StatelessWidget {
   final List<Widget> pages = [
     HomeScreen(),
     ProgramsScreen(),
-    Scaffold(),
+    RecipesScreen(),
     Scaffold(),
     ProfileScreen(),
   ];
@@ -39,7 +40,7 @@ class AppGround extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(() => pages[controller.currentIndex.value]),
-      backgroundColor: const Color(0xFF0B1A2A),
+      backgroundColor: Colors.transparent,
       bottomNavigationBar: SafeArea(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
