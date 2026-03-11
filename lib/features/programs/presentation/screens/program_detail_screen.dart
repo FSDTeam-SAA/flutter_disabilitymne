@@ -276,7 +276,6 @@
 //   }
 // }
 
-
 import 'package:disabilitymne/features/programs/controller/explore_program_details_controller.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/ready_screen.dart';
@@ -285,17 +284,12 @@ import 'package:get/get.dart';
 import '../../../../core/theme/text_style.dart';
 
 class ProgramDetailScreen extends StatelessWidget {
-
   final ProgramModel program;
 
-  const ProgramDetailScreen({
-    super.key,
-    required this.program,
-  });
+  const ProgramDetailScreen({super.key, required this.program});
 
   @override
   Widget build(BuildContext context) {
-
     final controller = Get.put(ProgramDetailController(program));
 
     return Scaffold(
@@ -315,16 +309,17 @@ class ProgramDetailScreen extends StatelessWidget {
 
       body: Stack(
         children: [
-
           SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 /// Banner Image
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Image.network(
@@ -342,10 +337,11 @@ class ProgramDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       Text(
                         controller.title,
-                        style: AppText.xl2Medium_22_500.copyWith(color: Colors.white),
+                        style: AppText.xl2Medium_22_500.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
 
                       SizedBox(height: 12),
@@ -353,7 +349,9 @@ class ProgramDetailScreen extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildInfoChip("${controller.totalExercises} Exercise"),
+                            _buildInfoChip(
+                              "${controller.totalExercises} Exercise",
+                            ),
                             _buildInfoChip(controller.duration),
                             _buildInfoChip("${controller.weeks} Weeks"),
                             _buildInfoChip(controller.level),
@@ -372,10 +370,11 @@ class ProgramDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       Text(
                         "Description",
-                        style: AppText.lgMedium_18_500.copyWith(color: Colors.white),
+                        style: AppText.lgMedium_18_500.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
 
                       const SizedBox(height: 10),
@@ -406,10 +405,8 @@ class ProgramDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         Row(
                           children: [
-
                             const Icon(
                               Icons.warning_amber_rounded,
                               color: Colors.orange,
@@ -447,10 +444,11 @@ class ProgramDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       Text(
                         "${controller.totalExercises} Exercise in this workout plan",
-                        style: AppText.lgMedium_18_500.copyWith(color: Colors.white),
+                        style: AppText.lgMedium_18_500.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
 
                       const SizedBox(height: 20),
@@ -460,12 +458,12 @@ class ProgramDetailScreen extends StatelessWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: controller.exercises.length,
                         itemBuilder: (context, index) {
-
                           final exercise = controller.exercises[index];
 
                           return _buildWorkoutStep(
                             index + 1,
                             exercise.exerciseName,
+                            index == controller.exercises.length - 1,
                           );
                         },
                       ),
@@ -499,7 +497,9 @@ class ProgramDetailScreen extends StatelessWidget {
                 ),
                 child: Text(
                   "Start Workout",
-                  style: AppText.mdSemiBold_16_600.copyWith(color: Colors.white),
+                  style: AppText.mdSemiBold_16_600.copyWith(
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -527,33 +527,42 @@ class ProgramDetailScreen extends StatelessWidget {
   }
 
   /// Workout Step
-  Widget _buildWorkoutStep(int step, String title) {
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-
-        CircleAvatar(
-          radius: 12,
-          backgroundColor: const Color(0xff4D7EA9),
-          child: Text(
-            step.toString(),
-            style: const TextStyle(fontSize: 12, color: Colors.white),
+  Widget _buildWorkoutStep(int step, String title, bool isLast) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: const Color(0xff4D7EA9),
+                child: Text(
+                  step.toString(),
+                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 1,
+                    color: Colors.white.withOpacity(0.3),
+                  ),
+                ),
+            ],
           ),
-        ),
-
-        const SizedBox(width: 16),
-
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Text(
-              title,
-              style: AppText.mdMedium_16_500.copyWith(color: Colors.white),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Text(
+                title,
+                style: AppText.mdMedium_16_500.copyWith(color: Colors.white),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

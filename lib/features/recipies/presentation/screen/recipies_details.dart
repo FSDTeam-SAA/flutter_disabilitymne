@@ -185,6 +185,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                                   (entry) => IngredientItem(
                                     number: entry.key + 1,
                                     text: entry.value,
+                                    isLast:
+                                        entry.key ==
+                                        recipe.ingredients!.length - 1,
                                   ),
                                 )
                                 .toList(),
@@ -270,30 +273,50 @@ class NutritionCard extends StatelessWidget {
 class IngredientItem extends StatelessWidget {
   final int number;
   final String text;
+  final bool isLast;
 
-  const IngredientItem({super.key, required this.number, required this.text});
+  const IngredientItem({
+    super.key,
+    required this.number,
+    required this.text,
+    this.isLast = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+    return IntrinsicHeight(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Number Circle
-          CircleAvatar(
-            radius: 14,
-            backgroundColor: const Color(0xff2C5A87),
-            child: Text(
-              number.toString(),
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
+          /// Number Circle and Line
+          Column(
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: const Color(0xff2C5A87),
+                child: Text(
+                  number.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 1,
+                    color: Colors.white.withOpacity(0.3),
+                  ),
+                ),
+            ],
           ),
 
           const SizedBox(width: 12),
 
           /// Ingredient text
           Expanded(
-            child: Text(text, style: const TextStyle(color: Colors.white)),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Text(text, style: const TextStyle(color: Colors.white)),
+            ),
           ),
         ],
       ),
