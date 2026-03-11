@@ -1,5 +1,8 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
+import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/payments/model/payment_plan.dart';
+import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/onboarding/congratulations_screen.dart';
@@ -16,6 +19,7 @@ class ChoosePlanScreen extends StatefulWidget {
 
 class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   int _selectedIndex = 0;
+  late FutureRequest<List<PaymentPlan>> _plansFuture;
 
   static double _parseAmount(String price) {
     final cleaned = price.replaceAll(RegExp(r'[^\d.]'), '');
@@ -36,175 +40,238 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   static const Color _premiumOrange = Color(0xFFFF8D28);
   static const Color _premiumOrangeFill = Color(0xFF5B402F);
 
-  static const List<PlanItem> _plans = [
-    PlanItem(
-      id: 'free_trial',
-      title: 'Free Trial',
-      description: '7 days free',
-      price: '00.00\$',
-      accentColor: _green,
-      accentFill: _greenFill,
-      isPremium: false,
-      features: ['Full Home Workout Program', 'Recipes'],
-    ),
-    PlanItem(
-      id: 'monthly',
-      title: 'Monthly Plan',
-      description: 'Per month',
-      price: '29.99\$',
-      accentColor: _monthlyBlue,
-      accentFill: _monthlyBlueFill,
-      isPremium: false,
-      features: [
-        'Full Exercise Library Access',
-        'Adaptive Training Plans',
-        'Recipes',
-        'Calorie Calculator',
-      ],
-    ),
-    PlanItem(
-      id: 'six_month',
-      title: 'Six Month Plan',
-      description: 'Per 6 month',
-      price: '149.99\$',
-      accentColor: _sixMonthYellow,
-      accentFill: _sixMonthYellowFill,
-      isPremium: false,
-      features: [
-        'Full Exercise Library Access',
-        'Adaptive Training Plans',
-        'Recipes',
-        'Calorie Calculator',
-      ],
-    ),
-    PlanItem(
-      id: 'premium',
-      title: 'Premium',
-      description: 'Per month • save 38%',
-      price: '150.00\$',
-      accentColor: _premiumOrange,
-      accentFill: _premiumOrangeFill,
-      isPremium: true,
-      mostPopular: true,
-      features: [
-        'Full Exercise Library Access',
-        'Personalized Training Plan',
-        'Recipes',
-        'Calorie Calculator',
-        'Weekly Check-In with the Coach',
-      ],
-    ),
-  ];
-
   @override
+  void initState() {
+    super.initState();
+    _plansFuture = Get.find<PaymentPlansInterface>().fetchPlans();
+  }
+
+  void _retry() {
+    setState(() {
+      _plansFuture = Get.find<PaymentPlansInterface>().fetchPlans();
+      _selectedIndex = 0;
+    });
+  }
+
+  static ({Color accent, Color fill}) _colorsForKey(String key) {
+    switch (key) {
+      case 'free_trial':
+        return (accent: _green, fill: _greenFill);
+      case 'monthly_plan':
+        return (accent: _monthlyBlue, fill: _monthlyBlueFill);
+      case 'six_month_plan':
+        return (accent: _sixMonthYellow, fill: _sixMonthYellowFill);
+      case 'premium_plan':
+        return (accent: _premiumOrange, fill: _premiumOrangeFill);
+      default:
+        return (accent: Colors.white, fill: Colors.white);
+    }
+  }
+
+  static String _formatPrice(PaymentPlan plan) {
+    if (plan.price <= 0) return '00.00\$';
+    return '${plan.price.toStringAsFixed(2)}\$';
+  }
+
+  static String _formatDescription(PaymentPlan plan) {
+    if (plan.trialDays > 0) return '${plan.trialDays} days free';
+    if (plan.durationLabel.trim().isNotEmpty) return plan.durationLabel;
+    if (plan.durationMonths > 0) return '${plan.durationMonths} month';
+    return '';
+  }
+
+  static PlanItem _toPlanItem(PaymentPlan p) {
+    final colors = _colorsForKey(p.key);
+    return PlanItem(
+      id: p.key,
+      title: p.name,
+      description: _formatDescription(p),
+      price: _formatPrice(p),
+      accentColor: colors.accent,
+      accentFill: colors.fill,
+      isPremium: p.key == 'premium_plan',
+      mostPopular: p.isPopular,
+      features: p.features,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BackgroundImage(
         child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Row(
-                    children: [
-                      Icon(Icons.chevron_left, color: Colors.white, size: 28),
-                      SizedBox(width: 4),
-                      Text(
-                        'Back',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white,
-                        ),
+          child: FutureBuilder<Request<List<PaymentPlan>>>(
+            future: _plansFuture,
+            builder: (context, snapshot) {
+              final body = () {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+
+                final either = snapshot.data;
+                if (either == null) {
+                  return Center(
+                    child: Text(
+                      'Failed to load plans',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+
+                return either.fold(
+                  (failure) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            failure.uiMessage,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: 180,
+                            child: CustomButton(
+                              onPressed: _retry,
+                              text: 'Retry',
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-        
-              /// SCROLLABLE CONTENT
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: [
-                    const SizedBox(height: 16),
-        
-                    const Text(
-                      'Choose your plan',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-        
-                    const SizedBox(height: 8),
-        
-                    Text(
-                      'Start your disability fitness journey',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
-                    ),
-        
-                    const SizedBox(height: 24),
-        
-                    ...List.generate(_plans.length, (index) {
-                      final plan = _plans[index];
-                      final isSelected = _selectedIndex == index;
-        
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _PlanCard(
-                          plan: plan,
-                          isSelected: isSelected,
-                          onTap: () => setState(() => _selectedIndex = index),
-                        ),
-                      );
-                    }),
-        
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-        
-              /// BUTTON (FIXED BOTTOM)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: CustomButton(
-                  onPressed: () {
-                    if (_selectedIndex == 0) {
-                      Get.to(
-                        () => const CongratulationsScreen(planName: 'Free Trial'),
-                      );
-                    } else {
-                      final plan = _plans[_selectedIndex];
-                      final amount = _parseAmount(plan.price);
-                      final planName = plan.title
-                          .replaceFirst(' Plan', '')
-                          .replaceFirst(' plan', '');
-        
-                      Get.to(
-                        () => SelectPaymentMethodScreen(
-                          amount: amount,
-                          planName: planName,
+                  (plans) {
+                    final uiPlans = plans.map(_toPlanItem).toList();
+                    if (uiPlans.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No plans found',
+                          style: const TextStyle(color: Colors.white),
                         ),
                       );
                     }
+                    final selected = _selectedIndex.clamp(0, uiPlans.length - 1);
+                    final selectedPlan = plans[selected];
+                    final selectedUiPlan = uiPlans[selected];
+                    final isTrial = selectedPlan.trialDays > 0 || selectedPlan.price <= 0;
+                    final buttonText = isTrial
+                        ? (selectedPlan.trialDays > 0
+                            ? 'Continue ${selectedPlan.trialDays} days free Trial'
+                            : 'Continue free Trial')
+                        : 'Continue to payment';
+
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          child: GestureDetector(
+                            onTap: () => Get.back(),
+                            child: Row(
+                              children: const [
+                                Icon(
+                                  Icons.chevron_left,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Back',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        /// SCROLLABLE CONTENT
+                        Expanded(
+                          child: ListView(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            children: [
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Choose your plan',
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Start your disability fitness journey',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              ...List.generate(uiPlans.length, (index) {
+                                final plan = uiPlans[index];
+                                final isSelected = selected == index;
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _PlanCard(
+                                    plan: plan,
+                                    isSelected: isSelected,
+                                    onTap: () =>
+                                        setState(() => _selectedIndex = index),
+                                  ),
+                                );
+                              }),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
+
+                        /// BUTTON (FIXED BOTTOM)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: CustomButton(
+                            onPressed: () {
+                              if (isTrial) {
+                                Get.to(
+                                  () => CongratulationsScreen(
+                                    planName: selectedUiPlan.title,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              final amount = _parseAmount(selectedUiPlan.price);
+                              Get.to(
+                                () => SelectPaymentMethodScreen(
+                                  amount: amount,
+                                  planName: selectedUiPlan.title,
+                                ),
+                              );
+                            },
+                            text: buttonText,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+                      ],
+                    );
                   },
-                  text: _selectedIndex == 0
-                      ? 'Continue 7 days free Trial'
-                      : 'Continue to payment',
-                ),
-              ),
-        
-              const SizedBox(height: 8),
-            ],
+                );
+              }();
+
+              return body;
+            },
           ),
         ),
       ),

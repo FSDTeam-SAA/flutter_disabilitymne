@@ -1,11 +1,14 @@
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/daily_tracker/controller/daily_tracker_controller.dart';
 import 'package:disabilitymne/features/daily_tracker/model/daily_tracker_model.dart';
+import 'package:disabilitymne/features/daily_tracker/repository/daily_tracker_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Daily Tracker screen: Daily Habit Week 1 card + Notes section.
-/// MVC: View uses [DailyTrackerController] and [HabitItem] model.
+/// Daily Tracker screen.
+///
+/// UI mapping: days[0]=Mon, days[1]=Tue, ..., days[6]=Sun.
+/// Highlights today and selected day. Week navigation via arrows.
 class DailyTrackerScreen extends StatefulWidget {
   const DailyTrackerScreen({super.key});
 
@@ -19,7 +22,6 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
 
   static const Color _screenBg = Color(0xFF0B1A2A);
   static const Color _cardBg = Color(0xFF2A4360);
-  /// Checked: green border + green check icon; Unchecked: light gray border
   static const Color _checkboxCheckedGreen = Color(0xFF27BE69);
   static const Color _checkboxUncheckedBorder = Color(0xFF696D73);
   static const Color _addNotesBtnStart = Color(0xFF4B7FA8);
@@ -28,11 +30,15 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
   static const Color _hintColor = Color(0xFFA0A8B7);
   static const Color _borderColor = Color(0xFF5B8FB7);
   static const Color _dividerColor = Color(0xFF696D73);
+  static const Color _todayHighlight = Color(0xFF4B7FA8);
+  static const Color _selectedHighlight = Color(0xFF27BE69);
 
   @override
   void initState() {
     super.initState();
-    controller = Get.put(DailyTrackerController());
+    controller = Get.put(
+      DailyTrackerController(Get.find<DailyTrackerRepository>()),
+    );
   }
 
   @override
@@ -62,20 +68,135 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHabitCard(),
-              const SizedBox(height: 24),
-              _buildNotesSection(),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: controller.fetchDailyTracker,
+            color: Colors.white,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (controller.errorMessage.value != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: Text(
+                        controller.errorMessage.value!,
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
+                      ),
+                    ),
+                  _buildWeekNavigation(),
+                  const SizedBox(height: 16),
+                  _buildHabitCard(),
+                  const SizedBox(height: 24),
+                  _buildNotesSection(),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          );
+        }),
       ),
     );
+  }
+
+  Widget _buildWeekNavigation() {
+    return Obx(() {
+      final weekDays = controller.weekDays;
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _borderColor, width: 1),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                  onPressed: controller.goToPreviousWeek,
+                ),
+                Text(
+                  'Week ${controller.weekNumber > 0 ? controller.weekNumber : ''}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, color: Colors.white, size: 28),
+                  onPressed: controller.goToNextWeek,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: weekDays.map((day) {
+                final isToday = day.isToday;
+                final isSelected = day.isSelected;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => controller.selectDay(day.date),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? _selectedHighlight.withValues(alpha: 0.3)
+                            : isToday
+                                ? _todayHighlight.withValues(alpha: 0.3)
+                                : null,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isSelected
+                              ? _selectedHighlight
+                              : isToday
+                                  ? _todayHighlight
+                                  : Colors.transparent,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            day.label,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${day.date.day}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildHabitCard() {
@@ -87,7 +208,7 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _borderColor, width: 1),
       ),
-          child: Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -95,7 +216,7 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
               const Expanded(
                 flex: 3,
                 child: Text(
-                  'Daily Habit Week 1',
+                  'Daily Habits',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -107,18 +228,20 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
                 flex: 4,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(7, (i) => Expanded(
-                    child: Center(
-                      child: Text(
-                        '${i + 1}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  )),
+                  children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                      .map((d) => Expanded(
+                            child: Center(
+                              child: Text(
+                                d,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ))
+                      .toList(),
                 ),
               ),
             ],
@@ -127,27 +250,27 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
           Divider(height: 1, thickness: 1, color: _dividerColor),
           const SizedBox(height: 12),
           Obx(() => Column(
-            children: List.generate(controller.habits.length, (habitIndex) {
-              final habit = controller.habits[habitIndex];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _habitRow(habitIndex, habit),
-              );
-            }),
-          )),
+                children: List.generate(controller.habits.length, (habitIndex) {
+                  final habit = controller.habits[habitIndex];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: _habitRow(habitIndex, habit),
+                  );
+                }),
+              )),
         ],
       ),
     );
   }
 
-  Widget _habitRow(int habitIndex, HabitItem habit) {
+  Widget _habitRow(int habitIndex, Habit habit) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           flex: 3,
           child: Text(
-            '${habit.label} ${habit.emoji}',
+            '${habit.title} ${habit.emoji}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -157,20 +280,19 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
             ),
           ),
         ),
-        
         Expanded(
           flex: 4,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(7, (dayIndex) {
-              final checked = habit.daysChecked[dayIndex];
+            children: List.generate(7, (arrayIndex) {
+              final checked = habit.days[arrayIndex];
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: GestureDetector(
-                      onTap: () => controller.toggleDay(habitIndex, dayIndex),
+                      onTap: () => controller.toggleHabitDay(habitIndex, arrayIndex),
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -187,7 +309,7 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
                                   width: 14,
                                   height: 14,
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => Icon(
+                                  errorBuilder: (context, error, stackTrace) => Icon(
                                     Icons.check,
                                     color: _checkboxCheckedGreen,
                                     size: 14,
@@ -242,9 +364,10 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
         Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () {
-              controller.addNotes(notesController.text);
+            onTap: () async {
+              final text = notesController.text;
               notesController.clear();
+              await controller.addNote(text);
             },
             borderRadius: BorderRadius.circular(16),
             child: Container(

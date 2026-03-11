@@ -56,7 +56,7 @@ class ProfileScreen extends StatelessWidget {
             child: Image.asset(
               ImagePath.profilepic,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Icon(Icons.person, color: AppColors.profileTextPrimary, size: 32),
+              errorBuilder: (_, _, _) => Icon(Icons.person, color: AppColors.profileTextPrimary, size: 32),
             ),
           ),
         ),
@@ -233,7 +233,7 @@ class _MenuTile extends StatelessWidget {
         child: Image.asset(
           item.iconAsset!,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => Icon(item.icon, color: AppColors.profileTextPrimary, size: iconSize),
+          errorBuilder: (_, _, _) => Icon(item.icon, color: AppColors.profileTextPrimary, size: iconSize),
         ),
       );
     }

@@ -1,4 +1,5 @@
 import 'package:disabilitymne/core/theme/app_colors.dart';
+import 'package:disabilitymne/features/calculators/presentation/calculators_screen.dart';
 import 'package:disabilitymne/features/home/presentation/home_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/program_screen.dart';
@@ -12,10 +13,10 @@ class AppGround extends StatelessWidget {
       Get.put(AppGroundController(), permanent: true);
 
   final List<Widget> pages = [
-    HomeScreen(),
+    HomeScreen(isPremiumUser: true,),
     ProgramsScreen(),
     Scaffold(),
-    Scaffold(),
+    const CalculatorsScreen(),
     ProfileScreen(),
   ];
 
@@ -38,8 +39,12 @@ class AppGround extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx(() => pages[controller.currentIndex.value]),
-      backgroundColor: const Color(0xFF0B1A2A),
+      extendBody: true,
+      body: Obx(() => IndexedStack(
+        index: controller.currentIndex.value,
+        children: pages,
+      )),
+      // backgroundColor: const Color(0xFF0B1A2A),
       bottomNavigationBar: SafeArea(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -51,6 +56,7 @@ class AppGround extends StatelessWidget {
               colors: [
                 Color(0xFF0B1A2A),
                 Color(0xFF12263A),
+                
               ],
             ),
             border: Border.all(
@@ -59,7 +65,7 @@ class AppGround extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(.4),
+                color: Colors.black.withValues(alpha:  .4),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               )
