@@ -1,8 +1,14 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
+import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
+import 'package:disabilitymne/features/recipies/presentation/screen/recipies_details.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class RecipesScreen extends StatelessWidget {
-  const RecipesScreen({super.key});
+  RecipesScreen({super.key});
+
+  final RecipeController controller = Get.put(RecipeController());
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +18,8 @@ class RecipesScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -28,88 +34,26 @@ class RecipesScreen extends StatelessWidget {
                     SizedBox(height: 4),
                     Text(
                       "Personalized plans & recipes",
-                      style: TextStyle(
-                        color: Colors.white70,
-                      ),
+                      style: TextStyle(color: Colors.white70),
                     ),
                   ],
                 ),
               ),
-        
+
               const SizedBox(height: 20),
-        
-              /// Category Buttons
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: const [
-                    CategoryChip(title: "All", selected: true),
-                    CategoryChip(title: "Breakfast"),
-                    CategoryChip(title: "Launch"),
-                    CategoryChip(title: "Dinner"),
-                    CategoryChip(title: "Snacks"),
-                  ],
-                ),
-              ),
-        
-              const SizedBox(height: 20),
-        
-              /// Recipe List
+
+              /// Exercise List
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: const [
-                    RecipeCard(
-                      title: "High Protein Oat Bowl",
-                      subtitle: "420 Kcal | 10 min | Breakfast",
-                      image:
-                          "https://images.unsplash.com/photo-1517673132405-a56a62b18caf",
-                    ),
-                    RecipeCard(
-                      title: "Grilled Chicken Salad",
-                      subtitle: "380 Kcal | 20 min | Lunch",
-                      image:
-                          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
-                    ),
-                    RecipeCard(
-                      title: "Salmon & Quinoa Bowl",
-                      subtitle: "520 Kcal | 25 min | Dinner",
-                      image:
-                          "https://images.unsplash.com/photo-1467003909585-2f8a72700288",
-                    ),
-                    RecipeCard(
-                      title: "Greek yogurt Parfait",
-                      subtitle: "290 Kcal | 5 min | Snack",
-                      image:
-                          "https://images.unsplash.com/photo-1488477181946-6428a0291777",
-                    ),
-                    RecipeCard(
-                      title: "High Protein Oat Bowl",
-                      subtitle: "420 Kcal | 10 min | Breakfast",
-                      image:
-                          "https://images.unsplash.com/photo-1517673132405-a56a62b18caf",
-                    ),
-                    RecipeCard(
-                      title: "Grilled Chicken Salad",
-                      subtitle: "380 Kcal | 20 min | Lunch",
-                      image:
-                          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
-                    ),
-                    RecipeCard(
-                      title: "Salmon & Quinoa Bowl",
-                      subtitle: "520 Kcal | 25 min | Dinner",
-                      image:
-                          "https://images.unsplash.com/photo-1467003909585-2f8a72700288",
-                    ),
-                    RecipeCard(
-                      title: "Greek yogurt Parfait",
-                      subtitle: "290 Kcal | 5 min | Snack",
-                      image:
-                          "https://images.unsplash.com/photo-1488477181946-6428a0291777",
-                    ),
-                  ],
+                child: Obx(
+                  () => ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: controller.recipeList.length,
+                    itemBuilder: (context, index) {
+                      RecipeModel recipe = controller.recipeList[index];
+
+                      return RecipeCard(recipe: recipe);
+                    },
+                  ),
                 ),
               ),
             ],
@@ -120,101 +64,102 @@ class RecipesScreen extends StatelessWidget {
   }
 }
 
-class CategoryChip extends StatelessWidget {
-  final String title;
-  final bool selected;
-
-  const CategoryChip({
-    super.key,
-    required this.title,
-    this.selected = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: selected ? const Color(0xff1B365D) : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white24),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        title,
-        style: const TextStyle(color: Colors.white),
-      ),
-    );
-  }
-}
-
 class RecipeCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String image;
+  final RecipeModel recipe;
 
-  const RecipeCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    required this.image,
-  });
+  const RecipeCard({super.key, required this.recipe});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xffE6EEF6),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          /// Image
-          CircleAvatar(
-            radius: 35,
-            backgroundImage: NetworkImage(image),
-          ),
-
-          const SizedBox(width: 14),
-
-          /// Text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+    return InkWell(
+      onTap: () {
+        Get.to(() => RecipeDetailsScreen(id: recipe.id ?? ""));
+      },
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xffE6EEF6),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 35,
+              backgroundImage: NetworkImage(recipe.recipeImage ?? ""),
             ),
-          ),
 
-          /// Favorite Icon
-          const CircleAvatar(
-            radius: 14,
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.favorite,
-              color: Colors.red,
-              size: 16,
+            const SizedBox(width: 14),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    recipe.recipeName ?? "",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text(
+                        recipe.caloriesKcal?.toString() ?? "",
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(6.0, 0, 6.0, 0),
+                        child: Text(
+                          "|",
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        recipe.recipeDuration ?? "",
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(6.0, 0, 6.0, 0),
+                        child: Text(
+                          "|",
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        recipe.recipeType ?? "",
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          )
-        ],
+
+            const CircleAvatar(
+              radius: 14,
+              backgroundColor: Colors.white,
+              child: Icon(Icons.favorite, color: Colors.red, size: 16),
+            ),
+          ],
+        ),
       ),
     );
   }

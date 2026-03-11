@@ -135,8 +135,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     } else {
       debugPrint("Exercise completed. Popping back to Program screen.");
       // Done - Popup to program screen (Pop all exercise screens + ReadyStartScreen)
-      int popCount = totalExercises + 1; // All exercises + ReadyStartScreen
-      int currentPop = 0;
+      // int popCount = totalExercises + 1; // All exercises + ReadyStartScreen
+      // int currentPop = 0;
       // Navigator.popUntil(context, (route) {
       //   return currentPop++ == popCount;
       // });

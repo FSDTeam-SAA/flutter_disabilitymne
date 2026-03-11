@@ -28,6 +28,9 @@ base class ApiEndpoints {
   static const String getAllLibrary = _Excerise.getAllLibrary;
   static String getLibraryDetail(String id) => _Excerise.getLibraryDetails(id);
 
+  static const String getAllRecipies = _Recipies.getAllRecipies;
+  static String getRecipeDetail(String id) => _Recipies.getRecipeDetails(id);
+
   //------------notification----------------
   /// ### get
   static const String getAllNotifications = _Notification.getAllNotifications;
@@ -112,6 +115,12 @@ class _Excerise {
   static const String _programRoute = '${ApiEndpoints.baseUrl}/exercises';
   static const String getAllLibrary = '$_programRoute/all';
   static String getLibraryDetails(String id) => '$_programRoute/$id';
+}
+
+class _Recipies {
+  static const String _programRoute = '${ApiEndpoints.baseUrl}/recipes';
+  static const String getAllRecipies = '$_programRoute/all';
+  static String getRecipeDetails(String id) => '$_programRoute/$id';
 }
 
 // ---------------------- Verification -----------------------------
