@@ -50,20 +50,26 @@ class _WeightSelectionScreenState extends State<WeightSelectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildHeader(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const Center(
               child: Text(
                 'How Much Do You Weight?',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
-            const SizedBox(height: 14),
-            Center(child: _UnitToggle(isKg: _isKg, onChanged: (v) => setState(() => _isKg = v))),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
+            Center(
+              child: _UnitToggle(
+                isKg: _isKg,
+                onChanged: (v) => setState(() => _isKg = v),
+              ),
+            ),
+            const SizedBox(height: 20),
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -84,12 +90,18 @@ class _WeightSelectionScreenState extends State<WeightSelectionScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 20),
-              child: CustomButton(onPressed: () {
+              padding: EdgeInsets.fromLTRB(
+                20,
+                12,
+                20,
+                MediaQuery.of(context).padding.bottom + 20,
+              ),
+              child: CustomButton(
+                onPressed: () {
                   Get.to(FitnessGoals());
-
-
-              }, text: 'Continue'),
+                },
+                text: 'Continue',
+              ),
             ),
           ],
         ),
@@ -132,12 +144,14 @@ class _WeightSelectionScreenState extends State<WeightSelectionScreen> {
           ),
           const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
               value: _currentStep / _totalSteps,
-              minHeight: 6,
-              backgroundColor: Colors.white.withValues(alpha: 0.3),
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4D7EA9)),
+              minHeight: 10,
+              backgroundColor: Colors.white.withValues(alpha: 0.8),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFF8AC9E7),
+              ),
             ),
           ),
         ],
@@ -152,17 +166,14 @@ class _UnitToggle extends StatelessWidget {
 
   const _UnitToggle({required this.isKg, required this.onChanged});
 
-  static const Color _blue = Color(0xFF4D7EA9);
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 44,
-      padding: const EdgeInsets.all(4),
+      height: 36,
+      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white24),
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -178,17 +189,19 @@ class _UnitToggle extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 60,
+        width: 50,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? _blue : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : const Color(0xFF2C5282),
-            fontSize: 16,
+            color: selected
+                ? const Color(0xFF4D7EA9)
+                : Colors.white.withValues(alpha: 0.7),
+            fontSize: 14,
             fontWeight: selected ? FontWeight.bold : FontWeight.w500,
           ),
         ),
@@ -235,13 +248,19 @@ class _SemicircularGaugeState extends State<_SemicircularGauge> {
     setState(() => _dragValueKg = widget.valueKg);
   }
 
-  void _onPanUpdate(DragUpdateDetails d, Size size, double centerX, double centerY, double radius) {
+  void _onPanUpdate(
+    DragUpdateDetails d,
+    Size size,
+    double centerX,
+    double centerY,
+    double radius,
+  ) {
     if (_dragValueKg == null) return;
     final dx = d.localPosition.dx - centerX;
     final dy = centerY - d.localPosition.dy;
     double angle = math.atan2(dy, dx);
     if (angle < 0) angle += 2 * math.pi;
-    const radPerKg = math.pi / 10;
+    const radPerKg = math.pi / 20; // Synced with painter
     final centerKg = _effectiveValue;
     final kg = centerKg + (angle - math.pi / 2) / radPerKg;
     setState(() => _dragValueKg = kg.clamp(widget.minKg, widget.maxKg));
@@ -273,12 +292,12 @@ class _SemicircularGaugeState extends State<_SemicircularGauge> {
                     child: GestureDetector(
                       onPanStart: (d) {
                         final centerX = w / 2;
-                        final centerY = h;
+                        final centerY = w * 0.75; // Align with painter
                         _onPanStart(d, centerX, centerY);
                       },
                       onPanUpdate: (d) {
                         final centerX = w / 2;
-                        final centerY = h;
+                        final centerY = w * 0.75; // Align with painter
                         final radius = (w / 2) * 0.92;
                         _onPanUpdate(d, Size(w, h), centerX, centerY, radius);
                       },
@@ -295,26 +314,31 @@ class _SemicircularGaugeState extends State<_SemicircularGauge> {
                       ),
                     ),
                   ),
-                  // Smaller bottom capsule (110×110) with _ValueDisplay as child
+                  Image.asset(
+                    "assets/logo/11.png",
+                    width: double.infinity,
+                    height: h * 0.9,
+                    fit: BoxFit.contain,
+                  ),
+                  // Central Value Circle
                   Positioned(
-                    left: w / 2 - 55,
-                    bottom: -55,
-                    width: 110,
-                    height: 110,
+                    bottom: -90, // Adjust to overlap image correctly
+                    left: w / 2 - 60,
                     child: Container(
-                      decoration: BoxDecoration(
+                      width: 120,
+                      height: 120,
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: widget.isDark ? Colors.white : Colors.grey.shade100,
-                        border: Border.all(
-                          color: widget.isDark ? Colors.black26 : Colors.grey.shade600,
-                          width: 2,
-                        ),
+                        color: Colors.white,
                       ),
                       alignment: Alignment.center,
-                      child: _ValueDisplay(
-                        value: widget.isKg ? _effectiveValue : _effectiveValue * 2.20462,
-                        unit: widget._unit,
-                        isDark: widget.isDark,
+                      child: Text(
+                        '${widget.isKg ? _effectiveValue.toStringAsFixed(0) : (_effectiveValue * 2.20462).toStringAsFixed(0)} ${widget._unit}',
+                        style: const TextStyle(
+                          color: Color(0xFF1D2D44),
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -338,67 +362,6 @@ extension on _SemicircularGauge {
   String get _unit => isKg ? 'kg' : 'lbs';
 }
 
-/// Large value display (48–72pt equivalent).
-class _ValueDisplay extends StatelessWidget {
-  final double value;
-  final String unit;
-  final bool isDark;
-
-  const _ValueDisplay({required this.value, required this.unit, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    final display = value >= 100
-        ? value.toStringAsFixed(1)
-        : value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 1);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: BoxDecoration(
-        // color: isDark ? Colors.white : Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(16),
-        // border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.black.withValues(alpha: 0.1),
-        //     blurRadius: 12,
-        //     offset: const Offset(0, 4),
-        //   ),
-        // ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        children: [
-          Text(
-            display,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.black87 : Colors.grey.shade900,
-              letterSpacing: -1,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              unit,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.black54 : Colors.grey.shade600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
 /// Paints: bottom-half semicircle arc, optional fill to needle, major/minor ticks, curved labels, needle + pivot.
 class _SemicircularGaugePainter extends CustomPainter {
   final double valueKg;
@@ -415,172 +378,85 @@ class _SemicircularGaugePainter extends CustomPainter {
     required this.isDark,
   });
 
-  static const double _pi = math.pi;
-
-
-
-  /// Arc: higher values left, lower right (swipe left = increase, swipe right = decrease).
-  /// More spacing (π/10) so labels don’t overlap the center pill.
-  static const double _radPerKg = _pi / 10;
-  double _labelAngle(double kg, double centerKg) {
-    return _pi / 2 + _radPerKg * (kg - centerKg);
-  }
-
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
-    final h = size.height;
     final cx = w / 2;
-    final cy = h;
-    final radius = (w / 2) * 0.92;
+    final cy = w * 0.75; // Align with Gesture detector
 
-    final arcColor = const Color(0xFF5D9FD9);
-    final trackStroke = const Color(0xFF4A7BA8);
-    final needleColor = Colors.white;
-    final needleOutline = Colors.black26;
     final textColor = Colors.white;
-    final textColorDim = const Color(0xFF9CA3AF);
+    final textColorDim = Colors.white.withOpacity(0.5);
 
-    final arcRect = Rect.fromCircle(center: Offset(cx, cy), radius: radius);
-    final arcPath = Path()
-      ..moveTo(cx - radius, cy)
-      ..arcTo(arcRect, _pi, -_pi, false)
-      ..lineTo(cx + radius, cy)
-      ..close();
-    canvas.drawPath(arcPath, Paint()..color = arcColor..style = PaintingStyle.fill);
-    canvas.drawPath(arcPath, Paint()..color = trackStroke..style = PaintingStyle.stroke..strokeWidth = 2);
-
-
-    // Major (every 5) and minor (every 1) ticks
-Paint()
-      ..color = trackStroke
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round;
-   Paint()
-      ..color = trackStroke.withValues(alpha: 0.7)
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round;
-
-
-    final labelRadius = radius + 48;
-
-
-    // Labels along a proper circular arc (same radius) so they don’t stack — like reference
+    // Labels along the arc
     final textStyle = TextStyle(
       color: textColor,
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
+      fontSize: 24,
+      fontWeight: FontWeight.w500,
     );
-    final textStyleDim = textStyle.copyWith(color: textColorDim, fontWeight: FontWeight.w500, fontSize: 18.0);
+    final textStyleDim = textStyle.copyWith(color: textColorDim, fontSize: 20);
 
-    final centerKg = valueKg.roundToDouble().clamp(minKg, maxKg);
-    final visibleKg = <double>[];
+    final centerValue = isKg ? valueKg : valueKg * 2.20462;
+    final displayMin = isKg ? minKg : minKg * 2.20462;
+    final displayMax = isKg ? maxKg : maxKg * 2.20462;
+
+    final roundedCenter = centerValue.roundToDouble();
+
+    // Draw numbers on the arc
+    const labelRadius = 240.0; // Adjust to fit age.png arc
+
     for (int i = -3; i <= 3; i++) {
-      final k = centerKg + i;
-      if (k >= minKg && k <= maxKg) visibleKg.add(k);
-    }
+      final val = roundedCenter + i;
+      if (val < displayMin || val > displayMax) continue;
 
-    final labelRadiusWithGap = labelRadius + 20;
-    // Single radius = labels on a circular arc (not oval), evenly spaced along the curve
-    final labelR = labelRadiusWithGap;
+      final diff = val - centerValue;
+      // Rotation angle: center is vertically up (90 deg), each kg is some angle
+      const anglePerUnit = math.pi / 20;
+      final angle = math.pi / 2 + diff * anglePerUnit;
 
-    // Center position for selected kg (90° = top of circle)
-    final centerX = cx;
-    final centerY = cy - labelR;
+      final x = cx + labelRadius * math.cos(angle - math.pi);
+      final y = cy + labelRadius * math.sin(angle - math.pi);
 
-    // Draw pill first so arc labels are drawn on top and never appear behind it
-    final selectedLabel = isKg ? '${valueKg.toStringAsFixed(valueKg.truncateToDouble() == valueKg ? 0 : 1)} kg' : '${(valueKg * 2.20462).toStringAsFixed(1)} lbs';
-    final selectedSpan = TextSpan(text: selectedLabel, style: textStyle.copyWith(color: const Color(0xFF1a1a2e)));
-    final selectedTp = TextPainter(text: selectedSpan, textDirection: TextDirection.ltr)..layout();
-    const padH = 20.0;
-    const padV = 8.0;
-    final rect = Rect.fromCenter(center: Offset.zero, width: selectedTp.width + padH * 2, height: selectedTp.height + padV * 2);
-    final pillRadius = rect.height / 2;
-    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(pillRadius));
-    canvas.save();
-    canvas.translate(centerX, centerY);
-    canvas.save();
-    canvas.translate(2, 2);
-    canvas.drawRRect(rrect, Paint()..color = Colors.black.withValues(alpha: 0.08));
-    canvas.restore();
-    canvas.drawRRect(rrect, Paint()..color = const Color(0xFFE5E7EB));
-    canvas.drawRRect(rrect, Paint()..color = const Color(0xFFD1D5DB)..style = PaintingStyle.stroke..strokeWidth = 1);
-    selectedTp.paint(canvas, Offset(-selectedTp.width / 2, -selectedTp.height / 2));
-    canvas.restore();
+      final tp = TextPainter(
+        text: TextSpan(
+          text: val.toInt().toString(),
+          style: (i == 0) ? textStyle : textStyleDim,
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
 
-    // Arc labels on top so they’re visible; spread across left/right (radPerKg = π/15)
-    for (final kg in visibleKg) {
-      final isSelected = (kg - valueKg).abs() < 0.6;
-      if (isSelected) continue;
-      final angle = _labelAngle(kg, valueKg);
-      final cos = math.cos(angle);
-      final sin = math.sin(angle);
-      final x = cx + labelR * cos;
-      final y = cy - labelR * sin;
-      final label = '${kg.toInt()}';
-      final dist = (kg - valueKg).abs();
-      final isNear = dist <= 2;
-      final span = TextSpan(
-        text: label,
-        style: isNear ? textStyle : textStyleDim.copyWith(color: textColorDim.withValues(alpha: 0.6)),
-      );
-      final tp = TextPainter(text: span, textDirection: TextDirection.ltr)..layout();
-      final radAngle = -angle + _pi / 2;
       canvas.save();
       canvas.translate(x, y);
-      canvas.rotate(radAngle);
+      // Rotate text to point outwards or keep upright? Image shows slightly tilted
+      canvas.rotate(angle - math.pi / 2);
       tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
       canvas.restore();
     }
 
-    // Needle: fixed at 90° (straight up, center-aligned), not movable
-    final needleAngle = _pi / 2;
-    final needleLength = radius * 0.88;
-    const pivotRadius = 55.0;
+    // Needle: points to the center (which is the current weight)
+    final needlePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
 
-    // Needle shadow
-    canvas.save();
-    canvas.translate(2, 2);
-    _drawNeedle(canvas, cx, cy, needleAngle, needleLength, needleOutline.withValues(alpha: 0.4), pivotRadius);
-    canvas.restore();
+    final needlePath = Path();
+    const needleWidth = 60.0;
+    const needleLength = 200.0;
 
-    _drawNeedle(canvas, cx, cy, needleAngle, needleLength, needleColor, pivotRadius);
+    // Vertical needle pointing from cy towards 90 deg up
+    needlePath.moveTo(cx, cy - needleLength); // Tip
+    needlePath.lineTo(cx - needleWidth / 2, cy - 20); // Base left
+    needlePath.lineTo(cx + needleWidth / 2, cy - 20); // Base right
+    needlePath.close();
 
-    // Outline for visibility
-    final outlinePaint = Paint()
-      ..color = needleOutline
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    _drawNeedlePath(canvas, cx, cy, needleAngle, needleLength, outlinePaint);
-
-    // Pivot circle is drawn as a widget with _ValueDisplay as child (see Stack below)
-  }
-
-  void _drawNeedle(Canvas canvas, double cx, double cy, double angle, double length, Color color, double pivotRadius) {
-    final paint = Paint()..color = color..style = PaintingStyle.fill;
-    _drawNeedlePath(canvas, cx, cy, angle, length, paint);
-  }
-
-  void _drawNeedlePath(Canvas canvas, double cx, double cy, double angle, double length, Paint paint) {
-    final cos = math.cos(angle);
-    final sin = math.sin(angle);
-    final tipX = cx + length * cos;
-    final tipY = cy - length * sin;
-    // Wider base for easier drag at pivot
-    const baseWidth = 48.0;
-    final perpX = -sin * baseWidth / 2;
-    final perpY = -cos * baseWidth / 2;
-    final path = Path()
-      ..moveTo(tipX, tipY)
-      ..lineTo(cx + perpX, cy + perpY)
-      ..lineTo(cx - perpX, cy - perpY)
-      ..close();
-    canvas.drawPath(path, paint);
+    canvas.drawPath(needlePath, needlePaint);
   }
 
   @override
   bool shouldRepaint(covariant _SemicircularGaugePainter old) =>
-      old.valueKg != valueKg || old.minKg != minKg || old.maxKg != maxKg || old.isKg != isKg || old.isDark != isDark;
+      old.valueKg != valueKg ||
+      old.minKg != minKg ||
+      old.maxKg != maxKg ||
+      old.isKg != isKg ||
+      old.isDark != isDark;
 }
 
 /// Alias for navigation from gender selection (Step 1 → Step 3).
