@@ -14,13 +14,19 @@ base class ApiEndpoints {
   static const String createNewPassword = _Auth.resetPassword;
   static const String refreshToken = _Auth.refreshToken;
   static const String helpSupport = _HelpSupport.helpSupport;
-  static const String getInterests = _Interest.getallInterests;
   static const String verification = _Verification.verification;
 
   //---------------report----------------
 
   /// ### post
   static const String sendReport = _Report.sendReport;
+
+  //-------------------------Program--------------------------
+  static const String getAllPrograms = _Program.getAllPrograms;
+  static String getProgramDetail(String id) => _Program.getProgramDetails(id);
+
+  static const String getAllLibrary = _Excerise.getAllLibrary;
+  static String getLibraryDetail(String id) => _Excerise.getLibraryDetails(id);
 
   //------------notification----------------
   /// ### get
@@ -36,15 +42,9 @@ base class ApiEndpoints {
 
   // ---------------------- USER -----------------------------
   /// ### get
-  static String getuserbyId(String id) => _User.getuserbyId(id);
+  static String getProfile = _User.getProfile;
   static String updateProfile = _User.updateProfile;
   static String changePassword = _User.changePassword;
-
-  // ---------------------- Products -----------------------------
-  static const String getAllProducts = _Product.getAllProducts;
-
-  //-------------------------Category --------------------------
-  static const String getAllCategories = _Category.getAllCategories;
 
   //-------------------------cart --------------------------
   static const String addToCart = _Cart.addToCart;
@@ -90,14 +90,11 @@ base class ApiEndpoints {
 //arrow360degree@gmail.com
 
 class _RemoteServer {
-  static const String socketUrl =
-      'https://disabilitymne-backend.onrender.com';
+  static const String socketUrl = 'https://disabilitymne-backend.onrender.com';
 
   static const String baseUrl =
       'https://disabilitymne-backend.onrender.com/api/v1';
 }
-
-
 
 class _Auth {
   @protected
@@ -118,10 +115,17 @@ class _HelpSupport {
   static const String helpSupport = '$_helpSupportRoute/';
 }
 
-//------------------------------ Interest -----------------------------
-class _Interest {
-  static const String _interestRoute = '${ApiEndpoints.baseUrl}/interest';
-  static const String getallInterests = '$_interestRoute/';
+//------------------------------ Program -----------------------------
+class _Program {
+  static const String _programRoute = '${ApiEndpoints.baseUrl}/programs';
+  static const String getAllPrograms = '$_programRoute/all';
+  static String getProgramDetails(String id) => '$_programRoute/$id';
+}
+
+class _Excerise {
+  static const String _programRoute = '${ApiEndpoints.baseUrl}/exercises';
+  static const String getAllLibrary = '$_programRoute/all';
+  static String getLibraryDetails(String id) => '$_programRoute/$id';
 }
 
 // ---------------------- Verification -----------------------------
@@ -151,22 +155,10 @@ class _Notification {
 
 // ---------------------- USER -----------------------------
 class _User {
-  static const String _userRoute = '${ApiEndpoints.baseUrl}/user';
-  static String getuserbyId(String id) => '$_userRoute/profile';
-  static String updateProfile = '$_userRoute/profile';
-  static String changePassword = '$_userRoute/password';
-}
-
-// ---------------------- Products -----------------------------
-class _Product {
-  static const String _productRoute = '${ApiEndpoints.baseUrl}/product';
-  static const String getAllProducts = _productRoute;
-}
-
-//---------------------- Category -----------------------------
-class _Category {
-  static const String _categoryRoute = '${ApiEndpoints.baseUrl}/category';
-  static const String getAllCategories = '$_categoryRoute/tree/all';
+  static const String _userRoute = '${ApiEndpoints.baseUrl}/users';
+  static String getProfile = '$_userRoute/me';
+  static String updateProfile = '$_userRoute/me';
+  static String changePassword = '$_userRoute/me/change-password';
 }
 
 //---------------------- Cart -----------------------------

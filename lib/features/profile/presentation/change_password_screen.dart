@@ -7,7 +7,7 @@ class ChangePasswordScreen extends StatelessWidget {
   ChangePasswordScreen({super.key});
 
   final ChangePasswordController controller = Get.put(
-    ChangePasswordController(),
+    ChangePasswordController(profileInterface: Get.find()),
   );
 
   @override

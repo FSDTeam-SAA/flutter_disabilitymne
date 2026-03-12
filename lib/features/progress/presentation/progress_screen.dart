@@ -16,7 +16,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   static const Color _screenBg = Color(0xFF0B1A2A);
   static const Color _summaryCardBg = Color(0xFF223650);
-  static const Color _summaryLabelColor = Color(0xFFB0B3B8);
   static const Color _borderColor = Color(0xFF4B7FA8);
   static const Color _green = Color(0xFF27BE69);
   static const Color _orange = Color(0xFFE67E22);

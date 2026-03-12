@@ -11,9 +11,9 @@ class UserModel {
   final String? profileImage;
   final String? gender;
   final int? age;
-  final double? weightCurrent;
-  final double? goalWeight;
-  final double? height;
+  final Measurement? weightCurrent;
+  final Measurement? goalWeight;
+  final Measurement? height;
   final List<dynamic>? fitnessGoals;
   final String? mobilityType;
   final String? mobilityTypeOther;
@@ -83,9 +83,15 @@ class UserModel {
       profileImage: json['profileImage'],
       gender: json['gender'],
       age: json['age'],
-      weightCurrent: json['weightCurrent']?.toDouble(),
-      goalWeight: json['goalWeight']?.toDouble(),
-      height: json['height']?.toDouble(),
+      weightCurrent: json['weightCurrent'] != null
+          ? Measurement.fromJson(json['weightCurrent'])
+          : null,
+      goalWeight: json['goalWeight'] != null
+          ? Measurement.fromJson(json['goalWeight'])
+          : null,
+      height: json['height'] != null
+          ? Measurement.fromJson(json['height'])
+          : null,
       fitnessGoals: json['fitnessGoals'],
       mobilityType: json['mobilityType'],
       mobilityTypeOther: json['mobilityTypeOther'],
@@ -120,9 +126,9 @@ class UserModel {
       'profileImage': profileImage,
       'gender': gender,
       'age': age,
-      'weightCurrent': weightCurrent,
-      'goalWeight': goalWeight,
-      'height': height,
+      'weightCurrent': weightCurrent?.toJson(),
+      'goalWeight': goalWeight?.toJson(),
+      'height': height?.toJson(),
       'fitnessGoals': fitnessGoals,
       'mobilityType': mobilityType,
       'mobilityTypeOther': mobilityTypeOther,
@@ -144,6 +150,20 @@ class UserModel {
   }
 }
 
+class Measurement {
+  final int? value;
+  final String? unit;
+
+  Measurement({this.value, this.unit});
+
+  factory Measurement.fromJson(Map<String, dynamic> json) {
+    return Measurement(value: json['value'], unit: json['unit']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'value': value, 'unit': unit};
+  }
+}
 
 class AccessibilityPreferences {
   final bool? largerText;
