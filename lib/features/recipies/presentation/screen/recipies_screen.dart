@@ -8,7 +8,9 @@ import 'package:get/get.dart';
 class RecipesScreen extends StatelessWidget {
   RecipesScreen({super.key});
 
-  final RecipeController controller = Get.put(RecipeController());
+  final RecipeController controller = Get.isRegistered<RecipeController>()
+      ? Get.find<RecipeController>()
+      : Get.put(RecipeController());
 
   @override
   Widget build(BuildContext context) {

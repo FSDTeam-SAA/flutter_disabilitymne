@@ -1,8 +1,12 @@
+import 'package:disabilitymne/app/controller/app_ground_controller.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/chat/presentation/chat_with_admin_screen.dart';
 import 'package:disabilitymne/features/daily_tracker/presentation/daily_tracker_screen.dart';
 import 'package:disabilitymne/features/progress/presentation/progress_screen.dart';
+import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
+import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
+import 'package:disabilitymne/features/recipies/presentation/screen/recipies_details.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -27,6 +31,14 @@ class _HomeScreenState extends State<HomeScreen> {
     'assets/image/recipe_icon_dinner.png',
   ];
   int _recipeTabIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!Get.isRegistered<RecipeController>()) {
+      Get.put(RecipeController());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -372,6 +384,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMyRecipesSection() {
     const tabs = ['Breakfast', 'Lunch', 'Dinner'];
+    final recipeController = Get.find<RecipeController>();
+
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -390,7 +404,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Get.find<AppGroundController>().changeIndex(2);
+                  },
                   child: Text(
                     'See all',
                     style: TextStyle(
@@ -477,80 +493,158 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(child: _buildRecipeCard('High Protein Oat Bowl', '420 Kcal')),
-                const SizedBox(width: 12),
-                Expanded(child: _buildRecipeCard('Grilled Chicken Salad', '420 Kcal')),
-              ],
-            ),
+            Obx(() {
+              final all = recipeController.recipeList;
+              if (all.isEmpty) {
+                return SizedBox(
+                  height: 160,
+                  child: Center(
+                    child: Text(
+                      'No recipes yet',
+                      style: TextStyle(
+                        color: AppColors.primaryText.withValues(alpha: 0.7),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return SizedBox(
+                height: 168,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: all.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    return SizedBox(
+                      width: 140,
+                      child: _buildRecipeCard(all[index], index),
+                    );
+                  },
+                ),
+              );
+            }),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildRecipeCard(String title, String kcal) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _cardBlue,
+  Widget _buildRecipeCard(RecipeModel recipe, int index) {
+    final title = recipe.recipeName ?? 'Recipe';
+    final kcal = '${recipe.caloriesKcal ?? 0} Kcal';
+    final gradients = [
+      [const Color(0xFF1A233A), const Color(0xFF2A4A3A)],
+      [const Color(0xFF1A233A), const Color(0xFF4A3A2A)],
+      [const Color(0xFF1A233A), const Color(0xFF3A3A4A)],
+    ];
+    final colors = gradients[index % gradients.length];
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => Get.to(() => RecipeDetailsScreen(id: recipe.id ?? '')),
         borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            _cardBlue,
-            _cardBlue,
-            const Color(0xFF2A3A2A).withValues( alpha: 0.5),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues( alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
+        child: SizedBox(
+          height: 168,
+          child: Card(
+            clipBehavior: Clip.antiAlias,
+            margin: EdgeInsets.zero,
             child: Container(
-              width: 70,
-              height: 70,
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white12,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    _cardBlue,
+                    _cardBlue,
+                    colors[1].withValues(alpha: 0.6),
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(
-                Icons.restaurant,
-                color: Colors.white54,
-                size: 32,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: recipe.recipeImage != null &&
+                                recipe.recipeImage!.isNotEmpty
+                            ? Image.network(
+                                recipe.recipeImage!,
+                                width: 70,
+                                height: 70,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    _recipePlaceholder(),
+                              )
+                            : _recipePlaceholder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        color: AppColors.primaryText,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    kcal,
+                    style: TextStyle(
+                      color: AppColors.primaryText.withValues(alpha: 0.7),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: TextStyle(
-              color: AppColors.primaryText,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            kcal,
-            style: TextStyle(
-              color: AppColors.primaryText.withValues( alpha: 0.7),
-              fontSize: 12,
-            ),
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _recipePlaceholder() {
+    return Container(
+      width: 70,
+      height: 70,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white12,
+      ),
+      child: Icon(
+        Icons.restaurant,
+        color: Colors.white54,
+        size: 32,
       ),
     );
   }

@@ -27,10 +27,15 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
   static const Color _scaffoldBg = Color(0xFF1A2430);
   static const Color _incomingBubbleBg = Color(0xFFFFFFFF);
   static const Color _outgoingBubbleBg = Color(0xFF5B9BD5);
-  static const Color _inputBarBg = Color(0xFF2D3644);
-  static const Color _inputFieldBg = Color(0xFF3D4554);
+  static const Color _inputBarBg = Color(0xFFF0F0F0);
+  static const Color _inputFieldBg = Color(0xFFE5E5E5);
   static const Color _avatarGray = Color(0xFF6B7280);
-  static const Color _sendButtonBg = Color(0xFF4A5568);
+  /// Add button: light circle + dark blue plus (from design image)
+  static const Color _addButtonBg = Color(0xFFE8E8E8);
+  static const Color _addButtonIcon = Color(0xFF1A2430);
+  /// Send button: light grey squircle + dark grey paper plane (from design image)
+  static const Color _sendButtonBg = Color(0xFFE0E0E0);
+  static const Color _sendButtonIcon = Color(0xFF5A5A5A);
 
   @override
   void dispose() {
@@ -153,15 +158,28 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            // Add/attachment: circular light grey button, dark blue plus (from image)
             Material(
-              color: _sendButtonBg,
-              borderRadius: BorderRadius.circular(20),
+              color: _addButtonBg,
+              shape: const CircleBorder(),
               child: InkWell(
                 onTap: () {},
-                borderRadius: BorderRadius.circular(20),
-                child: const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Icon(Icons.add, color: Colors.white, size: 24),
+                customBorder: const CircleBorder(),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.add, color: _addButtonIcon, size: 26),
                 ),
               ),
             ),
@@ -171,14 +189,14 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
                 constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
                 decoration: BoxDecoration(
                   color: _inputFieldBg,
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: TextField(
                   controller: _messageController,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: const TextStyle(color: Color(0xFF25272D), fontSize: 16),
                   decoration: InputDecoration(
                     hintText: 'Enter your message',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 16),
+                    hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.4), fontSize: 16),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 18,
@@ -192,15 +210,28 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
               ),
             ),
             const SizedBox(width: 10),
+            // Send: rounded square (squircle) light grey, dark grey paper plane (from image)
             Material(
               color: _sendButtonBg,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(14),
               child: InkWell(
                 onTap: _sendMessage,
-                borderRadius: BorderRadius.circular(22),
-                child: const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Icon(Icons.send, color: Colors.white, size: 22),
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.send_rounded, color: _sendButtonIcon, size: 22),
                 ),
               ),
             ),

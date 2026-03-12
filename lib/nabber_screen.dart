@@ -1,5 +1,5 @@
+import 'package:disabilitymne/app/controller/app_ground_controller.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
-import 'package:disabilitymne/features/calculators/presentation/calculators_screen.dart';
 import 'package:disabilitymne/features/home/presentation/home_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/program_screen.dart';
@@ -108,13 +108,5 @@ class AppGround extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class AppGroundController extends GetxController {
-  final currentIndex = 0.obs;
-
-  void changeIndex(int index) {
-    currentIndex.value = index;
   }
 }

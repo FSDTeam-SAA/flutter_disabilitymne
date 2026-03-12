@@ -1,4 +1,6 @@
+import 'package:disabilitymne/features/onboarding/weight_selection_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Reusable gradient "Create Account" button. Use [onPressed] for navigation or action.
 class CustomButton extends StatelessWidget {
@@ -10,6 +12,9 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onPressed,
+      // onTap: () {
+      //   Get.to(WeightSelectionScreen());
+      // },
       child: Container(
         width: double.infinity,
         height: 54,
