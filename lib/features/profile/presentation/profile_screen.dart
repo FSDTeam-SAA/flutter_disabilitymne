@@ -4,6 +4,7 @@ import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/daily_notes_screen.dart';
+import 'package:disabilitymne/features/chat/presentation/chat_with_admin_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/help_support_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/language_accessibility_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/my_profile_screen.dart';
@@ -203,6 +204,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           subtitle: "FAQs and contact",
                           onTap: () {
                             Get.to(() => const HelpSupportScreen());
+                          },
+                        ),
+                        _SettingsTile(
+                          icon: Icons.chat_bubble_outline,
+                          title: "Chat with Admin",
+                          subtitle: "Message support",
+                          onTap: () {
+                            Get.to(() => const ChatWithAdminScreen());
                           },
                         ),
                         _SettingsTile(

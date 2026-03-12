@@ -1,5 +1,6 @@
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/chat/presentation/chat_with_admin_screen.dart';
 import 'package:disabilitymne/features/daily_tracker/presentation/daily_tracker_screen.dart';
 import 'package:disabilitymne/features/progress/presentation/progress_screen.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,8 @@ import 'package:get/get.dart';
 
 /// Home screen matching the design: header, hero card, My Programs, My Recipes, Quick Action.
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool? isPremiumUser;
+  const HomeScreen({super.key, this.isPremiumUser});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -33,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: BackgroundImage(
         child: SafeArea(
           child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
               _buildAppBar(),
               SliverToBoxAdapter(child: _buildHeroCard()),
@@ -42,7 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildMyRecipesSection(),
               SliverToBoxAdapter(child: _buildSectionSpacer()),
               _buildQuickActionSection(),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              // Extra bottom space so content doesn't hide behind bottom nav
+              const SliverToBoxAdapter(child: SizedBox(height: 140)),
             ],
           ),
         ),
@@ -552,6 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickActionSection() {
+    final showChat = widget.isPremiumUser == true;
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -588,7 +593,60 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+            if (showChat) ...[
+              const SizedBox(height: 12),
+              _buildChatWithCoachCta(),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatWithCoachCta() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+             Get.to(() => const ChatWithAdminScreen());
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 28),
+          decoration: BoxDecoration(
+            color: _cardBlue,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: Image.asset(
+                  'assets/image/chat_icon.png',
+                  fit: BoxFit.contain,
+                  // If asset missing, fall back to icon
+                  errorBuilder: (_, _, _) => Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    color: AppColors.primaryText,
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Chat with the Coach',
+                style: TextStyle(
+                  color: AppColors.primaryText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

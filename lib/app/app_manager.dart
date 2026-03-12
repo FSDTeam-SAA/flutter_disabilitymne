@@ -3,6 +3,7 @@ import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
+
 import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -59,6 +60,12 @@ class AppManager extends GetxController {
 
       // Get.offAll(() => GenderSelectionScreen());//home screen  AppGround
       Get.offAll(() => AppGround());
+      // Get.offAll(ChoosePlanScreen());
+      // Get.offAll(HomeScreen(isPremiumUser: true,));
+
+
+
+// Get.offAll(PremiumHomeScreen());
     }
     update();
     // if (authStatus != null && authStatus != _authStatus) {

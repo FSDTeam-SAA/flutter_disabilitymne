@@ -1,9 +1,18 @@
+import 'package:disabilitymne/features/progress/controller/progress_controller.dart';
+import 'package:disabilitymne/features/progress/model/progress_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// Progress screen: summary cards, bar chart, weekly calorie chart, body activity.
-class ProgressScreen extends StatelessWidget {
+class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
+
+  @override
+  State<ProgressScreen> createState() => _ProgressScreenState();
+}
+
+class _ProgressScreenState extends State<ProgressScreen> {
+  late final ProgressController controller;
 
   static const Color _screenBg = Color(0xFF0B1A2A);
   static const Color _summaryCardBg = Color(0xFF223650);
@@ -15,6 +24,11 @@ class ProgressScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    controller = Get.put(
+      ProgressController(Get.find()),
+      permanent: false,
+    );
+
     return Scaffold(
       backgroundColor: _screenBg,
       appBar: AppBar(
@@ -34,30 +48,50 @@ class ProgressScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Your fitness journey at a glance',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 14,
-                ),
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: controller.fetchProgress,
+            color: Colors.white,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (controller.errorMessage.value != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: Text(
+                        controller.errorMessage.value!,
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
+                      ),
+                    ),
+                  Text(
+                    'Your fitness journey at a glance',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSummaryCards(controller.stats),
+                  const SizedBox(height: 24),
+                  _buildProgressBarChart(controller.charts.weeklyProgress),
+                  const SizedBox(height: 24),
+                  _buildWeeklyCalorieChart(controller.charts.weeklyCalories),
+                  const SizedBox(height: 24),
+                  _buildBodyActivity(controller.bodyMetrics),
+                  const SizedBox(height: 32),
+                ],
               ),
-              const SizedBox(height: 20),
-              _buildSummaryCards(),
-              const SizedBox(height: 24),
-              _buildProgressBarChart(),
-              const SizedBox(height: 24),
-              _buildWeeklyCalorieChart(),
-              const SizedBox(height: 24),
-              _buildBodyActivity(),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -69,12 +103,17 @@ class ProgressScreen extends StatelessWidget {
     'assets/image/progress_icon_period.png',
   ];
 
-  Widget _buildSummaryCards() {
-    const items = [
-      ('7', 'Day Streak', Icons.local_fire_department),
-      ('9', 'Total Workouts', Icons.fitness_center),
-      ('0%', 'Calories Burned', Icons.whatshot),
-      ('2week', 'Activity Period', Icons.calendar_today),
+  Widget _buildSummaryCards(ProgressStats stats) {
+    final items = [
+      ('${stats.streakDays}', 'Day Streak', Icons.local_fire_department),
+      ('${stats.totalWorkouts}', 'Total Workouts', Icons.fitness_center),
+      ('${stats.caloriesPercent.toStringAsFixed(0)}%', 'Calories Burned',
+          Icons.whatshot),
+      (
+        '${stats.activityPeriodWeeks} week${stats.activityPeriodWeeks == 1 ? '' : 's'}',
+        'Activity Period',
+        Icons.calendar_today
+      ),
     ];
     return Row(
       children: [
@@ -138,7 +177,7 @@ class ProgressScreen extends StatelessWidget {
                   child: Image.asset(
                     iconPath,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Icon(
+                    errorBuilder: (_, _, _) => Icon(
                       fallbackIcon,
                       color: Colors.white,
                       size: 22,
@@ -163,9 +202,20 @@ class ProgressScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressBarChart() {
-    const days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    final values = [43.0, 75.0, 49.0, 77.0, 98.0, 45.0, 62.0];
+  Widget _buildProgressBarChart(List<ChartPoint> weeklyProgress) {
+    final points = weeklyProgress.isNotEmpty
+        ? weeklyProgress
+        : [
+            ChartPoint(label: 'Sat', value: 0),
+            ChartPoint(label: 'Sun', value: 0),
+            ChartPoint(label: 'Mon', value: 0),
+            ChartPoint(label: 'Tue', value: 0),
+            ChartPoint(label: 'Wed', value: 0),
+            ChartPoint(label: 'Thu', value: 0),
+            ChartPoint(label: 'Fri', value: 0),
+          ];
+    final days = points.map((e) => e.label).toList();
+    final values = points.map((e) => e.value).toList();
     final barColors = [
       const Color(0xFFE67E22), // Sat - orange
       const Color(0xFFE9967A), // Sun - light red/salmon
@@ -224,7 +274,7 @@ class ProgressScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         crossAxisAlignment: CrossAxisAlignment.end,
-                        children: List.generate(7, (i) {
+                        children: List.generate(days.length, (i) {
                           final h = (values[i] / 100).clamp(0.0, 1.0);
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.end,
@@ -278,9 +328,20 @@ class ProgressScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWeeklyCalorieChart() {
-    const days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    final values = [62.0, 50.0, 75.0, 48.0, 88.0, 70.0, 88.0];
+  Widget _buildWeeklyCalorieChart(List<ChartPoint> weeklyCalories) {
+    final points = weeklyCalories.isNotEmpty
+        ? weeklyCalories
+        : [
+            ChartPoint(label: 'Sat', value: 0),
+            ChartPoint(label: 'Sun', value: 0),
+            ChartPoint(label: 'Mon', value: 0),
+            ChartPoint(label: 'Tue', value: 0),
+            ChartPoint(label: 'Wed', value: 0),
+            ChartPoint(label: 'Thu', value: 0),
+            ChartPoint(label: 'Fri', value: 0),
+          ];
+    final days = points.map((e) => e.label).toList();
+    final values = points.map((e) => e.value).toList();
     const chartHeight = 220.0;
     const leftPadding = 32.0;
     const bottomPadding = 24.0;
@@ -380,7 +441,7 @@ class ProgressScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBodyActivity() {
+  Widget _buildBodyActivity(BodyMetrics bodyMetrics) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -413,41 +474,97 @@ class ProgressScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              _bodyMetricRow(
-                label: 'Weight',
-                value: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('74kg', style: TextStyle(color: Colors.white, fontSize: 15)),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: Text('→', style: TextStyle(color: Colors.white, fontSize: 15)),
-                    ),
-                    Text('72kg', style: TextStyle(color: _green, fontSize: 15, fontWeight: FontWeight.w500)),
-                  ],
-                ),
-                subtitle: Text('-2 kg this month', style: TextStyle(color: _green, fontSize: 13)),
-              ),
+              _buildWeightRow(bodyMetrics),
               const SizedBox(height: 16),
               Divider(height: 1, thickness: 1, color: _bodyActivityDivider),
               const SizedBox(height: 16),
               _bodyMetricRow(
                 label: 'BMI',
-                value: Text('24.1', style: TextStyle(color: _blue, fontSize: 15, fontWeight: FontWeight.w500)),
-                subtitle: Text('Normal Range', style: TextStyle(color: Colors.white, fontSize: 13)),
+                value: Text(
+                  bodyMetrics.bmi?.toStringAsFixed(1) ?? '—',
+                  style: const TextStyle(
+                    color: _blue,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                subtitle: Text(
+                  bodyMetrics.bmiStatus,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
               ),
               const SizedBox(height: 16),
               Divider(height: 1, thickness: 1, color: _bodyActivityDivider),
               const SizedBox(height: 16),
               _bodyMetricRow(
                 label: 'Activity Level',
-                value: Text('Intermediate', style: TextStyle(color: _orange, fontSize: 15, fontWeight: FontWeight.w500)),
-                subtitle: Text('Up from Beginner', style: TextStyle(color: Colors.white, fontSize: 13)),
+                value: Text(
+                  bodyMetrics.activityLevel ?? 'Unknown',
+                  style: const TextStyle(
+                    color: _orange,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Based on recent workouts',
+                  style: TextStyle(color: Colors.white, fontSize: 13),
+                ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildWeightRow(BodyMetrics bodyMetrics) {
+    final hasWeights = bodyMetrics.weightKg != null && bodyMetrics.goalWeightKg != null;
+
+    final weightText = hasWeights
+        ? '${bodyMetrics.weightKg!.toStringAsFixed(1)}kg'
+        : 'No data';
+    final goalText = hasWeights ? '${bodyMetrics.goalWeightKg!.toStringAsFixed(1)}kg' : '';
+
+    final change = bodyMetrics.weightChangeThisMonthKg;
+    final hasChange = change != 0;
+    final changeColor = change < 0 ? _green : _orange;
+    final changeLabel = hasChange
+        ? '${change > 0 ? '+' : ''}${change.toStringAsFixed(1)} kg this month'
+        : 'No change this month';
+
+    return _bodyMetricRow(
+      label: 'Weight',
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            weightText,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+          ),
+          if (hasWeights) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                '→',
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+            ),
+            Text(
+              goalText,
+              style: const TextStyle(
+                color: _green,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ],
+      ),
+      subtitle: Text(
+        changeLabel,
+        style: TextStyle(color: hasChange ? changeColor : Colors.white, fontSize: 13),
+      ),
     );
   }
 

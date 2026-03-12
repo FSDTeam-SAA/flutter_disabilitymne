@@ -66,11 +66,25 @@ base class ApiEndpoints {
   static const String addWishList = _WishList.addWishList;
   static String removeWishList(String id) => _WishList.removeWishList(id);
 
+  //------------------------- Progress --------------------------
+  /// ### get
+  static const String getProgress = _Progress.progress;
+
   //-------------------------Messaging --------------------------
   static const String createChat = _Messaging.createChat;
   static const String sendMessage = _Messaging.sendMessage;
   static const String getAllChats = _Messaging.getAllChats;
   static String getChat(String id) => _Messaging.getChat(id);
+
+  //------------------------- Daily Tracker --------------------------
+  /// ### get, patch
+  static const String dailyTracker = _DailyTracker.dailyTracker;
+  /// ### post
+  static const String dailyTrackerNotes = _DailyTracker.dailyTrackerNotes;
+
+  // ---------------------- Payments -----------------------------
+  /// ### get
+  static const String paymentPlans = _Payments.plans;
 }
 
 //arrow360degree@gmail.com
@@ -180,6 +194,26 @@ class _WishList {
   static const String _wishListRoute = '${ApiEndpoints.baseUrl}/wishlist';
   static const String addWishList = '$_wishListRoute/toggle';
   static String removeWishList(String id) => '$_wishListRoute/$id';
+}
+
+//---------------------- Progress -----------------------------
+class _Progress {
+  static const String _progressRoute =
+      '${ApiEndpoints.baseUrl}/users/me/progress';
+  static const String progress = _progressRoute;
+}
+
+//---------------------- Daily Tracker -----------------------------
+class _DailyTracker {
+  static const String _route = '${ApiEndpoints.baseUrl}/users/me/daily-tracker';
+  static const String dailyTracker = _route;
+  static const String dailyTrackerNotes = '$_route/notes';
+}
+
+//---------------------- Payments -----------------------------
+class _Payments {
+  static const String _route = '${ApiEndpoints.baseUrl}/payments';
+  static const String plans = '$_route/plans';
 }
 
 //----------------------Message -----------------------------
