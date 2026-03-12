@@ -1,5 +1,6 @@
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/chat/presentation/chat_with_admin_screen.dart';
 import 'package:disabilitymne/features/daily_tracker/presentation/daily_tracker_screen.dart';
 import 'package:disabilitymne/features/progress/presentation/progress_screen.dart';
 import 'package:flutter/material.dart';
@@ -606,7 +607,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+             Get.to(() => const ChatWithAdminScreen());
+        },
         borderRadius: BorderRadius.circular(16),
         child: Container(
           width: double.infinity,
@@ -626,7 +629,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'assets/image/chat_icon.png',
                   fit: BoxFit.contain,
                   // If asset missing, fall back to icon
-                  errorBuilder: (_, __, ___) => Icon(
+                  errorBuilder: (_, _, _) => Icon(
                     Icons.chat_bubble_outline_rounded,
                     color: AppColors.primaryText,
                     size: 24,
