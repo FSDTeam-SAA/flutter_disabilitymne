@@ -4,6 +4,7 @@ import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/model/user_model.dart';
 import 'package:disabilitymne/features/profile/model/change_password_model.dart';
+import 'package:disabilitymne/features/profile/model/notification_model.dart';
 import 'package:disabilitymne/features/profile/model/update_profile_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
@@ -65,4 +66,28 @@ final class ProfileInterfaceImpl extends ProfileInterface {
       },
     );
   }
+
+  @override
+FutureRequest<Success<List<NotificationModel>>> getNotifications(
+    NotificationModel params) async {
+  return await asyncTryCatch(
+    tryFunc: () async {
+      final response = await appPigeon.get(
+        ApiEndpoints.getAllNotifications,
+        data: params.toJson(),
+      );
+
+      debugPrint("GET NOTIFICATIONS RESPONSE => ${response.data}");
+
+      final List<dynamic> list = response.data['data'] ?? [];
+      final notifications =
+          list.map((e) => NotificationModel.fromJson(e)).toList();
+
+      return Success(
+        data: notifications,
+        message: extractSuccessMessage(response),
+      );
+    },
+  );
+}
 }

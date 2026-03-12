@@ -195,7 +195,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: "Notification Settings",
                           subtitle: "Manage alerts",
                           onTap: () {
-                            Get.to(() => const NotificationScreen());
+                            Get.to(() => NotificationScreen());
                           },
                         ),
                         _SettingsTile(
