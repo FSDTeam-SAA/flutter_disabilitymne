@@ -13,5 +13,15 @@ abstract base class ProfileInterface extends BaseRepository {
   );
   FutureRequest<Success<void>> changePassword(ChangePasswordModel params);
 
-  FutureRequest<Success<List<NotificationModel>>> getNotifications(NotificationModel params);
+  FutureRequest<Success<List<NotificationModel>>> getNotifications(
+    NotificationModel params,
+  );
+
+  FutureRequest<Success<void>> markNotificationAsRead(
+    NotificationModel params,
+  );
+
+  FutureRequest<Success<void>> markAllNotificationsAsRead(
+    NotificationModel params,
+  );
 }

@@ -3,10 +3,11 @@ class NotificationModel {
   String? type;
   String? title;
   String? message;
-  bool? read;       // <- change to bool
+  bool? read;
   String? readAt;
   String? createdAt;
   String? timeAgo;
+  bool isExpanded;
 
   NotificationModel({
     this.id,
@@ -17,6 +18,7 @@ class NotificationModel {
     this.readAt,
     this.createdAt,
     this.timeAgo,
+    this.isExpanded = false,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {

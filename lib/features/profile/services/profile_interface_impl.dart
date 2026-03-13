@@ -68,26 +68,66 @@ final class ProfileInterfaceImpl extends ProfileInterface {
   }
 
   @override
-FutureRequest<Success<List<NotificationModel>>> getNotifications(
-    NotificationModel params) async {
-  return await asyncTryCatch(
-    tryFunc: () async {
-      final response = await appPigeon.get(
-        ApiEndpoints.getAllNotifications,
-        data: params.toJson(),
-      );
+  FutureRequest<Success<List<NotificationModel>>> getNotifications(
+    NotificationModel params,
+  ) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.get(
+          ApiEndpoints.getAllNotifications,
+          data: params.toJson(),
+        );
 
-      debugPrint("GET NOTIFICATIONS RESPONSE => ${response.data}");
+        debugPrint("GET NOTIFICATIONS RESPONSE => ${response.data}");
 
-      final List<dynamic> list = response.data['data'] ?? [];
-      final notifications =
-          list.map((e) => NotificationModel.fromJson(e)).toList();
+        final List<dynamic> list = response.data['data'] ?? [];
+        final notifications = list
+            .map((e) => NotificationModel.fromJson(e))
+            .toList();
 
-      return Success(
-        data: notifications,
-        message: extractSuccessMessage(response),
-      );
-    },
-  );
-}
+        return Success(
+          data: notifications,
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
+  }
+
+  @override
+  FutureRequest<Success<void>> markAllNotificationsAsRead(
+    NotificationModel params,
+  ) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.patch(
+          ApiEndpoints.markAllAsRead,
+          data: params.toJson(),
+        );
+
+        debugPrint(
+          "MARK ALL NOTIFICATIONS AS READ RESPONSE => ${response.data}",
+        );
+
+        return Success(data: null, message: extractSuccessMessage(response));
+      },
+    );
+  }
+
+  @override
+  FutureRequest<Success<void>> markNotificationAsRead(
+    NotificationModel params,
+  ) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.patch(
+          ApiEndpoints.markNotificationAsRead(notificationId: params.id ?? ''),
+          data: params.toJson(),
+        );
+
+        debugPrint("MARK NOTIFICATION AS READ RESPONSE => ${response.data}");
+
+        return Success(data: null, message: extractSuccessMessage(response));
+      },
+    );
+  }
 }

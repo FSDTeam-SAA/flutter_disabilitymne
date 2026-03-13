@@ -30,10 +30,36 @@ class NotificationController extends GetxController {
     );
   }
 
-  void markAsRead(int index) {
+  Future<void> markAsRead(int index) async {
     if (notifications[index].read == false) {
-      notifications[index].read = true;
-      notifications.refresh();
+      final item = notifications[index];
+      final result = await profileInterface.markNotificationAsRead(item);
+      result.fold(
+        (failure) => Get.snackbar("Error", failure.uiMessage),
+        (success) {
+          notifications[index].read = true;
+          notifications.refresh();
+        },
+      );
     }
+  }
+
+  Future<void> markAllAsRead() async {
+    final result =
+        await profileInterface.markAllNotificationsAsRead(NotificationModel());
+    result.fold(
+      (failure) => Get.snackbar("Error", failure.uiMessage),
+      (success) {
+        for (var notification in notifications) {
+          notification.read = true;
+        }
+        notifications.refresh();
+      },
+    );
+  }
+
+  void toggleExpansion(int index) {
+    notifications[index].isExpanded = !notifications[index].isExpanded;
+    notifications.refresh();
   }
 }

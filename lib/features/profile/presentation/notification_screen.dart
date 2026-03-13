@@ -30,6 +30,15 @@ class NotificationScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => controller.markAllAsRead(),
+            child: const Text(
+              "read All",
+              style: TextStyle(color: Colors.white, fontSize: 13),
+            ),
+          ),
+        ],
       ),
       body: BackgroundImage(
         child: Obx(() {
@@ -65,7 +74,10 @@ class NotificationScreen extends StatelessWidget {
 
   Widget _buildNotificationCard(NotificationModel item, int index) {
     return GestureDetector(
-      onTap: () => controller.markAsRead(index),
+      onTap: () {
+        controller.markAsRead(index);
+        controller.toggleExpansion(index);
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
@@ -121,9 +133,20 @@ class NotificationScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    item.message ?? "",
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    child: Text(
+                      item.message ?? "",
+                      maxLines: item.isExpanded ? null : 1,
+                      overflow: item.isExpanded
+                          ? TextOverflow.visible
+                          : TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ],
               ),
