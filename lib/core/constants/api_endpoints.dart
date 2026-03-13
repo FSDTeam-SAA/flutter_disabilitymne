@@ -43,6 +43,7 @@ base class ApiEndpoints {
   static String getProfile = _User.getProfile;
   static String updateProfile = _User.updateProfile;
   static String changePassword = _User.changePassword;
+  static String helpAndSupport = _User.helpAndSupport;
 
   //-------------------------cart --------------------------
   static const String addToCart = _Cart.addToCart;
@@ -147,6 +148,7 @@ class _User {
   static String getProfile = '$_userRoute/me';
   static String updateProfile = '$_userRoute/me';
   static String changePassword = '$_userRoute/me/change-password';
+  static String helpAndSupport = '$_userRoute/me/support/tickets';
 }
 
 //---------------------- Cart -----------------------------

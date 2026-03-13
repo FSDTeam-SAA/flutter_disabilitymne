@@ -8,4 +8,12 @@ class HelpAndSupportModel {
     required this.subject,
     required this.description,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'email': email,
+      'subject': subject,
+      'description': description,
+    };
+  }
 }

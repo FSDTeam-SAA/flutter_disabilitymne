@@ -24,4 +24,12 @@ abstract class ImagePath {
   static String profilePrivacyShield = "assets/image/profile_icons/privacy_legal_shield_icon.png";
   static String profileTermsDocument = "assets/image/profile_icons/terms_of_service_document_icon.png";
   static String profilePrivacySecurity = "assets/image/profile_icons/privacy_security_shield_lock_icon.png";
+
+  /// Notification type icons
+  static String notificationStreak = "assets/logo/s.png";
+  static String notificationWorkout = "assets/logo/w.png";
+  static String notificationNutrition = "assets/logo/n.png";
+  static String notificationAchievement = "assets/logo/ar.png";
+  static String notificationSummary = "assets/logo/w.png";
+  static String notificationGeneral = "assets/logo/t.png";
 }

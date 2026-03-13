@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controller/notification_controller.dart';
 import '../model/notification_model.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/core/image_path.dart';
 
 class NotificationScreen extends StatelessWidget {
   NotificationScreen({super.key});
@@ -100,12 +101,17 @@ class NotificationScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
+              height: 48,
+              width: 48,
               decoration: BoxDecoration(
                 color: const Color(0xFF152033),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF4B7FA8)),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF4B7FA8).withOpacity(0.5)),
               ),
-              child: Icon(Icons.notifications, color: Colors.white, size: 24),
+              child: Image.asset(
+                _getNotificationIcon(item.type),
+                fit: BoxFit.contain,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -155,5 +161,23 @@ class NotificationScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getNotificationIcon(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'streak':
+        return ImagePath.notificationStreak;
+      case 'workout':
+        return ImagePath.notificationWorkout;
+      case 'nutrition':
+        return ImagePath.notificationNutrition;
+      case 'achievement':
+        return ImagePath.notificationAchievement;
+      case 'summary':
+        return ImagePath.notificationSummary;
+      case 'general':
+      default:
+        return ImagePath.notificationGeneral;
+    }
   }
 }

@@ -4,6 +4,7 @@ import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/model/user_model.dart';
 import 'package:disabilitymne/features/profile/model/change_password_model.dart';
+import 'package:disabilitymne/features/profile/model/help_and_support_model.dart';
 import 'package:disabilitymne/features/profile/model/notification_model.dart';
 import 'package:disabilitymne/features/profile/model/update_profile_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
@@ -126,6 +127,21 @@ final class ProfileInterfaceImpl extends ProfileInterface {
 
         debugPrint("MARK NOTIFICATION AS READ RESPONSE => ${response.data}");
 
+        return Success(data: null, message: extractSuccessMessage(response));
+      },
+    );
+  }
+
+  @override
+  FutureRequest<Success<void>> submitHelpSupport(HelpAndSupportModel params) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.post(
+          ApiEndpoints.helpAndSupport,
+          data: params.toJson(),
+        );
+
+        debugPrint("SUBMIT HELP SUPPORT RESPONSE => ${response.data}");
         return Success(data: null, message: extractSuccessMessage(response));
       },
     );

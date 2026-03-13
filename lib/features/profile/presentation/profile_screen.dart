@@ -203,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: "Help & Support",
                           subtitle: "FAQs and contact",
                           onTap: () {
-                            Get.to(() => const HelpSupportScreen());
+                            Get.to(() => HelpSupportScreen());
                           },
                         ),
                         _SettingsTile(
