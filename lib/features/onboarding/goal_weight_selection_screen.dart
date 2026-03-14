@@ -1,34 +1,44 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:sleek_circular_slider/sleek_circular_slider.dart';
+import 'dart:math' as math;
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
+import 'package:disabilitymne/features/onboarding/height_selection_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
-/// Goal weight selection — SleekCircularSlider, kg/lbs toggle, Step 3 of 8.
+/// Step 5 of 8: Goal weight — Back | progress bar | kg/lbs toggle, arc gauge,
+/// white box highlight, triangular needle, white circle display, Continue.
 class GoalWeightSelectionScreen extends StatefulWidget {
   const GoalWeightSelectionScreen({super.key});
 
   @override
-  State<GoalWeightSelectionScreen> createState() => _GoalWeightSelectionScreenState();
+  State<GoalWeightSelectionScreen> createState() =>
+      _GoalWeightSelectionScreenState();
 }
 
 class _GoalWeightSelectionScreenState extends State<GoalWeightSelectionScreen> {
   static const int _totalSteps = 8;
-  static const int _currentStep = 3;
+  static const int _currentStep = 5;
 
-  double _currentWeight = 72;
+  double _weightKg = 72.0;
   bool _isKg = true;
 
-  static const double minWeight = 40;
-  static const double maxWeight = 150;
+  static const double _minKg = 30;
+  static const double _maxKg = 200;
+  static const double _snapStepKg = 0.5;
+  double _lastSnappedKg = 72.0;
 
-  static const Color _darkBlue = Color(0xFF0D1B2A);
-  static const Color _accentBlue = Color(0xFF89C9E6);
-  static const Color _trackInactive = Color(0xFF6B7280);
+  void _setWeight(double kg) {
+    final clamped = kg.clamp(_minKg, _maxKg);
+    if ((clamped - _lastSnappedKg).abs() >= _snapStepKg) {
+      HapticFeedback.selectionClick();
+      _lastSnappedKg = (clamped / _snapStepKg).round() * _snapStepKg;
+    }
+    setState(() => _weightKg = clamped);
+  }
 
-  String get unit => _isKg ? 'kg' : 'lbs';
-
-  double get displayValue =>
-      _isKg ? _currentWeight : (_currentWeight * 2.20462).roundToDouble();
+  static const Color _darkBlue = Color(0xFF1E283A);
+  static const Color _accentBlue = Color(0xFF4A8EDF);
 
   @override
   Widget build(BuildContext context) {
@@ -38,184 +48,45 @@ class _GoalWeightSelectionScreenState extends State<GoalWeightSelectionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Back (left) | Step 3 of 8 (right) — then progress bar below
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () => Get.back(),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.chevron_left, color: _accentBlue, size: 28),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Back',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w500,
-                                color: _accentBlue,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        'Step $_currentStep of $_totalSteps',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _accentBlue,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: _currentStep / _totalSteps,
-                      minHeight: 6,
-                      backgroundColor: _trackInactive,
-                      valueColor: const AlwaysStoppedAnimation<Color>(_accentBlue),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'What is your Goal weight?',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            _buildAppBar(),
             const SizedBox(height: 24),
-            // kg / lbs toggle (same style as weight screen)
-            Center(
-              child: _UnitToggle(
-                useKg: _isKg,
-                onChanged: (useKg) => setState(() => _isKg = useKg),
-              ),
-            ),
-            const Spacer(),
-            // SleekCircularSlider
-            SizedBox(
-              height: 320,
-              child: SleekCircularSlider(
-                min: minWeight,
-                max: maxWeight,
-                initialValue: _currentWeight,
-                appearance: CircularSliderAppearance(
-                  customWidths: CustomSliderWidths(
-                    trackWidth: 18,
-                    progressBarWidth: 24,
-                    shadowWidth: 30,
-                  ),
-                  customColors: CustomSliderColors(
-                    trackColor: const Color(0xFF1B263B),
-                    progressBarColor: _accentBlue,
-                    shadowColor: _accentBlue.withValues(alpha: 0.4),
-                    dotColor: Colors.white,
-                  ),
-                  angleRange: 180,
-                  startAngle: 180,
-                  size: 280,
-                  counterClockwise: false,
-                ),
-                onChange: (value) {
-                  setState(() => _currentWeight = value.roundToDouble());
-                },
-                innerWidget: (value) {
-                  final display =
-                      _isKg ? value.roundToDouble() : (value * 2.20462).roundToDouble();
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${display.toStringAsFixed(0)} $unit',
-                          style: const TextStyle(
-                            fontSize: 42,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'goal',
-                          style: TextStyle(color: Colors.white54, fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Scale labels 69–75 (or range around current)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(7, (i) {
-                  final val = (_currentWeight - 3 + i).clamp(minWeight, maxWeight).roundToDouble();
-                  final isSelected = val.round() == _currentWeight.round();
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        val.toStringAsFixed(0),
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white60,
-                          fontSize: isSelected ? 18 : 14,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                      if (i == 3)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: _accentBlue.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${val.toStringAsFixed(0)} $unit',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                }),
+              child: Text(
+                'What is your Goal weight?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 16),
+            _buildUnitToggle(),
+            const SizedBox(height: 24),
+            Expanded(
+              child: _GoalWeightGauge(
+                valueKg: _weightKg,
+                minKg: _minKg,
+                maxKg: _maxKg,
+                isKg: _isKg,
+                accentBlue: _accentBlue,
+                onWeightChanged: _setWeight,
+              ),
+            ),
             Padding(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                12,
+                20,
+                MediaQuery.of(context).padding.bottom + 20,
+              ),
               child: CustomButton(
                 onPressed: () {
-                  // Save goal weight and navigate
-                  Get.back();
+                  Get.find<OnboardingController>().setGoalWeight(_weightKg, _isKg ? 'kg' : 'lbs');
+                  Get.to(() => HeightSelectionScreen());
                 },
+
                 text: 'Continue',
               ),
             ),
@@ -224,64 +95,378 @@ class _GoalWeightSelectionScreenState extends State<GoalWeightSelectionScreen> {
       ),
     );
   }
+
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Get.back(),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                SizedBox(width: 4),
+                Text(
+                  'Back',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: _currentStep / _totalSteps,
+                minHeight: 8,
+                backgroundColor: Colors.white.withValues(alpha: 0.25),
+                valueColor: const AlwaysStoppedAnimation<Color>(_accentBlue),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'Step $_currentStep of $_totalSteps',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUnitToggle() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          _toggleOption('kg', _isKg),
+          const SizedBox(width: 8),
+          _toggleOption('lbs', !_isKg),
+        ],
+      ),
+    );
+  }
+
+  Widget _toggleOption(String label, bool selected) {
+    return GestureDetector(
+      onTap: () => setState(() => _isKg = (label == 'kg')),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? _accentBlue : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: selected
+              ? null
+              : Border.all(color: Colors.white.withValues(alpha: 0.4)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected
+                ? const Color(0xFF1D2D44)
+                : Colors.white.withValues(alpha: 0.7),
+            fontSize: 16,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _UnitToggle extends StatelessWidget {
-  final bool useKg;
-  final ValueChanged<bool> onChanged;
+class _GoalWeightGauge extends StatefulWidget {
+  final double valueKg;
+  final double minKg;
+  final double maxKg;
+  final bool isKg;
+  final Color accentBlue;
+  final ValueChanged<double> onWeightChanged;
 
-  const _UnitToggle({required this.useKg, required this.onChanged});
+  const _GoalWeightGauge({
+    required this.valueKg,
+    required this.minKg,
+    required this.maxKg,
+    required this.isKg,
+    required this.accentBlue,
+    required this.onWeightChanged,
+  });
+
+  @override
+  State<_GoalWeightGauge> createState() => _GoalWeightGaugeState();
+}
+
+class _GoalWeightGaugeState extends State<_GoalWeightGauge> {
+  double? _dragValueKg;
+  double get _effectiveValue => _dragValueKg ?? widget.valueKg;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 36,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final h = constraints.maxHeight;
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: h),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _GoalGaugeContent(
+                valueKg: _effectiveValue,
+                minKg: widget.minKg,
+                maxKg: widget.maxKg,
+                isKg: widget.isKg,
+                accentBlue: widget.accentBlue,
+                width: w - 32,
+                onPanStart: () => setState(() => _dragValueKg = widget.valueKg),
+                onPanUpdate: (kg) => setState(() => _dragValueKg = kg),
+                onPanEnd: () {
+                  if (_dragValueKg != null) {
+                    widget.onWeightChanged(_dragValueKg!);
+                    setState(() => _dragValueKg = null);
+                  }
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GoalGaugeContent extends StatelessWidget {
+  final double valueKg;
+  final double minKg;
+  final double maxKg;
+  final bool isKg;
+  final Color accentBlue;
+  final double width;
+  final VoidCallback onPanStart;
+  final ValueChanged<double> onPanUpdate;
+  final VoidCallback onPanEnd;
+
+  const _GoalGaugeContent({
+    required this.valueKg,
+    required this.minKg,
+    required this.maxKg,
+    required this.isKg,
+    required this.accentBlue,
+    required this.width,
+    required this.onPanStart,
+    required this.onPanUpdate,
+    required this.onPanEnd,
+  });
+
+  double get _displayValue => isKg ? valueKg : valueKg * 2.20462;
+  double get _displayMin => isKg ? minKg : minKg * 2.20462;
+  double get _displayMax => isKg ? maxKg : maxKg * 2.20462;
+  String get _unit => isKg ? 'kg' : 'lbs';
+
+  @override
+  Widget build(BuildContext context) {
+    final rounded =
+        _displayValue.roundToDouble().clamp(_displayMin, _displayMax);
+    final radius = width * 0.45;
+    final centerX = width / 2;
+    final centerY = width * 0.68;
+    const startAngle = math.pi;
+    const sweepAngle = math.pi;
+
+    return GestureDetector(
+      onPanStart: (_) => onPanStart(),
+      onPanUpdate: (d) {
+        final dx = d.localPosition.dx - centerX;
+        final dy = centerY - d.localPosition.dy;
+        double angle = math.atan2(dy, dx);
+        if (angle < 0) angle += 2 * math.pi;
+        double t = 1 - (angle / math.pi);
+        t = t.clamp(0.0, 1.0);
+        final displayVal = _displayMin + t * (_displayMax - _displayMin);
+        final kg = isKg ? displayVal : displayVal / 2.20462;
+        onPanUpdate(kg.clamp(minKg, maxKg));
+      },
+      onPanEnd: (_) => onPanEnd(),
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          _Segment(label: 'kg', isSelected: useKg, onTap: () => onChanged(true)),
-          _Segment(label: 'lbs', isSelected: !useKg, onTap: () => onChanged(false)),
+          CustomPaint(
+            size: Size(width, width * 1.05),
+            painter: _GoalArcGaugePainter(
+              valueKg: valueKg,
+              minKg: minKg,
+              maxKg: maxKg,
+              isKg: isKg,
+              accentBlue: accentBlue,
+              centerX: centerX,
+              centerY: centerY,
+              radius: radius,
+              startAngle: startAngle,
+              sweepAngle: sweepAngle,
+            ),
+          ),
+          Positioned(
+            left: centerX - (width * 0.38) / 2,
+            top: centerY - (width * 0.38) / 2,
+            child: Container(
+              width: width * 0.38,
+              height: width * 0.38,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '${rounded.toInt()} $_unit',
+                style: const TextStyle(
+                  color: Color(0xFF1D2D44),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _Segment extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
+class _GoalArcGaugePainter extends CustomPainter {
+  final double valueKg;
+  final double minKg;
+  final double maxKg;
+  final bool isKg;
+  final Color accentBlue;
+  final double centerX;
+  final double centerY;
+  final double radius;
+  final double startAngle;
+  final double sweepAngle;
 
-  const _Segment({required this.label, required this.isSelected, required this.onTap});
+  _GoalArcGaugePainter({
+    required this.valueKg,
+    required this.minKg,
+    required this.maxKg,
+    required this.isKg,
+    required this.accentBlue,
+    required this.centerX,
+    required this.centerY,
+    required this.radius,
+    required this.startAngle,
+    required this.sweepAngle,
+  });
 
-  static const Color _accentBlue = Color(0xFF89C9E6);
+  double get _displayValue => isKg ? valueKg : valueKg * 2.20462;
+  double get _displayMin => isKg ? minKg : minKg * 2.20462;
+  double get _displayMax => isKg ? maxKg : maxKg * 2.20462;
+  String get _unit => isKg ? 'kg' : 'lbs';
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 56,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? _accentBlue : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
-          ),
-        ),
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final arcRect =
+        Rect.fromCircle(center: Offset(centerX, centerY), radius: radius);
+    final arcPaint = Paint()
+      ..color = accentBlue
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.12
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(arcRect, startAngle, sweepAngle, false, arcPaint);
+
+    final centerDisplay = _displayValue.roundToDouble();
+    final low = (centerDisplay - 3)
+        .toInt()
+        .clamp(_displayMin.toInt(), _displayMax.toInt());
+    final high = (centerDisplay + 3)
+        .toInt()
+        .clamp(_displayMin.toInt(), _displayMax.toInt());
+    final labelRadius = radius + size.width * 0.06;
+
+    for (int v = low; v <= high; v++) {
+      final val = v.toDouble();
+      final t = (val - _displayMin) / (_displayMax - _displayMin);
+      final angle = startAngle + t * sweepAngle;
+      final x = centerX + labelRadius * math.cos(angle);
+      final y = centerY + labelRadius * math.sin(angle);
+      final isHighlight = (v - _displayValue).abs() < 0.5;
+      final text = isHighlight ? '$v $_unit' : '$v';
+      final textStyle = TextStyle(
+        color: isHighlight ? const Color(0xFF1D2D44) : Colors.white70,
+        fontSize: isHighlight ? 16 : 14,
+        fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
+      );
+      final tp = TextPainter(
+        text: TextSpan(text: text, style: textStyle),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      if (isHighlight) {
+        final boxW = tp.width + 24;
+        final boxH = tp.height + 12;
+        final boxR = RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset(x, y), width: boxW, height: boxH),
+          const Radius.circular(10),
+        );
+        final boxPath = Path()..addRRect(boxR);
+        canvas.drawShadow(boxPath, Colors.black38, 8, true);
+        canvas.drawRRect(boxR, Paint()..color = Colors.white);
+        canvas.drawRRect(
+          boxR,
+          Paint()
+            ..color = Colors.black12
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1,
+        );
+        tp.paint(canvas, Offset(x - tp.width / 2, y - tp.height / 2));
+      } else {
+        canvas.save();
+        canvas.translate(x, y);
+        canvas.rotate(angle + math.pi / 2);
+        tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+        canvas.restore();
+      }
+    }
+
+    final needleAngle = startAngle +
+        ((_displayValue - _displayMin) / (_displayMax - _displayMin)) *
+            sweepAngle;
+    final needleLength = radius * 0.92;
+    final needleTipX = centerX + needleLength * math.cos(needleAngle);
+    final needleTipY = centerY + needleLength * math.sin(needleAngle);
+    const needleWidth = 32.0;
+    final perp = needleAngle + math.pi / 2;
+    final path = Path()
+      ..moveTo(needleTipX, needleTipY)
+      ..lineTo(
+        centerX + needleWidth / 2 * math.cos(perp),
+        centerY + needleWidth / 2 * math.sin(perp),
+      )
+      ..lineTo(
+        centerX - needleWidth / 2 * math.cos(perp),
+        centerY - needleWidth / 2 * math.sin(perp),
+      )
+      ..close();
+    canvas.drawPath(path, Paint()..color = Colors.white);
   }
+
+  @override
+  bool shouldRepaint(covariant _GoalArcGaugePainter old) =>
+      old.valueKg != valueKg || old.isKg != isKg;
 }
