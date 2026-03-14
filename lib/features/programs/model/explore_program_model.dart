@@ -106,9 +106,10 @@ class ProgramModel {
       'updatedAt': updatedAt?.toIso8601String(),
     };
   }
+
   static List<ProgramModel> fromJsonList(List data) {
-  return data.map((e) => ProgramModel.fromJson(e)).toList();
-}
+    return data.map((e) => ProgramModel.fromJson(e)).toList();
+  }
 }
 
 class ProgramExerciseModel {
@@ -134,6 +135,7 @@ class ProgramExerciseModel {
   final bool isVisibleInLibrary;
   final String status;
   final bool isActive;
+  String? executionMode;
 
   ProgramExerciseModel({
     required this.id,
@@ -158,6 +160,7 @@ class ProgramExerciseModel {
     required this.isVisibleInLibrary,
     required this.status,
     required this.isActive,
+    this.executionMode,
   });
 
   factory ProgramExerciseModel.fromJson(Map<String, dynamic> json) {
@@ -184,6 +187,7 @@ class ProgramExerciseModel {
       isVisibleInLibrary: json['isVisibleInLibrary'] ?? false,
       status: json['status'] ?? '',
       isActive: json['isActive'] ?? false,
+      executionMode: json['executionMode'],
     );
   }
 
@@ -212,6 +216,7 @@ class ProgramExerciseModel {
       'isVisibleInLibrary': isVisibleInLibrary,
       'status': status,
       'isActive': isActive,
+      'executionMode': executionMode,
     };
   }
 }

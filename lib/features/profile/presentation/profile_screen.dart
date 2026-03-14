@@ -10,7 +10,6 @@ import 'package:disabilitymne/features/profile/presentation/my_profile_screen.da
 import 'package:disabilitymne/features/profile/presentation/notification_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/terms_condition_screen.dart';
-import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -227,7 +226,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: "Privacy & Security",
                           subtitle: "View personal details",
                           onTap: () {
-                            Get.to(() => ExerciseWorkoutScreen());
+                            // This seems to be a placeholder or test route
+                            // Get.to(() => ExerciseWorkoutScreen(program: ProgramModel(), initialIndex: 0));
                           },
                         ),
 

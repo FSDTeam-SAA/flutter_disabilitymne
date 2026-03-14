@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -124,15 +125,23 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     );
 
     if (currentExerciseIndex < totalExercises - 1) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ExerciseScreen(
+      final nextIdx = currentExerciseIndex + 1;
+      final nextExecMode = widget.program.exercises![nextIdx].executionMode;
+
+      if (nextExecMode == 'countdown') {
+        Get.to(
+          () => ExerciseWorkoutScreen(
             program: widget.program,
-            initialIndex: currentExerciseIndex + 1,
+            initialIndex: nextIdx,
           ),
-        ),
-      );
-    } else {
+        );
+      } else {
+        Get.to(
+          () => ExerciseScreen(program: widget.program, initialIndex: nextIdx),
+        );
+      }
+    }
+ else {
       debugPrint("Exercise completed. Popping back to Program screen.");
       // Done - Popup to program screen (Pop all exercise screens + ReadyStartScreen)
       // int popCount = totalExercises + 1; // All exercises + ReadyStartScreen
