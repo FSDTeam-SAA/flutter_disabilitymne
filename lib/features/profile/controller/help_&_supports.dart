@@ -1,8 +1,11 @@
 import 'package:disabilitymne/features/profile/model/help_and_support_model.dart';
+import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HelpSupportController extends GetxController {
+  HelpSupportController({required this.profileInterface});
+  final ProfileInterface profileInterface;
 
   final emailController = TextEditingController();
   final subjectController = TextEditingController();
@@ -45,18 +48,32 @@ class HelpSupportController extends GetxController {
     try {
       final data = helpSupportData;
 
-      /// TODO: Send to API
-      print("Help Request: ${data.toJson()}");
+      final response = await profileInterface.submitHelpSupport(data);
 
-      Get.snackbar(
-        "Success",
-        "Your report has been submitted.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+      response.fold(
+        (failure) {
+          Get.snackbar(
+            "Error",
+            failure.uiMessage,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        },
+        (success) {
+          Get.back();
+          clearFields();
+          Future.delayed(const Duration(milliseconds: 300), () {
+            Get.snackbar(
+              "Success",
+              "Your report has been submitted.",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green,
+              colorText: Colors.white,
+            );
+          });
+        },
       );
-
-      clearFields();
     } catch (e) {
       Get.snackbar(
         "Error",

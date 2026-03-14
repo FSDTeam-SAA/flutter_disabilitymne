@@ -42,6 +42,7 @@ dependencies:
   sleek_circular_slider: ^2.0.1
   video_player: ^2.8.2
   chewie: ^1.7.5
+  percent_indicator: ^4.2.3
 
 dev_dependencies:
   flutter_test:

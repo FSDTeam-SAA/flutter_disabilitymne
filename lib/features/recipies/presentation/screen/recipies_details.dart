@@ -80,11 +80,17 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                                   Icon(
                                     Icons.arrow_back_ios,
                                     color: Colors.white,
+                                    size: 24,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                   SizedBox(width: 6),
                                   Text(
                                     "Back",
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -92,16 +98,16 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                           ],
                         ),
 
-                        /// Favorite Button
-                        const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            Icons.favorite,
-                            color: Colors.red,
-                            size: 18,
-                          ),
-                        ),
+                        // /// Favorite Button
+                        // const CircleAvatar(
+                        //   radius: 16,
+                        //   backgroundColor: Colors.white,
+                        //   child: Icon(
+                        //     Icons.favorite,
+                        //     color: Colors.red,
+                        //     size: 18,
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

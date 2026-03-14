@@ -177,13 +177,14 @@
 
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/profile/controller/help_&_supports.dart';
+import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   HelpSupportScreen({super.key});
 
-  final HelpSupportController controller = Get.put(HelpSupportController());
+  final HelpSupportController controller = Get.put(HelpSupportController(profileInterface: Get.find<ProfileInterface>()));
 
   @override
   Widget build(BuildContext context) {

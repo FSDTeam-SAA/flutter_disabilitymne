@@ -153,11 +153,11 @@ class RecipeCard extends StatelessWidget {
               ),
             ),
 
-            const CircleAvatar(
-              radius: 14,
-              backgroundColor: Colors.white,
-              child: Icon(Icons.favorite, color: Colors.red, size: 16),
-            ),
+            // const CircleAvatar(
+            //   radius: 14,
+            //   backgroundColor: Colors.white,
+            //   child: Icon(Icons.favorite, color: Colors.red, size: 16),
+            // ),
           ],
         ),
       ),
