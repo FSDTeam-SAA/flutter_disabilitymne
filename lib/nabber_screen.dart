@@ -1,5 +1,6 @@
 import 'package:disabilitymne/app/controller/app_ground_controller.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
+import 'package:disabilitymne/features/calculator/presentation/screens/calculator_screen.dart';
 import 'package:disabilitymne/features/home/presentation/home_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/program_screen.dart';
@@ -17,7 +18,7 @@ class AppGround extends StatelessWidget {
     HomeScreen(isPremiumUser: true,),
     ProgramsScreen(),
     RecipesScreen(),
-    Scaffold(),
+    CalculatorScreen(),
     ProfileScreen(),
   ];
 

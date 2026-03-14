@@ -34,13 +34,8 @@ base class ApiEndpoints {
   //------------notification----------------
   /// ### get
   static const String getAllNotifications = _Notification.getAllNotifications;
-  static const String readAllNotifications = _Notification.readAllNotifications;
-
-  /// ### patch
   static String markNotificationAsRead({required String notificationId}) =>
       _Notification.markNotificationAsRead(notificationId);
-
-  /// ### patch
   static const String markAllAsRead = _Notification.markAllAsRead;
 
   // ---------------------- USER -----------------------------
@@ -48,6 +43,7 @@ base class ApiEndpoints {
   static String getProfile = _User.getProfile;
   static String updateProfile = _User.updateProfile;
   static String changePassword = _User.changePassword;
+  static String helpAndSupport = _User.helpAndSupport;
 
   //-------------------------cart --------------------------
   static const String addToCart = _Cart.addToCart;
@@ -153,13 +149,11 @@ class _Report {
 // ---------------------- Notification -----------------------------
 class _Notification {
   static const String _notificationRoute =
-      '${ApiEndpoints.baseUrl}/notifications';
+      '${ApiEndpoints.baseUrl}/users';
   static String markNotificationAsRead(String notificationId) =>
-      '$_notificationRoute/$notificationId/read/';
-  static const String readAllNotifications =
-      '$_notificationRoute/mark-all-as-read';
-  static const String markAllAsRead = '$_notificationRoute/mark-all-as-read';
-  static const String getAllNotifications = '$_notificationRoute/';
+      '$_notificationRoute/me/notifications/$notificationId/read';
+  static const String markAllAsRead = '$_notificationRoute/me/notifications/read-all';
+  static const String getAllNotifications = '$_notificationRoute/me/notifications';
 }
 
 // ---------------------- USER -----------------------------
@@ -168,6 +162,7 @@ class _User {
   static String getProfile = '$_userRoute/me';
   static String updateProfile = '$_userRoute/me';
   static String changePassword = '$_userRoute/me/change-password';
+  static String helpAndSupport = '$_userRoute/me/support/tickets';
 }
 
 //---------------------- Cart -----------------------------

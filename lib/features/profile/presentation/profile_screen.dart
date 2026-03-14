@@ -1,7 +1,6 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
-import 'package:disabilitymne/features/onboarding/delete.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/daily_notes_screen.dart';
@@ -12,6 +11,7 @@ import 'package:disabilitymne/features/profile/presentation/my_profile_screen.da
 import 'package:disabilitymne/features/profile/presentation/notification_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/terms_condition_screen.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -196,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: "Notification Settings",
                           subtitle: "Manage alerts",
                           onTap: () {
-                            Get.to(() => const NotificationScreen());
+                            Get.to(() => NotificationScreen());
                           },
                         ),
                         _SettingsTile(
@@ -204,7 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: "Help & Support",
                           subtitle: "FAQs and contact",
                           onTap: () {
-                            Get.to(() => const HelpSupportScreen());
+                            Get.to(() => HelpSupportScreen());
                           },
                         ),
                         _SettingsTile(
@@ -236,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: "Privacy & Security",
                           subtitle: "View personal details",
                           onTap: () {
-                            Get.to(() => WeightInputScreen());
+                            Get.to(() => ExerciseWorkoutScreen());
                           },
                         ),
 

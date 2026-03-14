@@ -28,33 +28,33 @@ class BackgroundImage extends StatelessWidget {
   }
 }
 
-// class OnboardingBackgroundImage extends StatelessWidget {
-//   final Widget child;
-//   final String imagePath;
+class OnboardingBackgroundImage extends StatelessWidget {
+  final Widget child;
+  final String imagePath;
 
-//   const OnboardingBackgroundImage({
-//     super.key,
-//     required this.child,
-//     this.imagePath = "assets/image/ob.png",
-//   });
+  const OnboardingBackgroundImage({
+    super.key,
+    required this.child,
+    this.imagePath = "assets/logo/Calculator.png",
+  });
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return SizedBox.expand(
-//       child: Stack(
-//         children: [
-//           Positioned.fill(
-//             child: Image.asset(
-//               imagePath,
-//               fit: BoxFit.cover,
-//             ),
-//           ),
-//           child,
-//         ],
-//       ),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.cover,
+            ),
+          ),
+          child,
+        ],
+      ),
+    );
+  }
+}
 
 // class AppBackgroundImage extends StatelessWidget {
 //   final Widget child;
