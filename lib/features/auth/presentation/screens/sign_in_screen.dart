@@ -1,12 +1,12 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/features/auth/controller/signin_controller.dart';
+import 'package:disabilitymne/features/onboarding/gender_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
 import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_up_screen.dart';
-import 'package:disabilitymne/features/auth/presentation/screens/forgot_password_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -155,7 +155,9 @@ class _SignInScreenState extends State<SignInScreen> {
                       }),
 
                       GestureDetector(
-                        onTap: () => Get.to(() => ForgotPasswordScreen()),
+                        // onTap: () => Get.to(() => ForgotPasswordScreen()),
+
+                        onTap: () => Get.to(GenderSelectionScreen()),
                         child: const Text(
                           'Forgot password?',
                           style: TextStyle(

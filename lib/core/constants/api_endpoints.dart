@@ -75,6 +75,15 @@ base class ApiEndpoints {
   static const String getAllChats = _Messaging.getAllChats;
   static String getChat(String id) => _Messaging.getChat(id);
 
+  // Chat threads (admin chat)
+  static const String chatThreads = _Messaging.chatThreads;
+  static String chatThreadMessages(String threadId) =>
+      _Messaging.chatThreadMessages(threadId);
+  static String chatThreadSendMessage(String threadId) =>
+      _Messaging.chatThreadSendMessage(threadId);
+  static String chatThreadMarkRead(String threadId) =>
+      _Messaging.chatThreadMarkRead(threadId);
+
   //------------------------- Daily Tracker --------------------------
   /// ### get, patch
   static const String dailyTracker = _DailyTracker.dailyTracker;
@@ -227,4 +236,13 @@ class _Messaging {
   static const String sendMessage = '$_messagingRoute/message';
   static const String createChat = '$_messagingRoute/';
   static const String getAllChats = '$_messagingRoute/';
+
+  // Chat threads (admin chat) – dynamic API + socket
+  static const String chatThreads = '$_messagingRoute/threads';
+  static String chatThreadMessages(String threadId) =>
+      '$_messagingRoute/threads/$threadId/messages';
+  static String chatThreadSendMessage(String threadId) =>
+      '$_messagingRoute/threads/$threadId/messages';
+  static String chatThreadMarkRead(String threadId) =>
+      '$_messagingRoute/threads/$threadId/read';
 }

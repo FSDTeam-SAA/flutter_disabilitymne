@@ -2,8 +2,9 @@ import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 
-/// Step 7 of 7: Fitness experience — Beginner / Intermediate / Advanced cards.
+/// Step 8 of 8: Fitness experience — Beginner / Intermediate / Advanced cards.
 class FitnessExperienceScreen extends StatefulWidget {
   const FitnessExperienceScreen({super.key});
 
@@ -12,8 +13,8 @@ class FitnessExperienceScreen extends StatefulWidget {
 }
 
 class _FitnessExperienceScreenState extends State<FitnessExperienceScreen> {
-  static const int _totalSteps = 7;
-  static const int _currentStep = 7;
+  static const int _totalSteps = 8;
+  static const int _currentStep = 8;
 
   int? _selectedIndex;
 
@@ -126,8 +127,12 @@ class _FitnessExperienceScreenState extends State<FitnessExperienceScreen> {
             Padding(
               padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
               child: CustomButton(
-                onPressed: () {
-                  if (_selectedIndex != null) Get.to(() => const ChoosePlanScreen());
+                onPressed: () async {
+                  if (_selectedIndex == null) return;
+                  final c = Get.find<OnboardingController>();
+                  c.setFitnessExperience(_selectedIndex);
+                  final ok = await c.submitOnboarding();
+                  if (ok) Get.to(() => const ChoosePlanScreen());
                 },
                 text: 'Continue',
               ),

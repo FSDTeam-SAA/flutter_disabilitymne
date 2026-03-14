@@ -1,9 +1,14 @@
+import 'dart:async';
+
+import 'package:app_pigeon/app_pigeon.dart';
+import 'package:disabilitymne/core/constants/api_endpoints.dart';
+import 'package:disabilitymne/features/auth/model/user_model.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
+import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Chat with Admin screen matching the design:
-/// Dark blue background, app bar with avatar + Admin + LOCATION,
-/// incoming (white) / outgoing (light blue) bubbles, input bar with + and send.
+/// Chat with Admin screen: only premium users; dynamic API + socket for real-time chat.
 class ChatWithAdminScreen extends StatefulWidget {
   const ChatWithAdminScreen({super.key});
 
@@ -12,17 +17,18 @@ class ChatWithAdminScreen extends StatefulWidget {
 }
 
 class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
+  bool? _isPremiumUser;
+  bool _isCheckingPremium = true;
+
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<ChatMessage> _messages = [
-    ChatMessage(text: 'HI', isFromAdmin: true),
-    ChatMessage(text: 'HI', isFromAdmin: true),
-    ChatMessage(text: 'Hello', isFromAdmin: false),
-    ChatMessage(text: 'Hello', isFromAdmin: false),
-    ChatMessage(text: 'HI', isFromAdmin: true),
-    ChatMessage(text: 'Hello', isFromAdmin: false),
-    ChatMessage(text: 'Hello', isFromAdmin: false),
-  ];
+  final List<ChatMessage> _messages = [];
+
+  String? _threadId;
+  bool _isSending = false;
+  String? _loadError;
+  StreamSubscription<dynamic>? _socketMessageSub;
+  StreamSubscription<dynamic>? _socketConnectSub;
 
   static const Color _scaffoldBg = Color(0xFF1A2430);
   static const Color _incomingBubbleBg = Color(0xFFFFFFFF);
@@ -38,19 +44,155 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
   static const Color _sendButtonIcon = Color(0xFF5A5A5A);
 
   @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _checkPremiumStatus();
   }
 
-  void _sendMessage() {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+  Future<void> _checkPremiumStatus() async {
+    bool? isPremium;
+    if (Get.isRegistered<ProfileController>()) {
+      final controller = Get.find<ProfileController>();
+      final user = controller.user.value;
+      if (user != null) {
+        isPremium = user.selectedPlan == 'premium_plan' &&
+            user.subscriptionStatus == 'active';
+      }
+    }
+    if (isPremium == null && Get.isRegistered<ProfileInterface>()) {
+      final response = await Get.find<ProfileInterface>().getProfile(UserModel());
+      response.fold(
+        (_) => isPremium = false,
+        (success) {
+          final user = success.data;
+          isPremium = user != null &&
+              user.selectedPlan == 'premium_plan' &&
+              user.subscriptionStatus == 'active';
+        },
+      );
+    }
+    if (!mounted) return;
     setState(() {
-      _messages.add(ChatMessage(text: text, isFromAdmin: false));
-      _messageController.clear();
+      _isCheckingPremium = false;
+      _isPremiumUser = isPremium ?? false;
     });
+    if (_isPremiumUser == true) _initChat();
+  }
+
+  Future<void> _initChat() async {
+    if (!mounted || Get.isRegistered<AppPigeon>() != true) return;
+    final appPigeon = Get.find<AppPigeon>();
+    setState(() { _loadError = null; });
+
+    try {
+      // Create or get thread (POST /chat/threads)
+      final threadRes = await appPigeon.post(
+        ApiEndpoints.chatThreads,
+        data: <String, dynamic>{},
+      );
+      final threadData = threadRes.data;
+      final threadId = threadData != null && threadData['data'] != null
+          ? threadData['data']['id']?.toString()
+          : null;
+      if (threadId == null || threadId.isEmpty) {
+        setState(() { _loadError = 'Could not start chat.'; });
+        return;
+      }
+      _threadId = threadId;
+
+      // Join socket room for live messages (no refresh – updates via socket only)
+      appPigeon.emit('chat:join-thread', threadId);
+      _socketConnectSub?.cancel();
+      _socketConnectSub = appPigeon.listen('connect').listen((_) {
+        if (mounted && _threadId != null) {
+          appPigeon.emit('chat:join-thread', _threadId);
+        }
+      });
+
+      // Subscribe to socket first so live messages show immediately
+      _socketMessageSub?.cancel();
+      _socketMessageSub = appPigeon.listen('chat:message:new').listen((payload) {
+        if (!mounted || payload is! Map) return;
+        final tid = payload['threadId']?.toString();
+        if (tid != _threadId) return;
+        final msg = payload['message'];
+        if (msg is! Map<String, dynamic>) return;
+        final isMine = msg['isMine'] == true;
+        String text = (msg['message'] ?? '').toString().trim();
+        if (text.isEmpty) {
+          final attachments = msg['attachments'];
+          if (attachments is List && attachments.isNotEmpty) {
+            text = attachments.length == 1 ? 'Attachment' : '${attachments.length} attachments';
+          }
+        }
+        final id = msg['id']?.toString();
+        // Dedupe: if we added optimistically (no id, same text at end), replace with server message
+        final sameAsLast = _messages.isNotEmpty &&
+            _messages.last.id == null &&
+            _messages.last.text == text &&
+            _messages.last.isFromAdmin == false;
+        if (sameAsLast && isMine) {
+          setState(() {
+            _messages[_messages.length - 1] = ChatMessage(
+              id: id,
+              text: text,
+              isFromAdmin: false,
+              createdAt: msg['createdAt'] != null ? DateTime.tryParse(msg['createdAt'].toString()) : null,
+            );
+          });
+        } else if (!_messages.any((m) => m.id == id)) {
+          setState(() {
+            _messages.add(ChatMessage(
+              id: id,
+              text: text,
+              isFromAdmin: !isMine,
+              createdAt: msg['createdAt'] != null ? DateTime.tryParse(msg['createdAt'].toString()) : null,
+            ));
+          });
+        }
+        _scrollToBottom();
+      });
+
+      // Show chat UI immediately; load past messages in background (live via socket)
+      if (!mounted) return;
+      setState(() {});
+
+      // Load past messages in background (live updates already via socket)
+      final messagesUrl = '${ApiEndpoints.chatThreadMessages(threadId)}?page=1&limit=50';
+      final msgRes = await appPigeon.get(messagesUrl);
+      final list = msgRes.data?['data'] as List<dynamic>?;
+      final loaded = <ChatMessage>[];
+      if (list != null) {
+        for (final e in list) {
+          if (e is! Map<String, dynamic>) continue;
+          final isMine = e['isMine'] == true;
+          final text = (e['message'] ?? '').toString();
+          loaded.add(ChatMessage(
+            id: e['id']?.toString(),
+            text: text,
+            isFromAdmin: !isMine,
+            createdAt: e['createdAt'] != null ? DateTime.tryParse(e['createdAt'].toString()) : null,
+          ));
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _messages.clear();
+        _messages.addAll(loaded);
+      });
+      _scrollToBottom();
+
+      await appPigeon.patch(
+        ApiEndpoints.chatThreadMarkRead(threadId),
+        data: <String, dynamic>{},
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _loadError = 'Failed to load chat. Try again.'; });
+    }
+  }
+
+  void _scrollToBottom() {
     Future.microtask(() {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -63,7 +205,132 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
   }
 
   @override
+  void dispose() {
+    _socketMessageSub?.cancel();
+    _socketConnectSub?.cancel();
+    if (_threadId != null && Get.isRegistered<AppPigeon>()) {
+      try {
+        Get.find<AppPigeon>().emit('chat:leave-thread', _threadId);
+      } catch (_) {}
+    }
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty || _threadId == null || _isSending) return;
+    if (!Get.isRegistered<AppPigeon>()) return;
+
+    final appPigeon = Get.find<AppPigeon>();
+    setState(() {
+      _messages.add(ChatMessage(text: text, isFromAdmin: false));
+      _messageController.clear();
+      _isSending = true;
+    });
+    _scrollToBottom();
+
+    try {
+      await appPigeon.post(
+        ApiEndpoints.chatThreadSendMessage(_threadId!),
+        data: <String, dynamic>{'message': text},
+      );
+      // Message is added optimistically; socket may also emit it (we dedupe by id in listener)
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          if (_messages.isNotEmpty && _messages.last.text == text && _messages.last.isFromAdmin == false) {
+            _messages.removeLast();
+          }
+          _messageController.text = text;
+        });
+        Get.snackbar('Error', 'Failed to send message.');
+      }
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isCheckingPremium) {
+      return Scaffold(
+        backgroundColor: _scaffoldBg,
+        appBar: _buildAppBar(),
+        body: const Center(
+          child: CircularProgressIndicator(color: Colors.white70),
+        ),
+      );
+    }
+    if (_isPremiumUser != true) {
+      return Scaffold(
+        backgroundColor: _scaffoldBg,
+        appBar: _buildAppBar(),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.workspace_premium_outlined,
+                  size: 64,
+                  color: Colors.white54,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Active premium subscription is required to use chat.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Upgrade to premium to chat with admin.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    // Premium: show error or chat (no loading – live via socket)
+    if (_loadError != null) {
+      return Scaffold(
+        backgroundColor: _scaffoldBg,
+        appBar: _buildAppBar(),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.white54),
+                const SizedBox(height: 16),
+                Text(
+                  _loadError!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 16),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => _initChat(),
+                  child: const Text('Retry', style: TextStyle(color: Colors.white70)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: _scaffoldBg,
       appBar: _buildAppBar(),
@@ -130,6 +397,17 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
   }
 
   Widget _buildMessageList() {
+    if (_messages.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            _threadId == null ? 'Starting chat...' : 'No messages yet. Say hi!',
+            style: TextStyle(color: Colors.white54, fontSize: 14),
+          ),
+        ),
+      );
+    }
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -215,7 +493,7 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
               color: _sendButtonBg,
               borderRadius: BorderRadius.circular(14),
               child: InkWell(
-                onTap: _sendMessage,
+                onTap: _isSending ? null : _sendMessage,
                 borderRadius: BorderRadius.circular(14),
                 child: Container(
                   width: 44,
@@ -231,7 +509,13 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.send_rounded, color: _sendButtonIcon, size: 22),
+                  child: _isSending
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send_rounded, color: _sendButtonIcon, size: 22),
                 ),
               ),
             ),
@@ -243,10 +527,17 @@ class _ChatWithAdminScreenState extends State<ChatWithAdminScreen> {
 }
 
 class ChatMessage {
+  final String? id;
   final String text;
   final bool isFromAdmin;
+  final DateTime? createdAt;
 
-  ChatMessage({required this.text, required this.isFromAdmin});
+  ChatMessage({
+    this.id,
+    required this.text,
+    required this.isFromAdmin,
+    this.createdAt,
+  });
 }
 
 class _MessageBubble extends StatelessWidget {

@@ -13,8 +13,10 @@ class UserProfileUpdateModel {
   Measurement? height;
   List<String>? fitnessGoals;
   String? mobilityType;
+  String? mobilityTypeOther;
   String? fitnessExperience;
   int? onboardingStep;
+  bool? onboardingCompleted;
   String? profileImage;
 
   UserProfileUpdateModel({
@@ -30,8 +32,10 @@ class UserProfileUpdateModel {
     this.height,
     this.fitnessGoals,
     this.mobilityType,
+    this.mobilityTypeOther,
     this.fitnessExperience,
     this.onboardingStep,
+    this.onboardingCompleted,
     this.profileImage,
   });
 
@@ -61,21 +65,23 @@ class UserProfileUpdateModel {
         : [];
 
     mobilityType = json['mobilityType'];
+    mobilityTypeOther = json['mobilityTypeOther'];
     fitnessExperience = json['fitnessExperience'];
     onboardingStep = json['onboardingStep'];
+    onboardingCompleted = json['onboardingCompleted'];
     profileImage = json['profileImage'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
 
-    data['firstName'] = firstName;
-    data['lastName'] = lastName;
-    data['phone'] = phone;
-    data['bio'] = bio;
-    data['preferredLanguage'] = preferredLanguage;
-    data['gender'] = gender;
-    data['age'] = age;
+    if (firstName != null) data['firstName'] = firstName;
+    if (lastName != null) data['lastName'] = lastName;
+    if (phone != null) data['phone'] = phone;
+    if (bio != null) data['bio'] = bio;
+    if (preferredLanguage != null) data['preferredLanguage'] = preferredLanguage;
+    if (gender != null) data['gender'] = gender;
+    if (age != null) data['age'] = age;
 
     if (weightCurrent != null) {
       data['weightCurrent'] = weightCurrent!.toJson();
@@ -89,11 +95,18 @@ class UserProfileUpdateModel {
       data['height'] = height!.toJson();
     }
 
-    data['fitnessGoals'] = fitnessGoals;
-    data['mobilityType'] = mobilityType;
-    data['fitnessExperience'] = fitnessExperience;
-    data['onboardingStep'] = onboardingStep;
-    data['profileImage'] = profileImage;
+    if (fitnessGoals != null) {
+      data['fitnessGoals'] = fitnessGoals;
+    }
+
+    if (mobilityType != null) data['mobilityType'] = mobilityType;
+    if (mobilityTypeOther != null && mobilityTypeOther!.isNotEmpty) {
+      data['mobilityTypeOther'] = mobilityTypeOther;
+    }
+    if (fitnessExperience != null) data['fitnessExperience'] = fitnessExperience;
+    if (onboardingStep != null) data['onboardingStep'] = onboardingStep;
+    if (onboardingCompleted != null) data['onboardingCompleted'] = onboardingCompleted;
+    if (profileImage != null) data['profileImage'] = profileImage;
 
     return data;
   }

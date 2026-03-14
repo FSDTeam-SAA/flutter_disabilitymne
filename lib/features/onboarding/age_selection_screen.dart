@@ -1,3 +1,4 @@
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 import 'package:disabilitymne/features/onboarding/weight_selection_screen.dart';
 import 'package:disabilitymne/features/onboarding/widget/custom_back_button.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,7 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
   double _age = 26;
 
   static const Color _darkBlue = Color(0xFF0D1B2A);
-  static const Color _accentBlue = Color(0xFF0088FF);
+  static const Color _accentBlue = Color(0xFF89C9E6);
   static const Color _trackInactive = Color(0xFF6B7280);
 
   int get _ageInt => _age.round();
@@ -78,7 +79,7 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
                     style: const TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
-                      color: _accentBlue,
+                      color: Color(0xff0088FF),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -98,7 +99,7 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: _accentBlue,
+                  activeTrackColor: Color(0xff0088FF),
                   inactiveTrackColor: _trackInactive.withValues(alpha: 0.5),
                   thumbColor: Colors.white,
                   overlayColor: _accentBlue.withValues(alpha: 0.2),
@@ -141,11 +142,9 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
             Padding(
               padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
               child: CustomButton(
-                onPressed: (){
-                  // Get.to(FitnessGoals());
-
-                                Get.to( GoalWeightScreen());
-
+                onPressed: () {
+                  Get.find<OnboardingController>().setAge(_ageInt);
+                  Get.to(() => const WeightSelectionScreen());
                 },
                 text: 'Continue',
               ),

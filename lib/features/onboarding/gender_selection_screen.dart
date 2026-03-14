@@ -1,4 +1,5 @@
 import 'package:disabilitymne/features/onboarding/age_selection_screen.dart';
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -129,9 +130,10 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
             Padding(
               padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
               child: CustomButton(
-                onPressed: () => Get.to(() => const AgeSelectionScreen()),
-                // onPressed: () =>Get.to( GoalWeightScreen()),
-                // onPressed: () => Get.to(() => const MainShellScreen(initialIndex: 4)),
+                onPressed: () {
+                  Get.find<OnboardingController>().setGender(_selectedGender);
+                  Get.to(() => const AgeSelectionScreen());
+                },
                 text: 'Continue',
               ),
             ),

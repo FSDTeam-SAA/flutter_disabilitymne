@@ -1,10 +1,11 @@
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
+import 'package:disabilitymne/features/onboarding/goal_weight_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 
-import 'height_selection_screen.dart';
 
-/// Step 8 of 8: Your Fitness Goals — list of options, green selected state.
+/// Step 4 of 8: Your Fitness Goals — list of options, green selected state.
 class FitnessGoals extends StatefulWidget {
   const FitnessGoals({super.key});
 
@@ -14,7 +15,7 @@ class FitnessGoals extends StatefulWidget {
 
 class _FitnessGoalsState extends State<FitnessGoals> {
   static const int _totalSteps = 8;
-  static const int _currentStep = 8;
+  static const int _currentStep = 4;
 
   final Set<int> _selectedIndices = {};
 
@@ -146,7 +147,11 @@ class _FitnessGoalsState extends State<FitnessGoals> {
             Padding(
               padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
               child: CustomButton(
-                onPressed: () => Get.to(HeightSelectionScreen()),
+                onPressed: () {
+                  Get.find<OnboardingController>().setFitnessGoals(_selectedIndices.toList());
+                  Get.to(() => GoalWeightSelectionScreen());
+                },
+
                 text: 'Continue',
               ),
             ),

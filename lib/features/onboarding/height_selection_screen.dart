@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 
 import 'mobility_type_selection_screen.dart';
 
-/// Step 7 of 8: How Tall Are you? — Syncfusion SfLinearGauge vertical, cm/ft toggle.
+/// Step 6 of 8: How Tall Are you? — Syncfusion SfLinearGauge vertical, cm/ft toggle.
 class HeightSelectionScreen extends StatefulWidget {
   const HeightSelectionScreen({super.key});
 
@@ -15,7 +16,7 @@ class HeightSelectionScreen extends StatefulWidget {
 
 class _HeightSelectionScreenState extends State<HeightSelectionScreen> {
   static const int _totalSteps = 8;
-  static const int _currentStep = 7;
+  static const int _currentStep = 6;
   static const double _minCm = 140;
   static const double _maxCm = 200;
 
@@ -107,17 +108,21 @@ class _HeightSelectionScreenState extends State<HeightSelectionScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Center(
-              child: _UnitToggle(
-                useCm: _useCm,
-                onChanged: (useCm) => setState(() => _useCm = useCm),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _UnitToggle(
+                  useCm: _useCm,
+                  onChanged: (useCm) => setState(() => _useCm = useCm),
+                  accentBlue: _accentBlue,
+                ),
               ),
             ),
             const SizedBox(height: 16),
             Expanded(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   _HeightLinearGauge(
                     heightCm: _heightCm,
@@ -135,7 +140,10 @@ class _HeightSelectionScreenState extends State<HeightSelectionScreen> {
             Padding(
               padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
               child: CustomButton(
-                onPressed: () => Get.to(() => const MobilityTypeSelectionScreen()),
+                onPressed: () {
+                  Get.find<OnboardingController>().setHeight(_heightCm, _useCm ? 'cm' : 'ft');
+                  Get.to(() => const MobilityTypeSelectionScreen());
+                },
                 text: 'Continue',
               ),
             ),
@@ -149,23 +157,38 @@ class _HeightSelectionScreenState extends State<HeightSelectionScreen> {
 class _UnitToggle extends StatelessWidget {
   final bool useCm;
   final ValueChanged<bool> onChanged;
+  final Color accentBlue;
 
-  const _UnitToggle({required this.useCm, required this.onChanged});
+  const _UnitToggle({
+    required this.useCm,
+    required this.onChanged,
+    required this.accentBlue,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 36,
+      height: 38,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18),
+        color: const Color(0xFF1A2638),
+        borderRadius: BorderRadius.circular(19),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _Segment(label: 'cm', isSelected: useCm, onTap: () => onChanged(true)),
-          _Segment(label: 'ft', isSelected: !useCm, onTap: () => onChanged(false)),
+          _Segment(
+            label: 'cm',
+            isSelected: useCm,
+            accentBlue: accentBlue,
+            onTap: () => onChanged(true),
+          ),
+          _Segment(
+            label: 'ft',
+            isSelected: !useCm,
+            accentBlue: accentBlue,
+            onTap: () => onChanged(false),
+          ),
         ],
       ),
     );
@@ -175,11 +198,15 @@ class _UnitToggle extends StatelessWidget {
 class _Segment extends StatelessWidget {
   final String label;
   final bool isSelected;
+  final Color accentBlue;
   final VoidCallback onTap;
 
-  const _Segment({required this.label, required this.isSelected, required this.onTap});
-
-  static const Color _accentBlue = Color(0xFF89C9E6);
+  const _Segment({
+    required this.label,
+    required this.isSelected,
+    required this.accentBlue,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -187,10 +214,10 @@ class _Segment extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 56,
+        width: 58,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? _accentBlue : Colors.transparent,
+          color: isSelected ? accentBlue : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
@@ -198,7 +225,7 @@ class _Segment extends StatelessWidget {
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
+            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.85),
           ),
         ),
       ),
@@ -206,7 +233,41 @@ class _Segment extends StatelessWidget {
   }
 }
 
-/// Vertical height ruler using SfLinearGauge — scale on right, light blue value bubble on left.
+/// Value bubble: light blue/teal background (matches toggle & ruler), white bold text.
+class _HeightValueBubble extends StatelessWidget {
+  final String text;
+  final Color accentBlue;
+
+  const _HeightValueBubble({required this.text, required this.accentBlue});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+      decoration: BoxDecoration(
+        color: accentBlue,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+/// Vertical height ruler using SfLinearGauge — scale on right, value bubble on left.
 class _HeightLinearGauge extends StatelessWidget {
   final double heightCm;
   final bool useCm;
@@ -249,18 +310,18 @@ class _HeightLinearGauge extends StatelessWidget {
         tickPosition: LinearElementPosition.outside,
         labelOffset: 8,
         axisLabelStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.9),
+          color: accentBlue,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
         majorTickStyle: LinearTickStyle(
-          color: Colors.white.withValues(alpha: 0.6),
-          length: 12,
+          color: accentBlue,
+          length: 14,
           thickness: 2,
         ),
         minorTickStyle: LinearTickStyle(
-          color: Colors.white.withValues(alpha: 0.4),
-          length: 6,
+          color: accentBlue.withValues(alpha: 0.5),
+          length: 7,
           thickness: 1,
         ),
         markerPointers: <LinearMarkerPointer>[
@@ -271,28 +332,7 @@ class _HeightLinearGauge extends StatelessWidget {
             markerAlignment: LinearMarkerAlignment.center,
             enableAnimation: false,
             onChanged: (value) => onHeightChanged(value),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              decoration: BoxDecoration(
-                color: accentBlue,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Text(
-                displayText,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            child: _HeightValueBubble(text: displayText, accentBlue: accentBlue),
           ),
         ],
       ),

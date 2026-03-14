@@ -495,12 +495,21 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             Obx(() {
               final all = recipeController.recipeList;
-              if (all.isEmpty) {
+              final selectedType = tabs[_recipeTabIndex].trim().toLowerCase();
+              final filtered = all
+                  .where(
+                    (r) =>
+                        (r.recipeType ?? '').trim().toLowerCase() ==
+                        selectedType,
+                  )
+                  .toList(growable: false);
+
+              if (filtered.isEmpty) {
                 return SizedBox(
                   height: 160,
                   child: Center(
                     child: Text(
-                      'No recipes yet',
+                      'No $selectedType recipes yet',
                       style: TextStyle(
                         color: AppColors.primaryText.withValues(alpha: 0.7),
                         fontSize: 14,
@@ -513,12 +522,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 168,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: all.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     return SizedBox(
                       width: 140,
-                      child: _buildRecipeCard(all[index], index),
+                      child: _buildRecipeCard(filtered[index], index),
                     );
                   },
                 ),
@@ -596,7 +605,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 width: 70,
                                 height: 70,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorBuilder: (_, _, _) =>
                                     _recipePlaceholder(),
                               )
                             : _recipePlaceholder(),

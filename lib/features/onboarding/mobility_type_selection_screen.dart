@@ -1,9 +1,10 @@
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 import 'package:disabilitymne/features/onboarding/fitness_experience_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 
-/// Step 6 of 8: Your mobility type — list of options, green selected state, radio indicators.
+/// Step 7 of 8: Your mobility type — list of options, green selected state, radio indicators.
 class MobilityTypeSelectionScreen extends StatefulWidget {
   const MobilityTypeSelectionScreen({super.key});
 
@@ -13,7 +14,7 @@ class MobilityTypeSelectionScreen extends StatefulWidget {
 
 class _MobilityTypeSelectionScreenState extends State<MobilityTypeSelectionScreen> {
   static const int _totalSteps = 8;
-  static const int _currentStep = 6;
+  static const int _currentStep = 7;
 
   int? _selectedIndex; // null = none or "Other" selected
   final TextEditingController _otherController = TextEditingController();
@@ -183,7 +184,14 @@ class _MobilityTypeSelectionScreenState extends State<MobilityTypeSelectionScree
               padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
               child: CustomButton(
                 onPressed: () {
-                  if (_hasSelection) Get.to(() => const FitnessExperienceScreen());
+                  if (!_hasSelection) return;
+                  final c = Get.find<OnboardingController>();
+                  if (_selectedIndex != null) {
+                    c.setMobilityType(_selectedIndex!, '');
+                  } else {
+                    c.setMobilityType(7, _otherController.text.trim());
+                  }
+                  Get.to(() => const FitnessExperienceScreen());
                 },
                 text: 'Continue',
               ),

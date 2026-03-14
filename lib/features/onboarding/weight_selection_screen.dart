@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 import 'package:disabilitymne/features/onboarding/fitness_goals_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -81,7 +82,10 @@ class _WeightSelectionScreenState extends State<WeightSelectionScreen> {
                 MediaQuery.of(context).padding.bottom + 20,
               ),
               child: CustomButton(
-                onPressed: () => Get.to(() => FitnessGoals()),
+                onPressed: () {
+                  Get.find<OnboardingController>().setWeight(_weightKg, _isKg ? 'kg' : 'lbs');
+                  Get.to(() => FitnessGoals());
+                },
                 text: 'Continue',
               ),
             ),
@@ -408,11 +412,19 @@ class _ArcGaugePainter extends CustomPainter {
       )..layout();
 
       if (isHighlight) {
+        // Selected value: horizontal white box with drop shadow (like reference image)
         final boxW = tp.width + 24;
         final boxH = tp.height + 12;
         final boxR = RRect.fromRectAndRadius(
           Rect.fromCenter(center: Offset(x, y), width: boxW, height: boxH),
           const Radius.circular(10),
+        );
+        final boxPath = Path()..addRRect(boxR);
+        canvas.drawShadow(
+          boxPath,
+          Colors.black38,
+          8,
+          true,
         );
         canvas.drawRRect(
           boxR,
@@ -427,7 +439,12 @@ class _ArcGaugePainter extends CustomPainter {
         );
         tp.paint(canvas, Offset(x - tp.width / 2, y - tp.height / 2));
       } else {
-        tp.paint(canvas, Offset(x - tp.width / 2, y - tp.height / 2));
+        // Other labels: rotated 90° tangent to the arc
+        canvas.save();
+        canvas.translate(x, y);
+        canvas.rotate(angle + math.pi / 2);
+        tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+        canvas.restore();
       }
     }
 

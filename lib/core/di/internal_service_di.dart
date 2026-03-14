@@ -4,6 +4,7 @@ import 'package:disabilitymne/features/auth/controller/signup_controller.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface_impl.dart';
+import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:disabilitymne/features/programs/services/program_interface_impl.dart';
@@ -20,6 +21,10 @@ void initServices() {
   );
   Get.lazyPut(
     () => ProfileController(profileInterface: Get.find<ProfileInterface>()),
+    fenix: true,
+  );
+  Get.lazyPut<OnboardingController>(
+    () => OnboardingController(profileInterface: Get.find<ProfileInterface>()),
     fenix: true,
   );
   Get.put(SignupController(Get.find<AuthInterface>()));
