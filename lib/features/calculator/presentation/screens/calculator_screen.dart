@@ -1,4 +1,5 @@
 import 'package:disabilitymne/features/calculator/presentation/screens/choose_screen.dart';
+import 'package:disabilitymne/features/calculator/presentation/screens/history_screen.dart';
 import 'package:disabilitymne/features/calculator/presentation/screens/meals_logged_screen.dart';
 import 'package:disabilitymne/features/calculator/presentation/screens/search_screen.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,14 @@ class CalculatorScreen extends StatelessWidget {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF70A9D2), Color(0xFF1B2D44), Color(0xFF0D1B2A)],
+            colors: [
+              Color(0xFF6FA8D1),
+              Color(0xFF5592BE),
+              Color(0xFF355F83),
+              Color(0xFF1B2940),
+              Color(0xFF151F32),
+              Color(0xFF0D1B2A),
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -114,7 +122,6 @@ class CalculatorScreen extends StatelessWidget {
                                         color: Colors.white,
                                         cornerStyle: CornerStyle.bothCurve,
                                         enableAnimation: true,
-                                        
                                       ),
                                     ],
                                     annotations: [
@@ -223,28 +230,28 @@ class CalculatorScreen extends StatelessWidget {
                           title: "Breakfast",
                           subtitle: "Recommended: 656 - 918 kcal",
                           onTap: () {
-                            Get.to( () => MealDetailScreen());
+                            Get.to(() => HistoryScreen());
                           },
                         ),
                         MealTile(
                           title: "Lunch",
                           subtitle: "Recommended: 787 - 1049 kcal",
                           onTap: () {
-                            Get.to( () => MealDetailScreen());
+                            Get.to(() => MealDetailScreen());
                           },
                         ),
                         MealTile(
                           title: "Dinner",
                           subtitle: "Recommended: 1023 - 1338 kcal",
                           onTap: () {
-                            Get.to( () => FoodDetailScreen());
+                            Get.to(() => FoodDetailScreen());
                           },
                         ),
                         MealTile(
                           title: "Snack",
                           subtitle: "Recommended: 656 - 918 kcal",
                           onTap: () {
-                            Get.to( () => BreakfastSearchScreen());
+                            Get.to(() => BreakfastSearchScreen());
                           },
                         ),
                       ],
@@ -288,12 +295,14 @@ class MacroCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: progress,
-            backgroundColor: Colors.white24,
+            minHeight: 8,
+            
+            backgroundColor: Color(0xFFE5EEFF),
             valueColor: const AlwaysStoppedAnimation(Colors.lightBlue),
           ),
         ],

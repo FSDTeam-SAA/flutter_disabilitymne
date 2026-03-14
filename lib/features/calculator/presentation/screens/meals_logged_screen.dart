@@ -9,11 +9,14 @@ class MealDetailScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF6EA3C8),
-              Color(0xFF203A55),
+              Color(0xFF6FA8D1),
+              Color(0xFF5592BE),
+              Color(0xFF355F83),
+              Color(0xFF1B2940),
+              Color(0xFF151F32),
               Color(0xFF0D1B2A),
             ],
             begin: Alignment.topCenter,
