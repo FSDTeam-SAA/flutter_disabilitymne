@@ -71,7 +71,8 @@ class MyProfileScreen extends GetView<ProfileController> {
                           child: Obx(
                             () => GestureDetector(
                               onTap: () {
-                                if (controller.isEditing.value) {
+                                if (controller.isEditing.value &&
+                                    !controller.isUploadingImage.value) {
                                   _showImageSourceBottomSheet(context);
                                 }
                               },
@@ -113,7 +114,8 @@ class MyProfileScreen extends GetView<ProfileController> {
                                       right: 8,
                                       child: GestureDetector(
                                         onTap: () {
-                                          if (controller.isEditing.value) {
+                                          if (controller.isEditing.value &&
+                                              !controller.isUploadingImage.value) {
                                             _showImageSourceBottomSheet(
                                               context,
                                             );
@@ -135,6 +137,21 @@ class MyProfileScreen extends GetView<ProfileController> {
                                             Icons.photo_filter_sharp,
                                             size: 24,
                                             color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  if (controller.isUploadingImage.value)
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.black45,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
                                           ),
                                         ),
                                       ),

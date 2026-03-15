@@ -1,8 +1,18 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:disabilitymne/app/controller/app_ground_controller.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
-import 'package:disabilitymne/features/chat/presentation/chat_with_admin_screen.dart';
+import 'package:disabilitymne/features/chat/presentation/chat_thread_screen.dart';
+import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
 import 'package:disabilitymne/features/daily_tracker/presentation/daily_tracker_screen.dart';
+import 'package:disabilitymne/features/programs/controller/explore_program%20controller.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/program_detail_screen.dart';
+import 'package:disabilitymne/features/programs/presentation/widgets/explore_program_widget.dart';
+import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
+import 'package:disabilitymne/features/profile/presentation/notification_screen.dart';
 import 'package:disabilitymne/features/progress/presentation/progress_screen.dart';
 import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
 import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
@@ -31,6 +41,16 @@ class _HomeScreenState extends State<HomeScreen> {
     'assets/image/recipe_icon_dinner.png',
   ];
   int _recipeTabIndex = 0;
+  Timer? _greetingTimer;
+
+  /// Returns one of 4 greetings by device hour: morning, afternoon, evening, night.
+  static String _greetingByTime() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) return 'Good morning!';
+    if (hour >= 12 && hour < 17) return 'Good afternoon!';
+    if (hour >= 17 && hour < 21) return 'Good evening!';
+    return 'Good night!';
+  }
 
   @override
   void initState() {
@@ -38,6 +58,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!Get.isRegistered<RecipeController>()) {
       Get.put(RecipeController());
     }
+    _greetingTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _greetingTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -67,54 +96,82 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAppBar() {
+    final controller = Get.find<ProfileController>();
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: _cardBlue,
-              child: const Icon(Icons.person, color: Colors.white70, size: 32),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Welcome Evan 👋',
-                    style: TextStyle(
-                      color: AppColors.primaryText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Good morning!',
-                    style: TextStyle(
-                      color: AppColors.primaryText.withValues( alpha: 0.8),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+        child: Obx(() {
+          final user = controller.user.value;
+          final profileImageUrl = user?.profileImage;
+          final hasProfileImage = profileImageUrl != null &&
+              profileImageUrl.isNotEmpty;
+          final pickedPath = controller.pickedImagePath.value;
+
+          ImageProvider<Object>? avatarImage;
+          if (pickedPath != null && File(pickedPath).existsSync()) {
+            avatarImage = FileImage(File(pickedPath));
+          } else if (hasProfileImage) {
+            avatarImage = NetworkImage(profileImageUrl);
+          }
+
+          final name = [
+            user?.firstName,
+            user?.lastName,
+          ].whereType<String>().join(' ').trim();
+          final displayName = name.isNotEmpty ? name : 'User';
+
+          return Row(
+            children: [
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: _cardBlue,
+                backgroundImage: avatarImage,
+                child: avatarImage == null
+                    ? const Icon(Icons.person, color: Colors.white70, size: 32)
+                    : null,
               ),
-            ),
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: _accentLightBlue.withValues( alpha: .25),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome $displayName',
+                      style: TextStyle(
+                        color: AppColors.primaryText,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      _greetingByTime(),
+                      style: TextStyle(
+                        color: AppColors.primaryText.withValues(alpha: 0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+              GestureDetector(
+              onTap: () => Get.to(() => NotificationScreen()),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: _accentLightBlue.withValues( alpha: .25),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ), // Uses Material icon only; do not use notification.png asset
                 Positioned(
                   top: 4,
                   right: 4,
@@ -129,8 +186,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-          ],
-        ),
+            ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -259,6 +318,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMyProgramsSection() {
+    if (!Get.isRegistered<ProgramController>()) {
+      Get.put(ProgramController(programInterface: Get.find<ProgramInterface>()));
+    }
+    final programController = Get.find<ProgramController>();
+
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -277,7 +341,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Get.find<AppGroundController>().changeIndex(1);
+                  },
                   child: Text(
                     'See all',
                     style: TextStyle(
@@ -290,7 +356,44 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildProgramCard(),
+            Obx(() {
+              if (programController.isLoading.value) {
+                return SizedBox(
+                  height: 160,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: _seeAllBlue,
+                    ),
+                  ),
+                );
+              }
+              final list = programController.programList;
+              if (list.isEmpty) {
+                return _buildProgramCard();
+              }
+              final showList = list.take(3).toList();
+              return SizedBox(
+                height: 168,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: showList.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final program = showList[index];
+                    return SizedBox(
+                      width: 220,
+                      child: ProgramCard(
+                        title: program.programName,
+                        image: program.programThumbnail,
+                        onTap: () {
+                          Get.to(() => ProgramDetailScreen(program: program));
+                        },
+                      ),
+                    );
+                  },
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -588,14 +691,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.2),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
+                          
                         ],
+                        border: Border.all(color: Colors.white)
                       ),
                       child: ClipOval(
                         child: recipe.recipeImage != null &&
@@ -710,8 +815,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-             Get.to(() => const ChatWithAdminScreen());
+        onTap: () async {
+          final repo = Get.find<ChatRepository>();
+          final result = await repo.createOrGetThread();
+          result.fold(
+            (failure) {
+              Get.snackbar(
+                'Chat',
+                failure.uiMessage,
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            },
+            (info) {
+              Get.to(() => ChatThreadScreen(
+                    threadId: info.threadId,
+                    counterpartName: info.counterpartName,
+                  ));
+            },
+          );
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(

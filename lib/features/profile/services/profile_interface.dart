@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:disabilitymne/core/api_handler/base_repository.dart';
 import 'package:disabilitymne/core/api_handler/success.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
@@ -12,6 +14,7 @@ abstract base class ProfileInterface extends BaseRepository {
   FutureRequest<Success<UserProfileUpdateModel>> updateProfile(
     UserProfileUpdateModel params,
   );
+  FutureRequest<Success<UserModel>> updateMyProfileImage(File imageFile);
   FutureRequest<Success<void>> changePassword(ChangePasswordModel params);
 
   FutureRequest<Success<List<NotificationModel>>> getNotifications(

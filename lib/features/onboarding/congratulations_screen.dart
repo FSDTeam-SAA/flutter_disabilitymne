@@ -1,3 +1,4 @@
+import 'package:disabilitymne/features/home/presentation/home_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -273,7 +274,10 @@ class _StartJourneyButton extends StatelessWidget {
     final height = (54 * scale).clamp(50.0, 58.0);
     final fontSize = (17 * scale).clamp(16.0, 18.0);
     return GestureDetector(
-      onTap: (){},
+      onTap: (){
+
+        Get.offAll(HomeScreen());
+      },
       child: Container(
         width: double.infinity,
         height: height,

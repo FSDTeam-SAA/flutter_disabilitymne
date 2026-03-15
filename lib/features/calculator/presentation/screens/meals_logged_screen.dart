@@ -157,7 +157,7 @@ class MealDetailScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 6),
                           Row(
-                            children: const [
+                            children: [
                               Icon(Icons.edit_outlined, size: 14, color: Colors.white60),
                               SizedBox(width: 6),
                               Text(

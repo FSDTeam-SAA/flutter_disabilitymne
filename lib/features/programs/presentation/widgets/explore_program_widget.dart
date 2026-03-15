@@ -8,9 +8,11 @@ import 'package:disabilitymne/features/programs/services/program_interface.dart'
 class ExploreWidget extends StatelessWidget {
   ExploreWidget({super.key});
 
-  final controller = Get.put(
-    ProgramController(programInterface: Get.find<ProgramInterface>()),
-  );
+  final controller = Get.isRegistered<ProgramController>()
+      ? Get.find<ProgramController>()
+      : Get.put(
+          ProgramController(programInterface: Get.find<ProgramInterface>()),
+        );
 
   @override
   Widget build(BuildContext context) {

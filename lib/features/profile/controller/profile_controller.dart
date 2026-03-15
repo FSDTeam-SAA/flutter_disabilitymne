@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:disabilitymne/features/auth/model/user_model.dart';
 import 'package:disabilitymne/features/profile/model/update_profile_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
@@ -64,6 +66,9 @@ class ProfileController extends GetxController {
 
   /// loading
   final RxBool isLoading = false.obs;
+
+  /// uploading profile image
+  final RxBool isUploadingImage = false.obs;
 
   /// toggle edit mode
   void toggleEdit() {
@@ -207,39 +212,49 @@ class ProfileController extends GetxController {
   }
 
   /// ================================
-  /// PICK IMAGE
+  /// PICK IMAGE & UPLOAD (only profile image via API)
   /// ================================
   Future<void> pickImageFromSource(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(source: source);
 
       if (image != null) {
+        // Show picked image immediately (live update)
         pickedImagePath.value = image.path;
+
+        final file = File(image.path);
+        if (!await file.exists()) {
+          Get.snackbar("Error", "Image file not found");
+          return;
+        }
+
+        isUploadingImage.value = true;
+        final response = await profileInterface.updateMyProfileImage(file);
+
+        response.fold(
+          (failure) {
+            Get.snackbar("Error", failure.uiMessage);
+            // Keep showing picked image so user sees what they selected
+          },
+          (success) {
+            if (success.data != null) {
+              user.value = success.data;
+              pickedImagePath.value = null; // Use server profileImage URL now
+            }
+            Get.snackbar(
+              "Success",
+              success.message,
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green.withOpacity(0.7),
+              colorText: Colors.white,
+            );
+          },
+        );
       }
     } catch (e) {
       Get.snackbar("Error", "Failed to pick image: $e");
-    }
-  }
-
-  /// ================================
-  /// UPLOAD PROFILE IMAGE
-  /// ================================
-  Future<void> uploadProfilePicture() async {
-    if (pickedImagePath.value == null) {
-      Get.snackbar("Error", "Please select image first");
-      return;
-    }
-
-    try {
-      Get.snackbar(
-        "Success",
-        "Profile picture uploaded successfully",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withOpacity(0.7),
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar("Error", e.toString());
+    } finally {
+      isUploadingImage.value = false;
     }
   }
 

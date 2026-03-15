@@ -1,5 +1,6 @@
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/api_handler/success.dart';
+import 'package:disabilitymne/core/auth/access_token_holder.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/model/forget_password_model.dart';
@@ -9,6 +10,7 @@ import 'package:disabilitymne/features/auth/model/signup_model.dart';
 import 'package:disabilitymne/features/auth/model/verify_otp_model.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 final class AuthInterfaceImpl extends AuthInterface {
   final AuthorizedPigeon appPigeon;
@@ -47,6 +49,9 @@ final class AuthInterfaceImpl extends AuthInterface {
             },
           ),
         );
+        if (Get.isRegistered<AccessTokenHolder>() && loginData.accessToken != null) {
+          Get.find<AccessTokenHolder>().setToken(loginData.accessToken);
+        }
 
         return Success(message: loginResponse.message ?? "Login successful");
       },
@@ -95,6 +100,9 @@ final class AuthInterfaceImpl extends AuthInterface {
         final response = await appPigeon.post(ApiEndpoints.logout);
         debugPrint('LOGOUT RESPONSE => ${response.data}');
         await appPigeon.logOut();
+        if (Get.isRegistered<AccessTokenHolder>()) {
+          Get.find<AccessTokenHolder>().clear();
+        }
         return Success(message: extractSuccessMessage(response));
       },
     );
