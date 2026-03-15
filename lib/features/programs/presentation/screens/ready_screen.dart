@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
+import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
@@ -93,7 +94,21 @@ class ReadyStartScreen extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Get.to(ExerciseScreen(program: program, initialIndex: 0));
+                      if (program.exercises != null &&
+                          program.exercises!.isNotEmpty &&
+                          program.exercises!.first.executionMode ==
+                              'countdown') {
+                        Get.to(
+                          () => ExerciseWorkoutScreen(
+                            program: program,
+                            initialIndex: 0,
+                          ),
+                        );
+                      } else {
+                        Get.to(
+                          () => ExerciseScreen(program: program, initialIndex: 0),
+                        );
+                      }
                     },
                     child: const Text(
                       "I'm Ready",
