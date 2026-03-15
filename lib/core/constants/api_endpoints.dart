@@ -42,6 +42,7 @@ base class ApiEndpoints {
   /// ### get
   static String getProfile = _User.getProfile;
   static String updateProfile = _User.updateProfile;
+  static String updateProfileImage = _User.updateProfileImage;
   static String changePassword = _User.changePassword;
   static String helpAndSupport = _User.helpAndSupport;
 
@@ -93,6 +94,8 @@ base class ApiEndpoints {
   // ---------------------- Payments -----------------------------
   /// ### get
   static const String paymentPlans = _Payments.plans;
+  static const String paymentCheckout = _Payments.checkout;
+  static const String paymentConfirmCheckout = _Payments.confirmCheckout;
 }
 
 //arrow360degree@gmail.com
@@ -170,6 +173,7 @@ class _User {
   static const String _userRoute = '${ApiEndpoints.baseUrl}/users';
   static String getProfile = '$_userRoute/me';
   static String updateProfile = '$_userRoute/me';
+  static String updateProfileImage = '$_userRoute/me/profile-image';
   static String changePassword = '$_userRoute/me/change-password';
   static String helpAndSupport = '$_userRoute/me/support/tickets';
 }
@@ -227,6 +231,8 @@ class _DailyTracker {
 class _Payments {
   static const String _route = '${ApiEndpoints.baseUrl}/payments';
   static const String plans = '$_route/plans';
+  static const String checkout = '$_route/checkout';
+  static const String confirmCheckout = '$_route/checkout/confirm';
 }
 
 //----------------------Message -----------------------------

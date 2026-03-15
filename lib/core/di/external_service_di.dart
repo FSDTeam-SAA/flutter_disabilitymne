@@ -1,6 +1,9 @@
 import 'package:app_pigeon/app_pigeon.dart';
+import 'package:disabilitymne/core/auth/access_token_holder.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface_impl.dart';
+import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
+import 'package:disabilitymne/features/chat/service/chat_socket_service.dart';
 import 'package:disabilitymne/features/daily_tracker/repository/daily_tracker_repository.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_repository.dart';
@@ -9,6 +12,8 @@ import 'package:get/get.dart';
 import '../constants/api_endpoints.dart';
 
 void externalServiceDI() {
+  Get.put<AccessTokenHolder>(AccessTokenHolder(), permanent: true);
+
   // Initialize other external services here
   final appPigeon = AuthorizedPigeon(
     BasicRefreshTokenManager(ApiEndpoints.refreshToken),
@@ -20,9 +25,10 @@ void externalServiceDI() {
   // Auth Interface Implementation
   Get.lazyPut<AuthInterface>(() => AuthInterfaceImpl(Get.find()));
 
-  // Daily Tracker Repository
-  Get.lazyPut<DailyTrackerRepository>(
-    () => DailyTrackerRepository(Get.find<AuthorizedPigeon>()),
+  // Daily Tracker Repository (put so it's available before first use)
+  Get.put<DailyTrackerRepository>(
+    DailyTrackerRepository(Get.find<AuthorizedPigeon>()),
+    permanent: true,
   );
 
   // Progress Repository
@@ -33,6 +39,15 @@ void externalServiceDI() {
   // Payment Plans
   Get.lazyPut<PaymentPlansInterface>(
     () => PaymentPlansRepository(Get.find<AuthorizedPigeon>()),
+  );
+
+  // Chat
+  Get.lazyPut<ChatRepository>(
+    () => ChatRepository(Get.find<AuthorizedPigeon>()),
+  );
+  Get.lazyPut<ChatSocketService>(
+    () => ChatSocketService(socketUrl: ApiEndpoints.socketUrl),
+    fenix: true,
   );
 }
 

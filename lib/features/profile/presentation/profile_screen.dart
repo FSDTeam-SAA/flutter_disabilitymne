@@ -1,10 +1,11 @@
+import 'dart:io';
+
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/daily_notes_screen.dart';
-import 'package:disabilitymne/features/chat/presentation/chat_with_admin_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/help_support_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/language_accessibility_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/my_profile_screen.dart';
@@ -79,39 +80,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   const SizedBox(height: 10),
 
-                  /// Header
-                  Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 24,
-                        backgroundImage: NetworkImage(
-                          "https://i.pravatar.cc/300",
+                  /// Header – profile image & name from controller
+                  Obx(() {
+                    final user = controller.user.value;
+                    final profileImageUrl = user?.profileImage;
+                    final hasProfileImage = profileImageUrl != null &&
+                        profileImageUrl.isNotEmpty;
+                    final pickedPath = controller.pickedImagePath.value;
+
+                    ImageProvider<Object> avatarImage;
+                    if (pickedPath != null && File(pickedPath).existsSync()) {
+                      avatarImage = FileImage(File(pickedPath));
+                    } else if (hasProfileImage) {
+                      avatarImage = NetworkImage(profileImageUrl);
+                    } else {
+                      avatarImage = const AssetImage("assets/image/app_logo.png");
+                    }
+
+                    final name = [
+                      user?.firstName,
+                      user?.lastName,
+                    ].whereType<String>().join(' ').trim();
+                    final displayName =
+                        name.isNotEmpty ? name : 'User';
+
+                    return Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundImage: avatarImage,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "Welcome Evan 👋",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Welcome $displayName 👋",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Good morning!",
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 4),
-                          Text(
-                            "Good morning!",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    );
+                  }),
 
                   const SizedBox(height: 16),
 
@@ -211,7 +238,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: "Chat with Admin",
                           subtitle: "Message support",
                           onTap: () {
-                            Get.to(() => const ChatWithAdminScreen());
                           },
                         ),
                         _SettingsTile(

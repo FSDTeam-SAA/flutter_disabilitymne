@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:app_pigeon/app_pigeon.dart';
+import 'package:dio/dio.dart';
 import 'package:disabilitymne/core/api_handler/success.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
@@ -45,6 +48,31 @@ final class ProfileInterfaceImpl extends ProfileInterface {
 
         final user = UserProfileUpdateModel.fromJson(response.data['data']);
 
+        return Success(data: user, message: extractSuccessMessage(response));
+      },
+    );
+  }
+
+  @override
+  FutureRequest<Success<UserModel>> updateMyProfileImage(File imageFile) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final fileName = imageFile.path.split(RegExp(r'[/\\]')).last;
+        final formData = FormData.fromMap({
+          'profileImage': await MultipartFile.fromFile(
+            imageFile.path,
+            filename: fileName.isEmpty ? 'image.jpg' : fileName,
+          ),
+        });
+
+        final response = await appPigeon.patch(
+          ApiEndpoints.updateProfileImage,
+          data: formData,
+        );
+
+        debugPrint("UPDATE PROFILE IMAGE RESPONSE => ${response.data}");
+
+        final user = UserModel.fromJson(response.data['data']);
         return Success(data: user, message: extractSuccessMessage(response));
       },
     );

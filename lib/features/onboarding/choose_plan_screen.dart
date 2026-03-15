@@ -6,7 +6,7 @@ import 'package:disabilitymne/features/payments/services/payment_plans_interface
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/onboarding/congratulations_screen.dart';
-import 'package:disabilitymne/features/onboarding/select_payment_method_screen.dart';
+import 'package:disabilitymne/features/onboarding/stripe_checkout_webview_screen.dart';
 
 /// Payment package selection: Free Trial, Monthly, Six Month, Premium.
 /// Shown when user taps Continue on Fitness experience screen.
@@ -20,11 +20,7 @@ class ChoosePlanScreen extends StatefulWidget {
 class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   int _selectedIndex = 0;
   late FutureRequest<List<PaymentPlan>> _plansFuture;
-
-  static double _parseAmount(String price) {
-    final cleaned = price.replaceAll(RegExp(r'[^\d.]'), '');
-    return double.tryParse(cleaned) ?? 0;
-  }
+  bool _checkoutLoading = false;
 
   static const Color _green = Color(0xFF34C759);
   static const Color _greenFill = Color(0xFF204A47); // 20% opacity
@@ -51,6 +47,69 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       _plansFuture = Get.find<PaymentPlansInterface>().fetchPlans();
       _selectedIndex = 0;
     });
+  }
+
+  Future<void> _handleContinue(
+    PaymentPlan selectedPlan,
+    PlanItem selectedUiPlan,
+    bool isTrial,
+    String buttonText,
+  ) async {
+    if (_checkoutLoading) return;
+    if (isTrial) {
+      Get.to(
+        () => CongratulationsScreen(planName: selectedUiPlan.title),
+      );
+      return;
+    }
+    setState(() => _checkoutLoading = true);
+    final paymentInterface = Get.find<PaymentPlansInterface>();
+    final result = await paymentInterface.checkout(selectedPlan.key);
+    if (!mounted) return;
+    setState(() => _checkoutLoading = false);
+
+    result.fold(
+      (failure) {
+        Get.snackbar(
+          'Error',
+          failure.uiMessage,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withValues(alpha: 0.8),
+          colorText: Colors.white,
+        );
+      },
+      (checkoutResponse) {
+        if (checkoutResponse.isFreePlan) {
+          Get.to(
+            () => CongratulationsScreen(planName: selectedUiPlan.title),
+          );
+          return;
+        }
+        final url = checkoutResponse.checkoutUrl?.trim();
+        if (url == null || url.isEmpty) {
+          Get.snackbar(
+            'Error',
+            'No checkout URL received.',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return;
+        }
+        Get.to(
+          () => StripeCheckoutWebViewScreen(
+            checkoutUrl: url,
+            planName: selectedUiPlan.title,
+            onSuccess: () {
+              Get.offAll(
+                () => CongratulationsScreen(
+                  planName: selectedUiPlan.title,
+                ),
+              );
+            },
+            onCancel: () => Get.back(),
+          ),
+        );
+      },
+    );
   }
 
   static ({Color accent, Color fill}) _colorsForKey(String key) {
@@ -241,25 +300,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: CustomButton(
-                            onPressed: () {
-                              if (isTrial) {
-                                Get.to(
-                                  () => CongratulationsScreen(
-                                    planName: selectedUiPlan.title,
-                                  ),
-                                );
-                                return;
-                              }
-
-                              final amount = _parseAmount(selectedUiPlan.price);
-                              Get.to(
-                                () => SelectPaymentMethodScreen(
-                                  amount: amount,
-                                  planName: selectedUiPlan.title,
-                                ),
-                              );
-                            },
-                            text: buttonText,
+                            onPressed: () => _handleContinue(
+                              selectedPlan,
+                              selectedUiPlan,
+                              isTrial,
+                              buttonText,
+                            ),
+                            text: _checkoutLoading ? 'Loading...' : buttonText,
                           ),
                         ),
 

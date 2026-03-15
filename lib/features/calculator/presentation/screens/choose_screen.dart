@@ -77,7 +77,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   Expanded(
                     flex: 1,
                     child: DropdownButtonFormField<String>(
-                      value: selectedQuantity,
+                      initialValue: selectedQuantity,
                       dropdownColor: const Color(0xFF1D222F),
                       icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white70),
                       style: const TextStyle(color: Colors.white, fontSize: 15),
@@ -107,7 +107,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   Expanded(
                     flex: 3,
                     child: DropdownButtonFormField<String>(
-                      value: selectedUnit,
+                      initialValue: selectedUnit,
                       dropdownColor: const Color(0xFF1D222F),
                       icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white70),
                       style: const TextStyle(color: Colors.white, fontSize: 15),
@@ -139,7 +139,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
               // Meal dropdown
               DropdownButtonFormField<String>(
-                value: selectedMeal,
+                initialValue: selectedMeal,
                 dropdownColor: const Color(0xFF1D222F),
                 icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white70),
                 style: const TextStyle(color: Colors.white, fontSize: 15),

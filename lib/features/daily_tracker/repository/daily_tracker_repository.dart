@@ -3,6 +3,7 @@ import 'package:disabilitymne/core/api_handler/base_repository.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/daily_tracker/model/daily_tracker_model.dart';
+import 'package:disabilitymne/features/daily_tracker/model/daily_tracker_notes_list_model.dart';
 import 'package:disabilitymne/features/daily_tracker/utils/daily_tracker_date_utils.dart';
 
 /// Repository for Daily Tracker API.
@@ -77,6 +78,30 @@ base class DailyTrackerRepository extends BaseRepository {
           text: text,
         );
         await _pigeon.post(ApiEndpoints.dailyTrackerNotes, data: payload.toJson());
+      },
+    );
+  }
+
+  /// GET my daily tracker notes with pagination.
+  ///
+  /// [page] and [limit] for pagination. Optional [weekStartDate] (YYYY-MM-DD)
+  /// to filter by week.
+  FutureRequest<DailyTrackerNotesListResponse> getMyDailyTrackerNotes({
+    int page = 1,
+    int limit = 20,
+    String? weekStartDate,
+  }) async {
+    return asyncTryCatch(
+      tryFunc: () async {
+        final query = <String>['page=$page', 'limit=$limit'];
+        if (weekStartDate != null && weekStartDate.isNotEmpty) {
+          query.add('weekStartDate=$weekStartDate');
+        }
+        final uri = '${ApiEndpoints.dailyTrackerNotes}?${query.join('&')}';
+        final response = await _pigeon.get(uri);
+        final body = response.data as Map<String, dynamic>?;
+        if (body == null) throw Exception('Invalid notes response');
+        return DailyTrackerNotesListResponse.fromJson(body);
       },
     );
   }
