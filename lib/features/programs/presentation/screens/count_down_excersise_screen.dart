@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
@@ -22,6 +23,9 @@ class ExerciseWorkoutScreen extends StatefulWidget {
 
 class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
   int seconds = 30;
+  int _remainingSeconds = 30;
+  Timer? _timer;
+  bool _isTimerPausedManually = false;
   late int currentExerciseIndex;
   VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
@@ -37,6 +41,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _disposeVideoPlayer();
     super.dispose();
   }
@@ -76,6 +81,11 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
 
       _videoPlayerController!.addListener(_videoListener);
 
+      setState(() {
+        seconds = currentExercise.durationSeconds ?? 30;
+        _remainingSeconds = seconds;
+      });
+
       _chewieController = ChewieController(
         videoPlayerController: _videoPlayerController!,
         autoPlay: true,
@@ -104,16 +114,51 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
   }
 
   void _videoListener() {
-    if (_videoPlayerController != null &&
-        _videoPlayerController!.value.position >=
-            _videoPlayerController!.value.duration) {
-      if (!_isVideoCompleted) {
-        setState(() {
-          _isVideoCompleted = true;
-        });
+    if (_videoPlayerController != null) {
+      if (_videoPlayerController!.value.isPlaying &&
+          _timer == null &&
+          !_isTimerPausedManually) {
+        _startTimer();
+      } else if (!_videoPlayerController!.value.isPlaying && _timer != null) {
+        _pauseTimer();
+      }
+
+      if (_videoPlayerController!.value.position >=
+          _videoPlayerController!.value.duration) {
+        if (!_isVideoCompleted) {
+          setState(() {
+            _isVideoCompleted = true;
+          });
+          _pauseTimer();
+        }
       }
     }
   }
+
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() {
+      _isTimerPausedManually = false;
+      if (_remainingSeconds == 0) {
+        _remainingSeconds = seconds;
+      }
+    });
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingSeconds > 0) {
+        setState(() {
+          _remainingSeconds--;
+        });
+      } else {
+        _pauseTimer();
+      }
+    });
+  }
+
+  void _pauseTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
 
   void nextExercise() {
     final totalExercises = widget.program.exercises?.length ?? 0;
@@ -127,10 +172,12 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
             program: widget.program,
             initialIndex: nextIdx,
           ),
+          preventDuplicates: false,
         );
       } else {
         Get.to(
           () => ExerciseScreen(program: widget.program, initialIndex: nextIdx),
+          preventDuplicates: false,
         );
       }
     } else {
@@ -312,7 +359,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                                 height: 180,
                                 width: 180,
                                 child: CircularProgressIndicator(
-                                  value: seconds / 30,
+                                  value: seconds > 0 ? _remainingSeconds / seconds : 0,
                                   strokeWidth: 20,
                                   backgroundColor: Colors.white24,
                                   valueColor:
@@ -322,7 +369,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                                 ),
                               ),
                               Text(
-                                "00:${seconds.toString().padLeft(2, '0')}",
+                                "00:${_remainingSeconds.toString().padLeft(2, '0')}",
                                 style: const TextStyle(
                                   fontSize: 32,
                                   color: Colors.white,
@@ -345,7 +392,13 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
+                        onTap: () {
+                          _pauseTimer();
+                          setState(() {
+                            _remainingSeconds = 0;
+                            _isTimerPausedManually = true;
+                          });
+                        },
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
@@ -367,7 +420,21 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: GestureDetector(
-                        onTap: _isVideoCompleted ? nextExercise : null,
+                        onTap: () {
+                          if (_isVideoCompleted) {
+                            nextExercise();
+                          } else {
+                            if (_timer != null) {
+                              _pauseTimer();
+                              setState(() {
+                                _isTimerPausedManually = true;
+                              });
+                            } else {
+                              _videoPlayerController?.play();
+                              _startTimer();
+                            }
+                          }
+                        },
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
@@ -378,7 +445,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              _isVideoCompleted ? "Next" : "pause",
+                              _isVideoCompleted ? "Next" : (_timer != null ? "pause" : "play"),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,

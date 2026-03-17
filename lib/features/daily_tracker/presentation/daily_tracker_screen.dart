@@ -30,8 +30,7 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
   static const Color _hintColor = Color(0xFFA0A8B7);
   static const Color _borderColor = Color(0xFF5B8FB7);
   static const Color _dividerColor = Color(0xFF696D73);
-  static const Color _todayHighlight = Color(0xFF4B7FA8);
-  static const Color _selectedHighlight = Color(0xFF27BE69);
+
 
   @override
   void initState() {
