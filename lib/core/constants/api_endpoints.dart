@@ -91,7 +91,19 @@ base class ApiEndpoints {
   /// ### post
   static const String dailyTrackerNotes = _DailyTracker.dailyTrackerNotes;
 
-  // ---------------------- Payments -----------------------------
+  //------------------------- Nutrition --------------------------
+  /// ### get
+  static const String nutritionDiary = _Nutrition.diary;
+  static const String nutritionFoodSuggestions = _Nutrition.foodSuggestions;
+  static const String nutritionFoodSearch = _Nutrition.foodSearch;
+  static String nutritionFoodDetails(dynamic fdcId) =>
+      _Nutrition.foodDetails(fdcId);
+  static String nutritionDiaryEntryById(dynamic entryId) =>
+      _Nutrition.diaryEntryById(entryId);
+  /// ### post
+  static const String nutritionDiaryEntries = _Nutrition.diaryEntries;
+
+   // ---------------------- Payments -----------------------------
   /// ### get
   static const String paymentPlans = _Payments.plans;
   static const String paymentCheckout = _Payments.checkout;
@@ -225,6 +237,17 @@ class _DailyTracker {
   static const String _route = '${ApiEndpoints.baseUrl}/users/me/daily-tracker';
   static const String dailyTracker = _route;
   static const String dailyTrackerNotes = '$_route/notes';
+}
+
+//---------------------- Nutrition -----------------------------
+class _Nutrition {
+  static const String _route = '${ApiEndpoints.baseUrl}/nutrition';
+  static const String diary = '$_route/diary';
+  static const String foodSuggestions = '$_route/foods/suggestions';
+  static const String foodSearch = '$_route/foods/search';
+  static String foodDetails(dynamic fdcId) => '$_route/foods/$fdcId';
+  static const String diaryEntries = '$_route/diary/entries';
+  static String diaryEntryById(dynamic entryId) => '$diaryEntries/$entryId';
 }
 
 //---------------------- Payments -----------------------------

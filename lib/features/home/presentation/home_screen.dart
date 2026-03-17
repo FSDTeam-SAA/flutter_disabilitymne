@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:disabilitymne/app/controller/app_ground_controller.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
+import 'package:disabilitymne/features/auth/model/user_model.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/chat/presentation/chat_thread_screen.dart';
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
@@ -11,6 +12,7 @@ import 'package:disabilitymne/features/programs/controller/explore_program%20con
 import 'package:disabilitymne/features/programs/presentation/screens/program_detail_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/widgets/explore_program_widget.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/home/widgets/upgrade_plan_dialog.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/notification_screen.dart';
 import 'package:disabilitymne/features/progress/presentation/progress_screen.dart';
@@ -42,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
   int _recipeTabIndex = 0;
   Timer? _greetingTimer;
+  bool _hasCheckedUpgradePopup = false;
 
   /// Returns one of 4 greetings by device hour: morning, afternoon, evening, night.
   static String _greetingByTime() {
@@ -60,6 +63,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     _greetingTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
+    });
+    _listenProfileAndShowUpgradePopup();
+  }
+
+  /// When profile user is loaded, show upgrade popup once for free_trial (within 6 days) or for six_month_plan/premium_plan when subscriptionEndsAt within 6 days.
+  void _listenProfileAndShowUpgradePopup() {
+    if (!Get.isRegistered<ProfileController>()) return;
+    final profileController = Get.find<ProfileController>();
+    ever(profileController.user, (UserModel? user) {
+      if (user == null || !mounted || _hasCheckedUpgradePopup) return;
+      _hasCheckedUpgradePopup = true;
+      maybeShowUpgradePopup(user);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _hasCheckedUpgradePopup) return;
+      final user = profileController.user.value;
+      if (user != null) {
+        _hasCheckedUpgradePopup = true;
+        maybeShowUpgradePopup(user);
+      }
     });
   }
 
@@ -122,13 +145,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return Row(
             children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: _cardBlue,
-                backgroundImage: avatarImage,
-                child: avatarImage == null
-                    ? const Icon(Icons.person, color: Colors.white70, size: 32)
-                    : null,
+              GestureDetector(
+                onTap: () => Get.find<AppGroundController>().changeIndex(4),
+                child: CircleAvatar(
+                  radius: 26,
+                  backgroundColor: _cardBlue,
+                  backgroundImage: avatarImage,
+                  child: avatarImage == null
+                      ? const Icon(Icons.person, color: Colors.white70, size: 32)
+                      : null,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -377,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: showList.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final program = showList[index];
                     return SizedBox(
@@ -764,49 +790,52 @@ borderRadius: BorderRadius.circular(8),
   }
 
   Widget _buildQuickActionSection() {
-    final showChat = widget.isPremiumUser == true;
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Quick Action',
-              style: TextStyle(
-                color: AppColors.primaryText,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        child: Obx(() {
+          final user = Get.find<ProfileController>().user.value;
+          final showChat = user?.selectedPlan == 'premium_plan';
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Quick Action',
+                style: TextStyle(
+                  color: AppColors.primaryText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildQuickActionCard(
-                    imagePath: 'assets/image/quick_action_progress.png',
-                    label: 'Progress',
-                    fallbackIcon: Icons.show_chart_rounded,
-                    onTap: () => Get.to(() => const ProgressScreen()),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildQuickActionCard(
-                    imagePath: 'assets/image/quick_action_daily_tracker.png',
-                    label: 'Daily Tracker',
-                    fallbackIcon: Icons.checklist_rounded,
-                    onTap: () => Get.to(() => const DailyTrackerScreen()),
-                  ),
-                ),
-              ],
-            ),
-            if (showChat) ...[
               const SizedBox(height: 12),
-              _buildChatWithCoachCta(),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickActionCard(
+                      imagePath: 'assets/image/quick_action_progress.png',
+                      label: 'Progress',
+                      fallbackIcon: Icons.show_chart_rounded,
+                      onTap: () => Get.to(() => const ProgressScreen()),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildQuickActionCard(
+                      imagePath: 'assets/image/quick_action_daily_tracker.png',
+                      label: 'Daily Tracker',
+                      fallbackIcon: Icons.checklist_rounded,
+                      onTap: () => Get.to(() => const DailyTrackerScreen()),
+                    ),
+                  ),
+                ],
+              ),
+              if (showChat) ...[
+                const SizedBox(height: 12),
+                _buildChatWithCoachCta(),
+              ],
             ],
-          ],
-        ),
+          );
+        }),
       ),
     );
   }
@@ -827,6 +856,7 @@ borderRadius: BorderRadius.circular(8),
               );
             },
             (info) {
+              
               Get.to(() => ChatThreadScreen(
                     threadId: info.threadId,
                     counterpartName: info.counterpartName,

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:app_pigeon/app_pigeon.dart';
-import 'package:dio/dio.dart';
 import 'package:disabilitymne/core/api_handler/success.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';

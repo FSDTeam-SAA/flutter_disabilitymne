@@ -1,5 +1,6 @@
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/auth/access_token_holder.dart';
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface_impl.dart';
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
@@ -13,6 +14,7 @@ import '../constants/api_endpoints.dart';
 
 void externalServiceDI() {
   Get.put<AccessTokenHolder>(AccessTokenHolder(), permanent: true);
+  Get.put<OnboardingStateHolder>(OnboardingStateHolder(), permanent: true);
 
   // Initialize other external services here
   final appPigeon = AuthorizedPigeon(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:app_pigeon/app_pigeon.dart';
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
@@ -58,14 +59,14 @@ class AppManager extends GetxController {
       _authStatus = authStatus;
       await _initializeControllers();
 
-      // Get.offAll(() => GenderSelectionScreen());//home screen  AppGround
-      Get.offAll(() => AppGround());
-      // Get.offAll(ChoosePlanScreen());
-      // Get.offAll(HomeScreen(isPremiumUser: true,));
-
-
-
-// Get.offAll(PremiumHomeScreen());
+      // Login API user with onboardingCompleted: false / null → show gender (onboarding) first
+      final onboardingCompleted = Get.isRegistered<OnboardingStateHolder>() &&
+          Get.find<OnboardingStateHolder>().isOnboardingCompleted;
+      if (onboardingCompleted) {
+        Get.offAll(() => AppGround());
+      } else {
+        Get.offAll(() => const GenderSelectionScreen());
+      }
     }
     update();
     // if (authStatus != null && authStatus != _authStatus) {
@@ -76,29 +77,36 @@ class AppManager extends GetxController {
 
   // initiate controllers on auth change[Authenticated]
   Future<void> _initializeControllers() async {
-    if ((currentAuthStatus as Authenticated).auth.userId.isNotEmpty) {
-      await Get.find<AppPigeon>()
-          .socketInit(
-            SocketConnetParamX(
-              token: null,
-              socketUrl: ApiEndpoints.socketUrl,
-              joinId: (currentAuthStatus as Authenticated).auth.userId,
-            ),
-          )
-          .then((_) async {
-            Get.find<AppPigeon>().emit(
-              "joinChatRoom",
-              ((currentAuthStatus as Authenticated).auth.userId),
-            );
-            _bindSocketStatus();
-            // if (Get.isRegistered<AppGlobalControllers>()) {
-            //   await Get.delete<AppGlobalControllers>();
-            // }
+    if ((currentAuthStatus as Authenticated).auth.userId.isEmpty) return;
 
-            // Get.put<AppGlobalControllers>(
-            //   AppGlobalControllers(),
-            // );
-          });
+    final userId = (currentAuthStatus as Authenticated).auth.userId;
+
+    // Cancel any existing socket listeners before re-init to avoid "Cannot add new events after calling close"
+    _socketConnectSub?.cancel();
+    _socketConnectSub = null;
+    _socketDisconnectSub?.cancel();
+    _socketDisconnectSub = null;
+    _socketErrorSub?.cancel();
+    _socketErrorSub = null;
+
+    try {
+      // Small delay so previous socket disconnect can finish before we init again
+      await Future.delayed(const Duration(milliseconds: 50));
+      await Get.find<AppPigeon>().socketInit(
+        SocketConnetParamX(
+          token: null,
+          socketUrl: ApiEndpoints.socketUrl,
+          joinId: userId,
+        ),
+      );
+      Get.find<AppPigeon>().emit("joinChatRoom", userId);
+      _bindSocketStatus();
+    } catch (e, st) {
+      // app_pigeon can throw "Bad state: Cannot add new events after calling close" when
+      // re-initing socket; avoid crash and still allow navigation
+      debugPrint("AppManager: socketInit error (continuing): $e");
+      debugPrint("$st");
+      socketConnected.value = false;
     }
   }
 
