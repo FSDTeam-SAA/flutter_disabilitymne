@@ -25,7 +25,6 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
   int seconds = 30;
   int _remainingSeconds = 30;
   Timer? _timer;
-  bool _isTimerPausedManually = false;
   late int currentExerciseIndex;
   VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
@@ -89,7 +88,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
       _chewieController = ChewieController(
         videoPlayerController: _videoPlayerController!,
         autoPlay: true,
-        looping: false,
+        looping: true,
         aspectRatio: _videoPlayerController!.value.aspectRatio,
         allowFullScreen: true,
         allowPlaybackSpeedChanging: true,
@@ -115,21 +114,12 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
 
   void _videoListener() {
     if (_videoPlayerController != null) {
-      if (_videoPlayerController!.value.isPlaying &&
-          _timer == null &&
-          !_isTimerPausedManually) {
-        _startTimer();
-      } else if (!_videoPlayerController!.value.isPlaying && _timer != null) {
-        _pauseTimer();
-      }
-
       if (_videoPlayerController!.value.position >=
           _videoPlayerController!.value.duration) {
         if (!_isVideoCompleted) {
           setState(() {
             _isVideoCompleted = true;
           });
-          _pauseTimer();
         }
       }
     }
@@ -138,7 +128,6 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
   void _startTimer() {
     _timer?.cancel();
     setState(() {
-      _isTimerPausedManually = false;
       if (_remainingSeconds == 0) {
         _remainingSeconds = seconds;
       }
@@ -346,7 +335,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 20),
 
                         /// TIMER CIRCLE
                         SizedBox(
@@ -390,13 +379,13 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                 const SizedBox(height: 20),
                 Row(
                   children: [
+                    /// STOP BUTTON
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
                           _pauseTimer();
                           setState(() {
                             _remainingSeconds = 0;
-                            _isTimerPausedManually = true;
                           });
                         },
                         child: Container(
@@ -418,37 +407,35 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
+
+                    /// PAUSE/PLAY BUTTON (Only affects Timer)
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          if (_isVideoCompleted) {
-                            nextExercise();
+                          if (_timer != null) {
+                            _pauseTimer();
+                            setState(() {});
                           } else {
-                            if (_timer != null) {
-                              _pauseTimer();
-                              setState(() {
-                                _isTimerPausedManually = true;
-                              });
-                            } else {
-                              _videoPlayerController?.play();
-                              _startTimer();
-                            }
+                            _startTimer();
                           }
                         },
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF7FC1E8), Color(0xFF3C79B5)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0xFF8AC5E5), Color(0xFF5B89B2)],
                             ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Center(
                             child: Text(
-                              _isVideoCompleted ? "Next" : (_timer != null ? "pause" : "play"),
+                              _timer != null ? "Pause" : "Play",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -456,6 +443,34 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 16),
+
+                /// NEXT BUTTON
+                GestureDetector(
+                  onTap: nextExercise,
+                  child: Container(
+                    height: 50,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFF8AC5E5), Color(0xFF5B89B2)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "Next Exercise",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
               ],

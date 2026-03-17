@@ -31,6 +31,10 @@ base class ApiEndpoints {
   static const String getAllRecipies = _Recipies.getAllRecipies;
   static String getRecipeDetail(String id) => _Recipies.getRecipeDetails(id);
 
+  static String getExcerisesData(String id) => _ExceriseData.getExcerisesData(id);
+  static String putExcerisesData(String id) => _ExceriseData.putExcerisesData(id);
+
+
   //------------notification----------------
   /// ### get
   static const String getAllNotifications = _Notification.getAllNotifications;
@@ -146,15 +150,21 @@ class _Program {
 }
 
 class _Excerise {
-  static const String _programRoute = '${ApiEndpoints.baseUrl}/exercises';
-  static const String getAllLibrary = '$_programRoute/all';
-  static String getLibraryDetails(String id) => '$_programRoute/$id';
+  static const String _excercisesRoute = '${ApiEndpoints.baseUrl}/exercises';
+  static const String getAllLibrary = '$_excercisesRoute/all';
+  static String getLibraryDetails(String id) => '$_excercisesRoute/$id';
 }
 
 class _Recipies {
-  static const String _programRoute = '${ApiEndpoints.baseUrl}/recipes';
-  static const String getAllRecipies = '$_programRoute/all';
-  static String getRecipeDetails(String id) => '$_programRoute/$id';
+  static const String _recipesRoute = '${ApiEndpoints.baseUrl}/recipes';
+  static const String getAllRecipies = '$_recipesRoute/all';
+  static String getRecipeDetails(String id) => '$_recipesRoute/$id';
+}
+
+class _ExceriseData {
+  static const String _excersisesDataRoute = '${ApiEndpoints.baseUrl}/users/me/exercises';
+  static String getExcerisesData(String id) => '$_excersisesDataRoute/$id/settings';
+  static String putExcerisesData(String id) => '$_excersisesDataRoute/$id/settings';
 }
 
 // ---------------------- Verification -----------------------------

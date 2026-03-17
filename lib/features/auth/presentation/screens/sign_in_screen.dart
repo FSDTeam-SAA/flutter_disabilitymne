@@ -1,5 +1,6 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/features/auth/controller/signin_controller.dart';
+import 'package:disabilitymne/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:disabilitymne/features/onboarding/gender_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -155,9 +156,9 @@ class _SignInScreenState extends State<SignInScreen> {
                       }),
 
                       GestureDetector(
-                        // onTap: () => Get.to(() => ForgotPasswordScreen()),
+                        onTap: () => Get.to(() => ForgotPasswordScreen()),
 
-                        onTap: () => Get.to(GenderSelectionScreen()),
+                        // onTap: () => Get.to(GenderSelectionScreen()),
                         child: const Text(
                           'Forgot password?',
                           style: TextStyle(

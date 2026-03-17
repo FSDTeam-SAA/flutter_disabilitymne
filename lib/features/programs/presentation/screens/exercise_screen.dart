@@ -1,6 +1,8 @@
+import 'package:disabilitymne/features/programs/controller/exercise_controller.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
+import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -25,16 +27,25 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   ChewieController? _chewieController;
   bool _isVideoLoading = false;
 
-  List<Map<String, TextEditingController>> sets = [
-    {"kg": TextEditingController(text: "06"), "reps": TextEditingController()},
-    {"kg": TextEditingController(text: "06"), "reps": TextEditingController()},
-    {"kg": TextEditingController(text: "08"), "reps": TextEditingController()},
-  ];
+  late ExerciseController controller;
 
   @override
   void initState() {
     super.initState();
     currentExerciseIndex = widget.initialIndex;
+    final exercises = widget.program.exercises ?? [];
+    final currentExercise = exercises.isNotEmpty
+        ? exercises[currentExerciseIndex]
+        : null;
+
+    controller = Get.put(
+      ExerciseController(
+        programInterface: Get.find<ProgramInterface>(),
+        exerciseId: currentExercise?.id ?? '',
+      ),
+      tag: currentExercise?.id, // Use tag to handle multiple screens in stack
+    );
+
     _initializeExerciseVideo();
   }
 
@@ -103,21 +114,6 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     }
   }
 
-  void addSet() {
-    setState(() {
-      sets.add({
-        "kg": TextEditingController(),
-        "reps": TextEditingController(),
-      });
-    });
-  }
-
-  void removeSet(int index) {
-    setState(() {
-      sets.removeAt(index);
-    });
-  }
-
   void nextExercise() {
     final totalExercises = widget.program.exercises?.length ?? 0;
     debugPrint(
@@ -142,15 +138,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
           preventDuplicates: false,
         );
       }
-    }
- else {
+    } else {
       debugPrint("Exercise completed. Popping back to Program screen.");
-      // Done - Popup to program screen (Pop all exercise screens + ReadyStartScreen)
-      // int popCount = totalExercises + 1; // All exercises + ReadyStartScreen
-      // int currentPop = 0;
-      // Navigator.popUntil(context, (route) {
-      //   return currentPop++ == popCount;
-      // });
       Get.to(() => WorkoutCompleteScreen());
     }
   }
@@ -287,23 +276,142 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                     borderRadius: BorderRadius.circular(16),
                     color: const Color(0xFF263D57),
                   ),
-                  child: Column(
-                    children: [
-                      /// SAVE BUTTON
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 6,
+                  child: Obx(() {
+                    if (controller.isLoading.value) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      );
+                    }
+                    return Column(
+                      children: [
+                        /// SAVE BUTTON
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: GestureDetector(
+                            onTap: controller.isSaving.value
+                                ? null
+                                : controller.updateExerciseSettings,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4B7FA8),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(0xFF70AACD),
+                                ),
+                              ),
+                              child: controller.isSaving.value
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      "Save",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                            ),
                           ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF4B7FA8),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFF70AACD)),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        /// SET LIST
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: controller.setControllers.length,
+                            itemBuilder: (context, index) {
+                              final controllers =
+                                  controller.setControllers[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    /// SET TITLE
+                                    Text(
+                                      "Set ${index + 1}",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 20),
+
+                                    /// KG FIELD
+                                    SizedBox(
+                                      width: 90,
+                                      child: TextField(
+                                        controller: controllers["kg"],
+                                        keyboardType: TextInputType.number,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                        decoration: inputDecoration("kg"),
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 10),
+
+                                    /// REPS FIELD
+                                    SizedBox(
+                                      width: 90,
+                                      child: TextField(
+                                        controller: controllers["reps"],
+                                        keyboardType: TextInputType.number,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                        decoration: inputDecoration("reps"),
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 12),
+
+                                    /// DELETE BUTTON
+                                    GestureDetector(
+                                      onTap: () => controller.removeSet(index),
+                                      child: const Icon(
+                                        Icons.cancel_outlined,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        /// ADD SET BUTTON
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 51),
+                            side: const BorderSide(color: Color(0xFF70AACD)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: controller.addSet,
                           child: const Text(
-                            "Save",
+                            "Add New Set",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -311,101 +419,9 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                             ),
                           ),
                         ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      /// SET LIST
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: sets.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  /// SET TITLE
-                                  Text(
-                                    "Set ${index + 1}",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 20),
-
-                                  /// KG FIELD
-                                  SizedBox(
-                                    width: 100,
-                                    child: TextField(
-                                      controller: sets[index]["kg"],
-                                      keyboardType: TextInputType.number,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                      decoration: inputDecoration("kg"),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 10),
-
-                                  /// REPS FIELD
-                                  SizedBox(
-                                    width: 100,
-                                    child: TextField(
-                                      controller: sets[index]["reps"],
-                                      keyboardType: TextInputType.number,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                      decoration: inputDecoration("reps"),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 12),
-
-                                  /// DELETE BUTTON
-                                  GestureDetector(
-                                    onTap: () => removeSet(index),
-                                    child: const Icon(
-                                      Icons.cancel_outlined,
-                                      color: Colors.white,
-                                      size: 28,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      /// ADD SET BUTTON
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 51),
-                          side: const BorderSide(color: Color(0xFF70AACD)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        onPressed: addSet,
-                        child: const Text(
-                          "Add New Set",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    );
+                  }),
                 ),
               ),
 
@@ -426,7 +442,9 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                   child: Ink(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xff9BD3FF), Color(0xff5CA9D6)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFF8AC5E5), Color(0xFF5B89B2)],
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -439,7 +457,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),

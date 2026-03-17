@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 
 class CalculatorsScreen extends StatelessWidget {
   const CalculatorsScreen({super.key});
-
-  // Linear gradient: #70A9D2 → #4888B5 → #1A273D (image design)
   static const Color _screenBgTop = Color(0xFF70A9D2);
   static const Color _screenBgMid = Color(0xFF4888B5);
   static const Color _screenBgBottom = Color(0xFF1A273D);
-  // Card/entry background (image: #20324E)
   static const Color _cardBg = Color(0xFF20324E);
   static const Color _macroBg = Color(0xFF20324E);
   static const Color _chipBg = Color(0xFF20324E);
-  // Progress bar track, add button, nav (image)
   static const Color _progressBarBg = Color(0xFF384C6A);
   static const Color _addButtonBg = Color(0xFF2C4263);
   static const Color _subText = Color(0xFFA3A9B6);
