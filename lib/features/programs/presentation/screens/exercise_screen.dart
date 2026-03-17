@@ -134,10 +134,12 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
             program: widget.program,
             initialIndex: nextIdx,
           ),
+          preventDuplicates: false,
         );
       } else {
         Get.to(
           () => ExerciseScreen(program: widget.program, initialIndex: nextIdx),
+          preventDuplicates: false,
         );
       }
     }
