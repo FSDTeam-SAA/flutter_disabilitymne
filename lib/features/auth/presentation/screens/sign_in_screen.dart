@@ -182,7 +182,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             : () {
                                 controller.login(
                                   onSuccess: () {
-                                    Get.offAll(() => Scaffold());
+                                    // Navigation is handled by AppManager when auth stream emits Authenticated
                                   },
                                   needVerifyAccount: () {
                                     Get.snackbar(

@@ -1,3 +1,4 @@
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/features/auth/model/user_model.dart' show Measurement;
 import 'package:disabilitymne/features/profile/model/update_profile_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
@@ -141,7 +142,12 @@ class OnboardingController extends GetxController {
         Get.snackbar('Error', failure.uiMessage);
         return false;
       },
-      (_) => true,
+      (_) {
+        if (Get.isRegistered<OnboardingStateHolder>()) {
+          Get.find<OnboardingStateHolder>().setOnboardingCompleted();
+        }
+        return true;
+      },
     );
   }
 }

@@ -16,12 +16,16 @@ class ChatUserLite {
   });
 
   factory ChatUserLite.fromJson(Map<String, dynamic> json) {
+    String? profileImage;
+    final p = json['profileImage'];
+    if (p is String && p.isNotEmpty) profileImage = p;
+    if (profileImage == null && p is Map) profileImage = p['url']?.toString().trim();
     return ChatUserLite(
-      id: _str(json['id']),
+      id: _str(json['id'] ?? json['_id']),
       firstName: json['firstName'] as String?,
       email: json['email'] as String?,
       role: json['role'] as String?,
-      profileImage: json['profileImage'] as String?,
+      profileImage: profileImage,
     );
   }
 
@@ -87,22 +91,33 @@ class ChatMessage {
     List<ChatAttachment> list = [];
     if (att is List) {
       for (final e in att) {
-        if (e is Map<String, dynamic>) list.add(ChatAttachment.fromJson(e));
+        if (e is Map<String, dynamic>) {
+          list.add(ChatAttachment.fromJson(e));
+        } else if (e is Map) {
+          list.add(ChatAttachment.fromJson(Map<String, dynamic>.from(e)));
+        }
       }
     }
     return ChatMessage(
-      id: _str(json['id']),
-      threadId: json['threadId']?.toString(),
+      id: _str(json['id'] ?? json['_id']),
+      // ignore: prefer_null_aware_operators
+      threadId: json['threadId'] != null
+          ? json['threadId'].toString().trim()
+          : null,
       sender: json['sender'] is Map<String, dynamic>
           ? ChatUserLite.fromJson(json['sender'] as Map<String, dynamic>)
-          : null,
+          : json['sender'] is String
+              ? ChatUserLite(id: json['sender'])
+              : null,
       recipient: json['recipient'] is Map<String, dynamic>
           ? ChatUserLite.fromJson(json['recipient'] as Map<String, dynamic>)
-          : null,
+          : json['recipient'] is String
+              ? ChatUserLite(id: json['recipient'])
+              : null,
       message: (json['message'] as String?) ?? '',
       attachments: list,
       readAt: _parseDate(json['readAt']),
-      isMine: json['isMine'] == true,
+      isMine: json['isMine'] == true || json['isMine'] == 'true' || json['is_mine'] == true,
       createdAt: _parseDate(json['createdAt']),
       updatedAt: _parseDate(json['updatedAt']),
     );

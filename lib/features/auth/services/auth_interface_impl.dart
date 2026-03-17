@@ -1,6 +1,7 @@
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/api_handler/success.dart';
 import 'package:disabilitymne/core/auth/access_token_holder.dart';
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/model/forget_password_model.dart';
@@ -52,6 +53,9 @@ final class AuthInterfaceImpl extends AuthInterface {
         if (Get.isRegistered<AccessTokenHolder>() && loginData.accessToken != null) {
           Get.find<AccessTokenHolder>().setToken(loginData.accessToken);
         }
+        if (Get.isRegistered<OnboardingStateHolder>() && loginData.user != null) {
+          Get.find<OnboardingStateHolder>().saveFromLogin(loginData.user);
+        }
 
         return Success(message: loginResponse.message ?? "Login successful");
       },
@@ -102,6 +106,9 @@ final class AuthInterfaceImpl extends AuthInterface {
         await appPigeon.logOut();
         if (Get.isRegistered<AccessTokenHolder>()) {
           Get.find<AccessTokenHolder>().clear();
+        }
+        if (Get.isRegistered<OnboardingStateHolder>()) {
+          Get.find<OnboardingStateHolder>().clear();
         }
         return Success(message: extractSuccessMessage(response));
       },

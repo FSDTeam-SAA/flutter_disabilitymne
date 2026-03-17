@@ -1,3 +1,6 @@
+import 'package:disabilitymne/app/app_manager.dart';
+import 'package:app_pigeon/app_pigeon.dart';
+import 'package:disabilitymne/core/helpers/auth_role.dart';
 import 'package:disabilitymne/features/chat/controller/chat_thread_controller.dart';
 import 'package:disabilitymne/features/chat/model/chat_models.dart';
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
@@ -30,6 +33,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   late final ChatThreadController controller;
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  int _prevMessageCount = 0;
 
   static const Color _screenBg = Color(0xFF0B1A2A);
   static const Color _receivedDot = Color(0xFF696D73);
@@ -48,6 +52,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         socketService: Get.find<ChatSocketService>(),
       ),
     );
+    onStart();
+  }
+
+  Future<void> onStart() async {
+
+    // controller.connectSocketAndJoin();
+    await controller.loadMessages();
   }
 
   @override
@@ -122,6 +133,18 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                           fontSize: 12,
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      Obx(() {
+                        if (controller.socketConnected.value) return const SizedBox.shrink();
+                        return Text(
+                          'Connecting…',
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ],
@@ -151,21 +174,55 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   ),
                 );
               }
-              final list = controller.messages;
-              if (list.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'No messages yet. Say hello!',
-                    style: TextStyle(color: Colors.white54, fontSize: 16),
-                  ),
-                );
-              }
-              return ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                itemCount: list.length,
-                itemBuilder: (context, index) {
-                  return _MessageBubble(message: list[index]);
+              return StreamBuilder<List<ChatMessage>>(
+                stream: controller.messagesStream,
+                initialData: const [],
+                builder: (context, snapshot) {
+                  final list = snapshot.data ?? const <ChatMessage>[];
+                  if (list.length > _prevMessageCount) {
+                    _prevMessageCount = list.length;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_scrollController.hasClients) {
+                        _scrollController.animateTo(
+                          _scrollController.position.maxScrollExtent,
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOut,
+                        );
+                      }
+                    });
+                  } else {
+                    _prevMessageCount = list.length;
+                  }
+                  if (list.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No messages yet. Say hello!',
+                        style: TextStyle(color: Colors.white54, fontSize: 16),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      final message = list[index];
+                      bool isMine = message.isMine;
+
+                      // OVERRIDE isMine strictly using the sender ID vs Logged-In User ID.
+                      // This ensures that even if the socket sends the wrong 'isMine' flag,
+                      // the message will perfectly align right/left based on the actual sender.
+                      if (message.sender?.id != null) {
+                        final authStatus = Get.find<AppManager>().currentAuthStatus;
+                        if (authStatus is Authenticated) {
+                          isMine = (message.sender!.id == authStatus.auth.userId);
+                        }
+                      }
+                      
+                      return _MessageBubble(message: message, isMine: isMine);
+                    },
+                  );
                 },
               );
             }),
@@ -262,9 +319,10 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
+  const _MessageBubble({required this.message, required this.isMine});
 
   final ChatMessage message;
+  final bool isMine;
 
   static const Color _sentBubble = Color(0xFF4B7FA8);
   static const Color _receivedBubble = Color(0xFFFFFFFF);
@@ -274,7 +332,6 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMine = message.isMine;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
