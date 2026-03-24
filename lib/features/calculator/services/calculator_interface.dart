@@ -15,8 +15,4 @@ abstract base class CalculatorInterface extends BaseRepository {
     double? fatPerKg,
     double? caloriesPerKg,
   });
-  FutureRequest<Success<List<Map<String, dynamic>>>> getMealEntries({
-    required String date,
-    required String mealType,
-  });
 }

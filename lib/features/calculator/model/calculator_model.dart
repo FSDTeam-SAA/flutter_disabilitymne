@@ -395,6 +395,7 @@ class Meal {
   final Totals totals;
   final MacroPercentages macroPercentages;
   final Recommendation recommendation;
+  final List<DiaryEntry> entries;
 
   Meal({
     required this.mealType,
@@ -403,6 +404,7 @@ class Meal {
     required this.totals,
     required this.macroPercentages,
     required this.recommendation,
+    required this.entries,
   });
 
   factory Meal.fromJson(Map<String, dynamic> json) {
@@ -413,6 +415,9 @@ class Meal {
       totals: Totals.fromJson(json['totals']),
       macroPercentages: MacroPercentages.fromJson(json['macroPercentages']),
       recommendation: Recommendation.fromJson(json['recommendation']),
+      entries: (json['entries'] as List? ?? [])
+          .map((e) => DiaryEntry.fromJson(e))
+          .toList(),
     );
   }
 
@@ -424,7 +429,67 @@ class Meal {
       'totals': totals.toJson(),
       'macroPercentages': macroPercentages.toJson(),
       'recommendation': recommendation.toJson(),
+      'entries': entries.map((e) => e.toJson()).toList(),
     };
+  }
+}
+
+class DiaryEntry {
+  final String? id;
+  final String foodName;
+  final int? fdcId;
+  final String date;
+  final String mealType;
+  final double quantity;
+  final String servingLabel;
+  final double servingGrams;
+  final Map<String, dynamic>? nutrientsPer100g;
+
+  DiaryEntry({
+    this.id,
+    required this.foodName,
+    this.fdcId,
+    required this.date,
+    required this.mealType,
+    required this.quantity,
+    required this.servingLabel,
+    required this.servingGrams,
+    this.nutrientsPer100g,
+  });
+
+  factory DiaryEntry.fromJson(Map<String, dynamic> json) {
+    return DiaryEntry(
+      id: json['id']?.toString(),
+      foodName: json['foodName'] ?? 'Unknown',
+      fdcId: json['fdcId'],
+      date: json['date'] ?? '',
+      mealType: json['mealType'] ?? '',
+      quantity: (json['quantity'] ?? 0).toDouble(),
+      servingLabel: json['servingLabel'] ?? '',
+      servingGrams: (json['servingGrams'] ?? 0).toDouble(),
+      nutrientsPer100g: json['nutrientsPer100g'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'foodName': foodName,
+      'fdcId': fdcId,
+      'date': date,
+      'mealType': mealType,
+      'quantity': quantity,
+      'servingLabel': servingLabel,
+      'servingGrams': servingGrams,
+      'nutrientsPer100g': nutrientsPer100g,
+    };
+  }
+
+  double get calories {
+    if (nutrientsPer100g == null) return 0;
+    final kcal = nutrientsPer100g!['caloriesKcal'] ?? 0;
+    final ratio = (quantity * servingGrams) / 100;
+    return (kcal is num ? kcal.toDouble() : 0) * ratio;
   }
 }
 

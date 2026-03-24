@@ -321,8 +321,7 @@ class CalculatorScreen extends GetView<CalculatorController> {
                       onTap: () {
                         Get.to(
                           () => HistoryScreen(
-                            mealType: title,
-                            date: diaryDate,
+                            meal: meal,
                           ),
                         );
                       },

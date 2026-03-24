@@ -73,33 +73,4 @@ final class CalculatorInterfaceImpl extends CalculatorInterface {
       },
     );
   }
-
-  @override
-  FutureRequest<Success<List<Map<String, dynamic>>>> getMealEntries({
-    required String date,
-    required String mealType,
-  }) async {
-    return await asyncTryCatch(
-      tryFunc: () async {
-        final query = {
-          'date': date,
-          'mealType': mealType,
-        };
-        final uri = Uri.parse(ApiEndpoints.nutritionDiaryEntries)
-            .replace(queryParameters: query);
-        final response = await appPigeon.get(uri.toString());
-        debugPrint("GET MEAL ENTRIES RESPONSE => ${response.data}");
-
-        final data = extractBodyData(response);
-        final list = data is List
-            ? data.whereType<Map<String, dynamic>>().toList()
-            : <Map<String, dynamic>>[];
-
-        return Success(
-          data: list,
-          message: extractSuccessMessage(response),
-        );
-      },
-    );
-  }
 }

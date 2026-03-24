@@ -1,18 +1,16 @@
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/core/theme/text_style.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
-import 'package:disabilitymne/features/calculator/services/calculator_interface.dart';
+import 'package:disabilitymne/features/calculator/model/calculator_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HistoryScreen extends StatefulWidget {
-  final String mealType;
-  final DateTime date;
+  final Meal meal;
 
   const HistoryScreen({
     super.key,
-    required this.mealType,
-    required this.date,
+    required this.meal,
   });
 
   @override
@@ -24,40 +22,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
 
-  List<Map<String, dynamic>> _entries = [];
-  bool _loading = true;
-
   @override
   void initState() {
     super.initState();
-    _fetchEntries();
-  }
-
-  Future<void> _fetchEntries() async {
-    setState(() => _loading = true);
-    final mm = widget.date.month.toString().padLeft(2, '0');
-    final dd = widget.date.day.toString().padLeft(2, '0');
-    final dateStr = '${widget.date.year}-$mm-$dd';
-
-    final result = await Get.find<CalculatorInterface>().getMealEntries(
-      date: dateStr,
-      mealType: widget.mealType.toLowerCase(),
-    );
-
-    result.fold(
-      (failure) {
-        debugPrint("Error fetching entries: ${failure.uiMessage}");
-        if (mounted) setState(() => _loading = false);
-      },
-      (success) {
-        if (mounted) {
-          setState(() {
-            _entries = success.data as List<Map<String, dynamic>>;
-            _loading = false;
-          });
-        }
-      },
-    );
   }
 
   @override
@@ -105,7 +72,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             onPressed: () => Get.back(),
           ),
           Text(
-            widget.mealType,
+            widget.meal.mealLabel,
             style: AppText.xlSemiBold_20_600.copyWith(color: AppColors.white),
           ),
         ],
@@ -275,9 +242,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   /// HISTORY TAB
   Widget _buildHistoryList() {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.white));
-    }
+    final entries = widget.meal.entries;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -290,7 +255,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: _entries.isEmpty
+            child: entries.isEmpty
                 ? const Center(
                     child: Text(
                       "No entries found",
@@ -298,19 +263,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   )
                 : ListView.builder(
-                    itemCount: _entries.length,
+                    itemCount: entries.length,
                     itemBuilder: (context, index) {
-                      final entry = _entries[index];
-                      final foodName = entry['foodName'] ?? 'Unknown';
-                      // final kcal = entry['caloriesKcal'] ?? 0; // Not direct in raw entry maybe
-                      // We might need to extract from nutrientsPer100g if available
-                      final quantity = entry['quantity'] ?? 0;
-                      final label = entry['servingLabel'] ?? 'g';
-
+                      final entry = entries[index];
                       return _buildFoodCard(
-                        title: foodName,
-                        kcal: "", // Placeholder or parse from nutrients
-                        gram: "$quantity $label",
+                        title: entry.foodName,
+                        kcal: "${entry.calories.toStringAsFixed(0)} kcal",
+                        gram: "${entry.quantity.toStringAsFixed(0)} ${entry.servingLabel}",
                         trailing: Icons.close,
                       );
                     },
