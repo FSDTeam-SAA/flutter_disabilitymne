@@ -8,6 +8,7 @@ import 'package:disabilitymne/features/onboarding/controller/onboarding_controll
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:disabilitymne/features/programs/services/program_interface_impl.dart';
+import 'package:disabilitymne/features/calculator/controller/calculator_controller.dart';
 import 'package:get/get.dart';
 import '../../app/app_manager.dart';
 
@@ -30,6 +31,10 @@ void initServices() {
   Get.put(SignupController(Get.find<AuthInterface>()));
   Get.lazyPut<ProgramInterface>(
     () => ProgramInterfaceImpl(appPigeon: Get.find()),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => CalculatorController(calculatorInterface: Get.find()),
     fenix: true,
   );
 }

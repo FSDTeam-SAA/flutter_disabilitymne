@@ -1,11 +1,11 @@
-import 'package:app_pigeon/app_pigeon.dart';
-import 'package:disabilitymne/core/constants/api_endpoints.dart';
+import 'package:disabilitymne/features/calculator/controller/calculator_controller.dart';
+import 'package:disabilitymne/features/calculator/model/calculator_model.dart';
 import 'package:disabilitymne/features/calculator/presentation/screens/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
-class CalculatorScreen extends StatefulWidget {
+class CalculatorScreen extends GetView<CalculatorController> {
   const CalculatorScreen({
     super.key,
     this.goal,
@@ -22,53 +22,6 @@ class CalculatorScreen extends StatefulWidget {
   final double? carbsPerKg;
   final double? fatPerKg;
   final double? caloriesPerKg;
-
-  @override
-  State<CalculatorScreen> createState() => _CalculatorScreenState();
-}
-
-class _CalculatorScreenState extends State<CalculatorScreen> {
-  late DateTime _selectedDate;
-  late Future<Map<String, dynamic>> _diaryFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedDate = DateTime.now();
-    _diaryFuture = _fetchDiary();
-  }
-
-  Future<Map<String, dynamic>> _fetchDiary() async {
-    final query = <String, String>{
-      'date': _toApiDate(_selectedDate),
-      if (widget.goal != null && widget.goal!.isNotEmpty) 'goal': widget.goal!,
-      if (widget.weightKg != null) 'weightKg': widget.weightKg.toString(),
-      if (widget.proteinPerKg != null)
-        'proteinPerKg': widget.proteinPerKg.toString(),
-      if (widget.carbsPerKg != null) 'carbsPerKg': widget.carbsPerKg.toString(),
-      if (widget.fatPerKg != null) 'fatPerKg': widget.fatPerKg.toString(),
-      if (widget.caloriesPerKg != null)
-        'caloriesPerKg': widget.caloriesPerKg.toString(),
-    };
-
-    final uri = Uri.parse(
-      ApiEndpoints.nutritionDiary,
-    ).replace(queryParameters: query);
-    final response = await Get.find<AuthorizedPigeon>().get(uri.toString());
-    final body = response.data;
-    final data = body is Map<String, dynamic> ? body['data'] : null;
-    if (data is! Map<String, dynamic>) {
-      throw Exception('Invalid nutrition diary response');
-    }
-    return data;
-  }
-
-  void _changeDay(int delta) {
-    setState(() {
-      _selectedDate = _selectedDate.add(Duration(days: delta));
-      _diaryFuture = _fetchDiary();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,66 +43,70 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ),
         ),
         child: SafeArea(
-          child: FutureBuilder<Map<String, dynamic>>(
-            future: _diaryFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                );
-              }
+          child: Obx(() {
+            if (controller.isLoading.value &&
+                controller.nutritionData.value == null) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
+            }
 
-              if (snapshot.hasError || !snapshot.hasData) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Failed to load nutrition diary',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+            if (controller.errorMessage.isNotEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        controller.errorMessage.value,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
                         ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _diaryFuture = _fetchDiary();
-                            });
-                          },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => controller.retry(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
                   ),
-                );
-              }
+                ),
+              );
+            }
 
-              return _buildLoadedState(snapshot.data!);
-            },
-          ),
+            if (controller.nutritionData.value == null) {
+              return const Center(
+                child: Text(
+                  'No data available',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+
+            return _buildLoadedState(controller.nutritionData.value!);
+          }),
         ),
       ),
     );
   }
 
-  Widget _buildLoadedState(Map<String, dynamic> data) {
-    final diaryDate = _tryParseDate(data['date']) ?? _selectedDate;
-    final energy = _asMap(data['energy']);
-    final macroProgress = _asMap(data['macroProgress']);
-    final carbs = _asMap(macroProgress['carbs']);
-    final protein = _asMap(macroProgress['protein']);
-    final fat = _asMap(macroProgress['fat']);
-    final meals = _asMapList(data['meals']);
-
-    final eatenKcal = _toDouble(energy['eatenKcal']);
-    final remainingKcal = _toDouble(energy['remainingKcal']);
-    final burnedKcal = _toDouble(energy['burnedKcal']);
-    final goalKcal = _toDouble(energy['goalKcal']);
+  Widget _buildLoadedState(NutritionData data) {
+    final diaryDate = data.date;
+    final eatenKcal = data.energy.eatenKcal;
+    final remainingKcal = data.energy.remainingKcal;
+    final burnedKcal = data.energy.burnedKcal;
+    final goalKcal = data.energy.goalKcal;
 
     final gaugeMax = goalKcal <= 0 ? 1.0 : goalKcal;
     final gaugeValue = eatenKcal.clamp(0, gaugeMax).toDouble();
+
+    final carbs = data.macroProgress.carbs;
+    final protein = data.macroProgress.protein;
+    final fat = data.macroProgress.fat;
+    final meals = data.meals;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -160,7 +117,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               InkWell(
-                onTap: () => _changeDay(-1),
+                onTap: () => controller.changeDay(-1),
                 child: const Icon(
                   Icons.arrow_back_ios,
                   color: Colors.white,
@@ -169,7 +126,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today, color: Colors.white, size: 16),
+                  const Icon(
+                    Icons.calendar_today,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     _formatHeaderDate(diaryDate),
@@ -181,7 +142,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 ],
               ),
               InkWell(
-                onTap: () => _changeDay(1),
+                onTap: () => controller.changeDay(1),
                 child: const Icon(
                   Icons.arrow_forward_ios,
                   color: Colors.white,
@@ -198,7 +159,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildEnergyLabel('Eaten', eatenKcal),
+                      Column(
+                        children: [
+                          Text(
+                            "Eaten",
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${eatenKcal.toStringAsFixed(0)} kcal",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                       SizedBox(
                         height: 220,
                         width: 220,
@@ -263,7 +240,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           ],
                         ),
                       ),
-                      _buildEnergyLabel('Burned', burnedKcal),
+                      Column(
+                        children: [
+                          Text(
+                            "Burned",
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${burnedKcal.toStringAsFixed(0)} kcal",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -273,20 +266,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       MacroCard(
                         title: 'Carbs',
                         value:
-                            '${_toDouble(carbs['consumedG']).toStringAsFixed(0)} / ${_toDouble(carbs['targetG']).toStringAsFixed(0)}g',
-                        progress: _progress01(carbs['progressPercent']),
+                            '${carbs.consumedG} / ${carbs.targetG}g',
+                        progress: (carbs.progressPercent / 100).clamp(0, 1),
                       ),
                       MacroCard(
                         title: 'Protein',
                         value:
-                            '${_toDouble(protein['consumedG']).toStringAsFixed(0)} / ${_toDouble(protein['targetG']).toStringAsFixed(0)}g',
-                        progress: _progress01(protein['progressPercent']),
+                            '${protein.consumedG.toStringAsFixed(0)} / ${protein.targetG.toStringAsFixed(0)}g',
+                        progress: (protein.progressPercent / 100).clamp(0, 1),
                       ),
                       MacroCard(
                         title: 'Fat',
                         value:
-                            '${_toDouble(fat['consumedG']).toStringAsFixed(0)} / ${_toDouble(fat['targetG']).toStringAsFixed(0)}g',
-                        progress: _progress01(fat['progressPercent']),
+                            '${fat.consumedG.toStringAsFixed(0)} / ${fat.targetG.toStringAsFixed(0)}g',
+                        progress: (fat.progressPercent / 100).clamp(0, 1),
                       ),
                     ],
                   ),
@@ -304,19 +297,22 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   ),
                   const SizedBox(height: 10),
                   ...meals.map((meal) {
-                    final recommendation = _asMap(meal['recommendation']);
-                    final recommendedCalories = _asMap(
-                      recommendation['recommendedCalories'],
-                    );
-                    final mealType = (meal['mealType'] as String?) ?? 'breakfast';
-                    final title = (meal['mealLabel'] as String?) ?? mealType;
-                    final eaten = _toDouble(_asMap(meal['totals'])['caloriesKcal'])
+                    final mealType = meal.mealType;
+                    final title = meal.mealLabel.isEmpty
+                        ? mealType
+                        : meal.mealLabel;
+                    final eaten = meal.totals.caloriesKcal.toStringAsFixed(0);
+                    final minKcal = meal
+                        .recommendation
+                        .recommendedCalories
+                        .minKcal
                         .toStringAsFixed(0);
-                    final minKcal = _toDouble(recommendedCalories['minKcal'])
+                    final maxKcal = meal
+                        .recommendation
+                        .recommendedCalories
+                        .maxKcal
                         .toStringAsFixed(0);
-                    final maxKcal = _toDouble(recommendedCalories['maxKcal'])
-                        .toStringAsFixed(0);
-                    final entries = _toInt(meal['totalEntries']);
+                    final entries = meal.totalEntries;
                     return MealTile(
                       title: title,
                       subtitle:
@@ -341,35 +337,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
-  Widget _buildEnergyLabel(String title, double value) {
-    return Column(
-      children: [
-        Text(title, style: const TextStyle(color: Colors.white70)),
-        const SizedBox(height: 4),
-        Text(
-          value.toStringAsFixed(0),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _toApiDate(DateTime date) {
-    final mm = date.month.toString().padLeft(2, '0');
-    final dd = date.day.toString().padLeft(2, '0');
-    return '${date.year}-$mm-$dd';
-  }
-
-  DateTime? _tryParseDate(dynamic value) {
-    if (value is String && value.isNotEmpty) {
-      return DateTime.tryParse(value);
-    }
-    return null;
-  }
 
   String _formatHeaderDate(DateTime date) {
     final now = DateTime.now();
@@ -402,35 +369,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   String _weekdayShort(int weekday) {
     const d = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     return d[(weekday.clamp(1, 7)) - 1];
-  }
-
-  Map<String, dynamic> _asMap(dynamic value) {
-    if (value is Map<String, dynamic>) return value;
-    return {};
-  }
-
-  List<Map<String, dynamic>> _asMapList(dynamic value) {
-    if (value is List) {
-      return value.whereType<Map<String, dynamic>>().toList();
-    }
-    return const [];
-  }
-
-  double _toDouble(dynamic value) {
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0;
-    return 0;
-  }
-
-  int _toInt(dynamic value) {
-    if (value is num) return value.toInt();
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
-  }
-
-  double _progress01(dynamic percent) {
-    final p = _toDouble(percent);
-    return (p / 100).clamp(0, 1);
   }
 }
 
@@ -468,7 +406,7 @@ class MacroCard extends StatelessWidget {
           LinearProgressIndicator(
             value: progress,
             minHeight: 8,
-            
+
             backgroundColor: Color(0xFFE5EEFF),
             valueColor: const AlwaysStoppedAnimation(Colors.lightBlue),
           ),

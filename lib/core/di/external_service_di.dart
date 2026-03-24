@@ -9,6 +9,8 @@ import 'package:disabilitymne/features/daily_tracker/repository/daily_tracker_re
 import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_repository.dart';
 import 'package:disabilitymne/features/progress/repository/progress_repository.dart';
+import 'package:disabilitymne/features/calculator/services/calculator_interface.dart';
+import 'package:disabilitymne/features/calculator/services/calculator_interface_impl.dart';
 import 'package:get/get.dart';
 import '../constants/api_endpoints.dart';
 
@@ -50,6 +52,11 @@ void externalServiceDI() {
   Get.lazyPut<ChatSocketService>(
     () => ChatSocketService(socketUrl: ApiEndpoints.socketUrl),
     fenix: true,
+  );
+
+  // Calculator
+  Get.lazyPut<CalculatorInterface>(
+    () => CalculatorInterfaceImpl(appPigeon: Get.find<AuthorizedPigeon>()),
   );
 }
 
