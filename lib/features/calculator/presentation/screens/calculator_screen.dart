@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/calculator/controller/calculator_controller.dart';
 import 'package:disabilitymne/features/calculator/model/calculator_model.dart';
+import 'package:disabilitymne/features/calculator/presentation/screens/history_screen.dart';
 import 'package:disabilitymne/features/calculator/presentation/screens/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -317,7 +318,14 @@ class CalculatorScreen extends GetView<CalculatorController> {
                       title: title,
                       subtitle:
                           'Recommended: $minKcal - $maxKcal kcal  |  Eaten: $eaten kcal  |  Entries: $entries',
-                      onTap: () {},
+                      onTap: () {
+                        Get.to(
+                          () => HistoryScreen(
+                            mealType: title,
+                            date: diaryDate,
+                          ),
+                        );
+                      },
                       onAddTap: () {
                         Get.to(
                           () => BreakfastSearchScreen(

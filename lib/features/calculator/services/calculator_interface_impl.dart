@@ -58,7 +58,7 @@ final class CalculatorInterfaceImpl extends CalculatorInterface {
     return await asyncTryCatch(
       tryFunc: () async {
         // Calculate might be a POST if it's sending a whole model to be processed
-        final response = await appPigeon.post(
+        final response = await appPigeon.get(
           ApiEndpoints.nutritionDiary,
           data: params.toJson(),
         );
@@ -67,7 +67,38 @@ final class CalculatorInterfaceImpl extends CalculatorInterface {
         if (data == null) {
           throw Exception('No data found in calculate response');
         }
-        return Success(data: NutritionData.fromJson(data), message: extractSuccessMessage(response));
+        return Success(
+            data: NutritionData.fromJson(data),
+            message: extractSuccessMessage(response));
+      },
+    );
+  }
+
+  @override
+  FutureRequest<Success<List<Map<String, dynamic>>>> getMealEntries({
+    required String date,
+    required String mealType,
+  }) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final query = {
+          'date': date,
+          'mealType': mealType,
+        };
+        final uri = Uri.parse(ApiEndpoints.nutritionDiaryEntries)
+            .replace(queryParameters: query);
+        final response = await appPigeon.get(uri.toString());
+        debugPrint("GET MEAL ENTRIES RESPONSE => ${response.data}");
+
+        final data = extractBodyData(response);
+        final list = data is List
+            ? data.whereType<Map<String, dynamic>>().toList()
+            : <Map<String, dynamic>>[];
+
+        return Success(
+          data: list,
+          message: extractSuccessMessage(response),
+        );
       },
     );
   }
