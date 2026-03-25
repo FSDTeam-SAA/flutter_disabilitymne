@@ -577,3 +577,157 @@ class CalorieRange {
     };
   }
 }
+
+/// Single logged item as returned by `/nutrition/history`, `/nutrition/favorites`, etc.
+class NutritionEntrySummary {
+  final String id;
+  final String entryDate;
+  final String mealType;
+  final String mealLabel;
+  final String foodName;
+  final String brandName;
+  final String source;
+  final int? fdcId;
+  final double quantity;
+  final String servingLabel;
+  final double totalGrams;
+  final double caloriesKcal;
+  final double proteinG;
+  final double carbsG;
+  final double fatG;
+  final double fiberG;
+  final double sugarG;
+  final String imageUrl;
+  final String notes;
+  final bool isFavorite;
+
+  NutritionEntrySummary({
+    required this.id,
+    required this.entryDate,
+    required this.mealType,
+    required this.mealLabel,
+    required this.foodName,
+    required this.brandName,
+    required this.source,
+    this.fdcId,
+    required this.quantity,
+    required this.servingLabel,
+    required this.totalGrams,
+    required this.caloriesKcal,
+    required this.proteinG,
+    required this.carbsG,
+    required this.fatG,
+    required this.fiberG,
+    required this.sugarG,
+    required this.imageUrl,
+    required this.notes,
+    required this.isFavorite,
+  });
+
+  factory NutritionEntrySummary.fromJson(Map<String, dynamic> json) {
+    return NutritionEntrySummary(
+      id: json['id']?.toString() ?? '',
+      entryDate: json['entryDate']?.toString() ?? '',
+      mealType: json['mealType']?.toString() ?? '',
+      mealLabel: json['mealLabel']?.toString() ?? '',
+      foodName: json['foodName']?.toString() ?? 'Unknown',
+      brandName: json['brandName']?.toString() ?? '',
+      source: json['source']?.toString() ?? '',
+      fdcId: json['fdcId'] is int
+          ? json['fdcId'] as int
+          : int.tryParse('${json['fdcId'] ?? ''}'),
+      quantity: (json['quantity'] ?? 0).toDouble(),
+      servingLabel: json['servingLabel']?.toString() ?? '',
+      totalGrams: (json['totalGrams'] ?? 0).toDouble(),
+      caloriesKcal: (json['caloriesKcal'] ?? 0).toDouble(),
+      proteinG: (json['proteinG'] ?? 0).toDouble(),
+      carbsG: (json['carbsG'] ?? 0).toDouble(),
+      fatG: (json['fatG'] ?? 0).toDouble(),
+      fiberG: (json['fiberG'] ?? 0).toDouble(),
+      sugarG: (json['sugarG'] ?? 0).toDouble(),
+      imageUrl: json['imageUrl']?.toString() ?? '',
+      notes: json['notes']?.toString() ?? '',
+      isFavorite: json['isFavorite'] == true,
+    );
+  }
+
+  String get displayTitle {
+    if (brandName.isEmpty) return foodName;
+    return '$foodName · $brandName';
+  }
+
+  String get quantityLine {
+    final g = totalGrams > 0 ? '${totalGrams.toStringAsFixed(0)} g total' : '';
+    if (g.isEmpty) {
+      return '${quantity.toStringAsFixed(quantity == quantity.roundToDouble() ? 0 : 1)} $servingLabel';
+    }
+    return '${quantity.toStringAsFixed(quantity == quantity.roundToDouble() ? 0 : 1)} × $servingLabel · $g';
+  }
+}
+
+class NutritionHistoryPage {
+  final int page;
+  final int limit;
+  final int total;
+  final int totalPages;
+  final List<NutritionEntrySummary> entries;
+
+  NutritionHistoryPage({
+    required this.page,
+    required this.limit,
+    required this.total,
+    required this.totalPages,
+    required this.entries,
+  });
+
+  factory NutritionHistoryPage.fromJson(Map<String, dynamic> json) {
+    int asInt(dynamic v, [int fallback = 0]) {
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      return int.tryParse('$v') ?? fallback;
+    }
+
+    final raw = json['entries'];
+    final list = raw is List
+        ? raw
+            .map((e) => NutritionEntrySummary.fromJson(
+                Map<String, dynamic>.from(e as Map)))
+            .toList()
+        : <NutritionEntrySummary>[];
+    return NutritionHistoryPage(
+      page: asInt(json['page'], 1),
+      limit: asInt(json['limit'], 20),
+      total: asInt(json['total'], 0),
+      totalPages: asInt(json['totalPages'], 0),
+      entries: list,
+    );
+  }
+}
+
+class NutritionFavoriteSections {
+  final List<NutritionEntrySummary> foods;
+  final List<NutritionEntrySummary> meals;
+  final List<NutritionEntrySummary> recipes;
+
+  NutritionFavoriteSections({
+    required this.foods,
+    required this.meals,
+    required this.recipes,
+  });
+
+  factory NutritionFavoriteSections.fromJson(Map<String, dynamic> json) {
+    List<NutritionEntrySummary> parseList(dynamic v) {
+      if (v is! List) return [];
+      return v
+          .map((e) => NutritionEntrySummary.fromJson(
+              Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+
+    return NutritionFavoriteSections(
+      foods: parseList(json['foods']),
+      meals: parseList(json['meals']),
+      recipes: parseList(json['recipes']),
+    );
+  }
+}

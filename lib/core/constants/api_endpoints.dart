@@ -98,6 +98,9 @@ base class ApiEndpoints {
   //------------------------- Nutrition --------------------------
   /// ### get
   static const String nutritionDiary = _Nutrition.diary;
+  static const String nutritionHistory = _Nutrition.history;
+  static const String nutritionFavorites = _Nutrition.favorites;
+  static const String nutritionFavoriteSections = _Nutrition.favoriteSections;
   static const String nutritionFoodSuggestions = _Nutrition.foodSuggestions;
   static const String nutritionFoodSearch = _Nutrition.foodSearch;
   static String nutritionFoodDetails(dynamic fdcId) =>
@@ -253,6 +256,9 @@ class _DailyTracker {
 class _Nutrition {
   static const String _route = '${ApiEndpoints.baseUrl}/nutrition';
   static const String diary = '$_route/diary';
+  static const String history = '$_route/history';
+  static const String favorites = '$_route/favorites';
+  static const String favoriteSections = '$_route/favorites/sections';
   static const String foodSuggestions = '$_route/foods/suggestions';
   static const String foodSearch = '$_route/foods/search';
   static String foodDetails(dynamic fdcId) => '$_route/foods/$fdcId';

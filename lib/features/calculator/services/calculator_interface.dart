@@ -15,4 +15,15 @@ abstract base class CalculatorInterface extends BaseRepository {
     double? fatPerKg,
     double? caloriesPerKg,
   });
+
+  FutureRequest<Success<NutritionHistoryPage>> getNutritionHistory({
+    int page = 1,
+    int limit = 30,
+    String? mealType,
+    String? query,
+  });
+
+  FutureRequest<Success<NutritionFavoriteSections>> getNutritionFavoriteSections({
+    int limit = 50,
+  });
 }

@@ -176,7 +176,7 @@ class ChatSocketService {
         msgMap = Map<String, dynamic>.from(msgMap)..['threadId'] = payloadThreadId;
       }
       try {
-        debugPrint("New Message Data : ${msgMap}");
+        debugPrint("New Message Data : $msgMap");
         _newMessageController.add(ChatMessage.fromJson(msgMap));
       } catch (e, st) {
         debugPrint('parse chat:message:new error $e $st');
