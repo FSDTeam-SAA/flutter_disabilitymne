@@ -55,4 +55,34 @@ class RecipeController extends GetxController {
 
     isDetailLoading.value = false;
   }
+
+  Future<void> toggleFavorite({
+    required String recipeId,
+    required bool isFavorite,
+  }) async {
+    final result = await recipesInterface.toggleFavorite(
+      id: recipeId,
+      isFavorite: isFavorite,
+    );
+
+    result.fold(
+      (failure) {
+        Get.snackbar('Error', failure.uiMessage);
+      },
+      (_) {
+        final currentDetail = recipeDetail.value;
+        if (currentDetail != null && currentDetail.id == recipeId) {
+          recipeDetail.value = currentDetail.copyWith(isFavorite: isFavorite);
+        }
+
+        final index = recipeList.indexWhere((recipe) => recipe.id == recipeId);
+        if (index != -1) {
+          recipeList[index] = recipeList[index].copyWith(
+            isFavorite: isFavorite,
+          );
+          recipeList.refresh();
+        }
+      },
+    );
+  }
 }

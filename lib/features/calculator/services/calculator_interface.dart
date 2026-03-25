@@ -4,7 +4,6 @@ import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/calculator/model/calculator_model.dart';
 
 abstract base class CalculatorInterface extends BaseRepository {
-
   FutureRequest<Success<NutritionData>> calculate(NutritionData params);
   FutureRequest<Success<NutritionData>> getNutritionDiary({
     required String date,
@@ -23,7 +22,30 @@ abstract base class CalculatorInterface extends BaseRepository {
     String? query,
   });
 
-  FutureRequest<Success<NutritionFavoriteSections>> getNutritionFavoriteSections({
-    int limit = 50,
+  FutureRequest<Success<NutritionFavoriteSections>>
+  getNutritionFavoriteSections({int limit = 50});
+
+  FutureRequest<Success<NutritionEntrySummary>> updateNutritionDiaryEntry({
+    required String entryId,
+    required Map<String, dynamic> payload,
+  });
+
+  FutureRequest<Success<NoData>> deleteNutritionDiaryEntry({
+    required String entryId,
+  });
+
+  FutureRequest<Success<NutritionEntrySummary>> saveNutritionFavoriteMeal({
+    required String date,
+    required String mealType,
+    String? title,
+  });
+
+  FutureRequest<Success<NoData>> deleteNutritionFavoriteMeal({
+    required String mealFavoriteId,
+  });
+
+  FutureRequest<Success<NoData>> toggleRecipeFavorite({
+    required String recipeId,
+    required bool isFavorite,
   });
 }

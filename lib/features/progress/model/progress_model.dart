@@ -28,12 +28,16 @@ class ProgressStats {
   final int totalWorkouts;
   final double caloriesPercent;
   final int activityPeriodWeeks;
+  final double weeklyCaloriesBurnedKcal;
+  final double weeklyCalorieTargetKcal;
 
   ProgressStats({
     required this.streakDays,
     required this.totalWorkouts,
     required this.caloriesPercent,
     required this.activityPeriodWeeks,
+    required this.weeklyCaloriesBurnedKcal,
+    required this.weeklyCalorieTargetKcal,
   });
 
   factory ProgressStats.fromJson(Map<String, dynamic> json) {
@@ -42,6 +46,10 @@ class ProgressStats {
       totalWorkouts: (json['totalWorkouts'] as num?)?.toInt() ?? 0,
       caloriesPercent: (json['caloriesPercent'] as num?)?.toDouble() ?? 0,
       activityPeriodWeeks: (json['activityPeriodWeeks'] as num?)?.toInt() ?? 0,
+      weeklyCaloriesBurnedKcal:
+          (json['weeklyCaloriesBurnedKcal'] as num?)?.toDouble() ?? 0,
+      weeklyCalorieTargetKcal:
+          (json['weeklyCalorieTargetKcal'] as num?)?.toDouble() ?? 0,
     );
   }
 }

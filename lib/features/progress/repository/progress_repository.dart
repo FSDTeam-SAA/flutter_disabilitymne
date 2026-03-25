@@ -14,7 +14,12 @@ base class ProgressRepository extends BaseRepository {
   FutureRequest<ProgressData> fetchProgress() async {
     return asyncTryCatch(
       tryFunc: () async {
-        final response = await _pigeon.get(ApiEndpoints.getProgress);
+        final uri = Uri.parse(ApiEndpoints.getProgress).replace(
+          queryParameters: {
+            'tzOffsetMinutes': DateTime.now().timeZoneOffset.inMinutes.toString(),
+          },
+        );
+        final response = await _pigeon.get(uri.toString());
         final data = extractBodyData(response) as Map<String, dynamic>?;
         if (data == null) {
           throw Exception('Invalid progress response');

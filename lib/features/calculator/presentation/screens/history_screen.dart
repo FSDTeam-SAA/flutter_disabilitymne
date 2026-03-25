@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/core/theme/text_style.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/calculator/controller/calculator_controller.dart';
 import 'package:disabilitymne/features/calculator/model/calculator_model.dart';
 import 'package:disabilitymne/features/calculator/services/calculator_interface.dart';
 import 'package:flutter/material.dart';
@@ -12,22 +13,20 @@ class HistoryScreen extends StatefulWidget {
   final Meal meal;
   final DateTime diaryDate;
 
-  const HistoryScreen({
-    super.key,
-    required this.meal,
-    required this.diaryDate,
-  });
+  const HistoryScreen({super.key, required this.meal, required this.diaryDate});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  int _selectedTabIndex = 0;
   final TextEditingController _searchController = TextEditingController();
-  Timer? _searchDebounce;
+  final Set<String> _busyEntryIds = <String>{};
 
+  Timer? _searchDebounce;
   late final CalculatorInterface _api;
+
+  int _selectedTabIndex = 0;
 
   bool _historyLoading = false;
   String? _historyError;
@@ -43,6 +42,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool _trackedLoading = false;
   String? _trackedError;
   List<DiaryEntry> _trackedEntries = [];
+  bool _savingCurrentMeal = false;
 
   @override
   void initState() {
@@ -58,10 +58,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.dispose();
   }
 
-  String _apiDate(DateTime d) {
-    final mm = d.month.toString().padLeft(2, '0');
-    final dd = d.day.toString().padLeft(2, '0');
-    return '${d.year}-$mm-$dd';
+  String _apiDate(DateTime date) {
+    final mm = date.month.toString().padLeft(2, '0');
+    final dd = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$mm-$dd';
   }
 
   Future<void> _loadHistory({bool append = false}) async {
@@ -74,15 +74,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
       setState(() => _historyLoadingMore = true);
     }
 
-    final page = append ? _historyPage + 1 : 1;
-    final q = _searchController.text.trim();
-    final queryParam = q.isNotEmpty ? q : null;
-
     final result = await _api.getNutritionHistory(
-      page: page,
+      page: append ? _historyPage + 1 : 1,
       limit: 30,
       mealType: widget.meal.mealType,
-      query: queryParam,
+      query: _searchController.text.trim().isEmpty
+          ? null
+          : _searchController.text.trim(),
     );
 
     if (!mounted) return;
@@ -97,21 +95,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
       },
       (success) {
         final pageData = success.data;
-        if (pageData == null) {
-          setState(() {
+        setState(() {
+          if (pageData == null) {
             _historyLoading = false;
             _historyLoadingMore = false;
-          });
-          return;
-        }
-        setState(() {
-          if (append) {
-            _historyEntries = [..._historyEntries, ...pageData.entries];
-            _historyPage = pageData.page;
-          } else {
-            _historyEntries = pageData.entries;
-            _historyPage = pageData.page;
+            return;
           }
+
+          _historyEntries = append
+              ? [..._historyEntries, ...pageData.entries]
+              : pageData.entries;
+          _historyPage = pageData.page;
           _historyTotalPages = pageData.totalPages;
           _historyLoading = false;
           _historyLoadingMore = false;
@@ -128,7 +122,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
 
     final result = await _api.getNutritionFavoriteSections(limit: 50);
-
     if (!mounted) return;
 
     result.fold(
@@ -139,9 +132,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
         });
       },
       (success) {
-        final data = success.data;
         setState(() {
-          _favoriteSections = data ??
+          _favoriteSections =
+              success.data ??
               NutritionFavoriteSections(foods: [], meals: [], recipes: []);
           _favoriteLoading = false;
           _favoriteError = null;
@@ -156,8 +149,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _trackedError = null;
     });
 
-    final result = await _api.getNutritionDiary(date: _apiDate(widget.diaryDate));
-
+    final result = await _api.getNutritionDiary(
+      date: _apiDate(widget.diaryDate),
+    );
     if (!mounted) return;
 
     result.fold(
@@ -168,16 +162,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
         });
       },
       (success) {
-        final diary = success.data;
         Meal? mealForType;
+        final diary = success.data;
         if (diary != null) {
-          for (final m in diary.meals) {
-            if (m.mealType == widget.meal.mealType) {
-              mealForType = m;
+          for (final meal in diary.meals) {
+            if (meal.mealType == widget.meal.mealType) {
+              mealForType = meal;
               break;
             }
           }
         }
+
         setState(() {
           _trackedEntries = mealForType?.entries ?? [];
           _trackedLoading = false;
@@ -189,11 +184,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   void _onTabSelected(int index) {
     setState(() => _selectedTabIndex = index);
+
     if (index == 0) {
       _loadHistory();
-    } else if (index == 1 && _favoriteSections == null && !_favoriteLoading) {
+    } else if (index == 1) {
       _loadFavorites();
-    } else if (index == 2) {
+    } else {
       _loadTracked();
     }
   }
@@ -206,24 +202,223 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
+  void _setEntryBusy(String entryId, bool isBusy) {
+    if (!mounted || entryId.isEmpty) return;
+    setState(() {
+      if (isBusy) {
+        _busyEntryIds.add(entryId);
+      } else {
+        _busyEntryIds.remove(entryId);
+      }
+    });
+  }
+
+  void _removeEntryLocally(String entryId) {
+    if (!mounted || entryId.isEmpty) return;
+
+    setState(() {
+      _historyEntries = _historyEntries.where((e) => e.id != entryId).toList();
+      _trackedEntries = _trackedEntries.where((e) => e.id != entryId).toList();
+
+      if (_favoriteSections != null) {
+        _favoriteSections = NutritionFavoriteSections(
+          foods: _favoriteSections!.foods
+              .where((e) => e.id != entryId)
+              .toList(),
+          meals: _favoriteSections!.meals
+              .where((e) => e.id != entryId)
+              .toList(),
+          recipes: _favoriteSections!.recipes
+              .where((e) => e.id != entryId)
+              .toList(),
+        );
+      }
+    });
+  }
+
+  void _removeFavoriteLocally(String entryId) {
+    if (!mounted || entryId.isEmpty || _favoriteSections == null) return;
+
+    setState(() {
+      _favoriteSections = NutritionFavoriteSections(
+        foods: _favoriteSections!.foods.where((e) => e.id != entryId).toList(),
+        meals: _favoriteSections!.meals.where((e) => e.id != entryId).toList(),
+        recipes: _favoriteSections!.recipes
+            .where((e) => e.id != entryId)
+            .toList(),
+      );
+    });
+  }
+
+  void _showMessage(String title, String message) {
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFF1B2940),
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(12),
+    );
+  }
+
+  void _refreshCalculatorDiary() {
+    if (!Get.isRegistered<CalculatorController>()) return;
+    Get.find<CalculatorController>().fetchDiary();
+  }
+
+  Future<bool> _confirmDelete(String foodName) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1B2940),
+        title: const Text(
+          'Delete entry?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Remove $foodName from your log?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
+  Future<void> _deleteEntry({
+    required String entryId,
+    required String foodName,
+  }) async {
+    if (entryId.isEmpty) {
+      _showMessage('Error', 'This entry cannot be deleted right now.');
+      return;
+    }
+
+    final confirmed = await _confirmDelete(foodName);
+    if (!confirmed) return;
+
+    _setEntryBusy(entryId, true);
+    final result = await _api.deleteNutritionDiaryEntry(entryId: entryId);
+    if (!mounted) return;
+
+    result.fold((failure) => _showMessage('Error', failure.uiMessage), (_) {
+      _removeEntryLocally(entryId);
+      _refreshCalculatorDiary();
+      _showMessage('Deleted', '$foodName was removed.');
+    });
+
+    _setEntryBusy(entryId, false);
+  }
+
+  Future<void> _removeFavoriteEntry(NutritionEntrySummary entry) async {
+    if (entry.id.isEmpty) {
+      _showMessage('Error', 'This favorite cannot be updated right now.');
+      return;
+    }
+
+    _setEntryBusy(entry.id, true);
+    if (entry.favoriteKind == 'meal') {
+      final result = await _api.deleteNutritionFavoriteMeal(
+        mealFavoriteId: entry.id,
+      );
+      if (!mounted) return;
+
+      result.fold((failure) => _showMessage('Error', failure.uiMessage), (_) {
+        _removeFavoriteLocally(entry.id);
+        _showMessage('Updated', '${entry.foodName} removed from favorites.');
+      });
+    } else if (entry.favoriteKind == 'recipe') {
+      final result = await _api.toggleRecipeFavorite(
+        recipeId: entry.id,
+        isFavorite: false,
+      );
+      if (!mounted) return;
+
+      result.fold((failure) => _showMessage('Error', failure.uiMessage), (_) {
+        _removeFavoriteLocally(entry.id);
+        _showMessage('Updated', '${entry.foodName} removed from favorites.');
+      });
+    } else {
+      final result = await _api.updateNutritionDiaryEntry(
+        entryId: entry.id,
+        payload: const {'isFavorite': false},
+      );
+      if (!mounted) return;
+
+      result.fold((failure) => _showMessage('Error', failure.uiMessage), (_) {
+        _removeFavoriteLocally(entry.id);
+        _showMessage('Updated', '${entry.foodName} removed from favorites.');
+      });
+    }
+
+    _setEntryBusy(entry.id, false);
+  }
+
+  Future<void> _saveCurrentMealAsFavorite() async {
+    if (_trackedEntries.isEmpty || _savingCurrentMeal) {
+      return;
+    }
+
+    setState(() {
+      _savingCurrentMeal = true;
+    });
+
+    final result = await _api.saveNutritionFavoriteMeal(
+      date: _apiDate(widget.diaryDate),
+      mealType: widget.meal.mealType,
+    );
+    if (!mounted) return;
+
+    result.fold(
+      (failure) {
+        _showMessage('Error', failure.uiMessage);
+      },
+      (success) async {
+        _showMessage(
+          'Saved',
+          success.message.isNotEmpty
+              ? success.message
+              : '${widget.meal.mealLabel} saved to favorites.',
+        );
+        await _loadFavorites();
+      },
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _savingCurrentMeal = false;
+    });
+  }
+
   List<NutritionEntrySummary> _filterSummaries(
     List<NutritionEntrySummary> list,
-    String q,
+    String query,
   ) {
-    if (q.isEmpty) return list;
-    final lower = q.toLowerCase();
-    return list.where((e) {
-      return e.foodName.toLowerCase().contains(lower) ||
-          e.brandName.toLowerCase().contains(lower) ||
-          e.mealLabel.toLowerCase().contains(lower);
+    if (query.isEmpty) return list;
+    final lower = query.toLowerCase();
+
+    return list.where((entry) {
+      return entry.foodName.toLowerCase().contains(lower) ||
+          entry.brandName.toLowerCase().contains(lower) ||
+          entry.mealLabel.toLowerCase().contains(lower);
     }).toList();
   }
 
-  List<DiaryEntry> _filterDiary(List<DiaryEntry> list, String q) {
-    if (q.isEmpty) return list;
-    final lower = q.toLowerCase();
+  List<DiaryEntry> _filterDiary(List<DiaryEntry> list, String query) {
+    if (query.isEmpty) return list;
+    final lower = query.toLowerCase();
     return list
-        .where((e) => e.foodName.toLowerCase().contains(lower))
+        .where((entry) => entry.foodName.toLowerCase().contains(lower))
         .toList();
   }
 
@@ -283,13 +478,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         style: const TextStyle(color: AppColors.white),
         decoration: InputDecoration(
           hintText: 'Food or meal',
-          hintStyle: AppText.smRegular_14_400.copyWith(
-            color: AppColors.white,
-          ),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: AppColors.white,
-          ),
+          hintStyle: AppText.smRegular_14_400.copyWith(color: AppColors.white),
+          prefixIcon: const Icon(Icons.search, color: AppColors.white),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, color: AppColors.white),
@@ -308,23 +498,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
           fillColor: const Color(0xFF465061),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF7E8592),
-            ),
+            borderSide: const BorderSide(color: Color(0xFF7E8592)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF7E8592),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF7E8592), width: 1),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF7E8592),
-              width: 1.2,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF7E8592), width: 1.2),
           ),
         ),
       ),
@@ -370,8 +552,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 6),
           if (isSelected)
-            Container(
-                height: 2, width: 40, color: AppColors.profileActiveTab),
+            Container(height: 2, width: 40, color: AppColors.profileActiveTab),
         ],
       ),
     );
@@ -398,26 +579,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     if (_historyError != null && _historyEntries.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _historyError!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _loadHistory,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildErrorState(_historyError!, _loadHistory);
     }
 
     return Padding(
@@ -439,7 +601,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   )
                 : ListView.builder(
-                    itemCount: _historyEntries.length +
+                    itemCount:
+                        _historyEntries.length +
                         (_historyPage < _historyTotalPages ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == _historyEntries.length) {
@@ -448,7 +611,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           child: Center(
                             child: _historyLoadingMore
                                 ? const CircularProgressIndicator(
-                                    color: AppColors.white)
+                                    color: AppColors.white,
+                                  )
                                 : TextButton(
                                     onPressed: () => _loadHistory(append: true),
                                     child: const Text(
@@ -459,10 +623,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                         );
                       }
-                      final e = _historyEntries[index];
+
+                      final entry = _historyEntries[index];
                       return _buildSummaryCard(
-                        e,
+                        entry,
                         trailing: Icons.close,
+                        trailingBusy: _busyEntryIds.contains(entry.id),
+                        onTrailingTap: () => _deleteEntry(
+                          entryId: entry.id,
+                          foodName: entry.foodName,
+                        ),
                       );
                     },
                   ),
@@ -480,78 +650,74 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     if (_favoriteError != null && _favoriteSections == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _favoriteError!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _loadFavorites,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildErrorState(_favoriteError!, _loadFavorites);
     }
 
-    final sections = _favoriteSections!;
-    final q = _searchController.text.trim();
-    final foods = _filterSummaries(sections.foods, q);
-    final meals = _filterSummaries(sections.meals, q);
-    final recipes = _filterSummaries(sections.recipes, q);
+    final sections =
+        _favoriteSections ??
+        NutritionFavoriteSections(foods: [], meals: [], recipes: []);
+    final query = _searchController.text.trim();
+    final foods = _filterSummaries(sections.foods, query);
+    final meals = _filterSummaries(sections.meals, query);
+    final recipes = _filterSummaries(sections.recipes, query);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView(
         children: [
-          Text(
-            'Food',
-            style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
+          _buildFavoriteSection(
+            title: 'Food',
+            emptyText: query.isEmpty
+                ? 'No favorite foods yet'
+                : 'No matching foods',
+            entries: foods,
           ),
-          const SizedBox(height: 12),
-          if (foods.isEmpty)
-            _buildEmptyCard(
-                q.isEmpty ? 'No favorite foods yet' : 'No matching foods')
-          else
-            ...foods.map(
-              (e) => _buildSummaryCard(e, trailing: Icons.favorite),
-            ),
           const SizedBox(height: 20),
-          Text(
-            'Meals',
-            style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
+          _buildFavoriteSection(
+            title: 'Meals',
+            emptyText: query.isEmpty
+                ? 'No favorite meals yet'
+                : 'No matching meals',
+            entries: meals,
           ),
-          const SizedBox(height: 12),
-          if (meals.isEmpty)
-            _buildEmptyCard(
-                q.isEmpty ? 'No favorite meals yet' : 'No matching meals')
-          else
-            ...meals.map(
-              (e) => _buildSummaryCard(e, trailing: Icons.favorite),
-            ),
           const SizedBox(height: 20),
-          Text(
-            'Recipes',
-            style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
+          _buildFavoriteSection(
+            title: 'Recipes',
+            emptyText: query.isEmpty
+                ? 'No favorite recipes yet'
+                : 'No matching recipes',
+            entries: recipes,
           ),
-          const SizedBox(height: 12),
-          if (recipes.isEmpty)
-            _buildEmptyCard(
-                q.isEmpty ? 'No favorite recipes yet' : 'No matching recipes')
-          else
-            ...recipes.map(
-              (e) => _buildSummaryCard(e, trailing: Icons.favorite),
-            ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFavoriteSection({
+    required String title,
+    required String emptyText,
+    required List<NutritionEntrySummary> entries,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
+        ),
+        const SizedBox(height: 12),
+        if (entries.isEmpty)
+          _buildEmptyCard(emptyText)
+        else
+          ...entries.map(
+            (entry) => _buildSummaryCard(
+              entry,
+              trailing: Icons.favorite,
+              trailingBusy: _busyEntryIds.contains(entry.id),
+              onTrailingTap: () => _removeFavoriteEntry(entry),
+            ),
+          ),
+      ],
     );
   }
 
@@ -563,30 +729,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     if (_trackedError != null && _trackedEntries.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _trackedError!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _loadTracked,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildErrorState(_trackedError!, _loadTracked);
     }
 
-    final q = _searchController.text.trim();
-    final entries = _filterDiary(_trackedEntries, q);
+    final query = _searchController.text.trim();
+    final entries = _filterDiary(_trackedEntries, query);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -594,20 +741,53 @@ class _HistoryScreenState extends State<HistoryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Logged on ${_formatShortDate(widget.diaryDate)}',
+            'You have tracked',
             style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
           ),
           const SizedBox(height: 8),
           Text(
-            'Items in ${widget.meal.mealLabel}',
+            '${widget.meal.mealLabel} on ${_formatShortDate(widget.diaryDate)}',
             style: AppText.smRegular_14_400.copyWith(color: Colors.white70),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 40,
+            child: OutlinedButton.icon(
+              onPressed: (_trackedEntries.isEmpty || _savingCurrentMeal)
+                  ? null
+                  : _saveCurrentMealAsFavorite,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.white,
+                side: BorderSide(
+                  color: (_trackedEntries.isEmpty || _savingCurrentMeal)
+                      ? Colors.white24
+                      : AppColors.profileActiveTab,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: _savingCurrentMeal
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : const Icon(Icons.favorite_border, size: 18),
+              label: Text(
+                _savingCurrentMeal ? 'Saving...' : 'Save current meal',
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Expanded(
             child: entries.isEmpty
                 ? Center(
                     child: Text(
-                      q.isEmpty
+                      query.isEmpty
                           ? 'Nothing logged for this meal yet'
                           : 'No matching items',
                       style: const TextStyle(color: Colors.white70),
@@ -618,12 +798,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     itemBuilder: (context, index) {
                       final entry = entries[index];
                       return _buildFoodCard(
-                        title: entry.foodName,
+                        title: entry.displayTitle,
                         kcal: '${entry.calories.toStringAsFixed(0)} kcal',
-                        gram:
-                            '${entry.quantity.toStringAsFixed(entry.quantity == entry.quantity.roundToDouble() ? 0 : 1)} ${entry.servingLabel}',
-                        subtitle: entry.date.isNotEmpty ? entry.date : null,
+                        gram: entry.quantityLine,
                         trailing: Icons.close,
+                        trailingBusy: _busyEntryIds.contains(entry.id ?? ''),
+                        onTrailingTap: () => _deleteEntry(
+                          entryId: entry.id ?? '',
+                          foodName: entry.foodName,
+                        ),
                       );
                     },
                   ),
@@ -633,24 +816,58 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  String _formatShortDate(DateTime d) {
+  Widget _buildErrorState(String message, VoidCallback onRetry) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 12),
+            TextButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatShortDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
   Widget _buildSummaryCard(
-    NutritionEntrySummary e, {
+    NutritionEntrySummary entry, {
     required IconData trailing,
+    bool trailingBusy = false,
+    VoidCallback? onTrailingTap,
   }) {
     return _buildFoodCard(
-      title: e.displayTitle,
-      kcal: '${e.caloriesKcal.toStringAsFixed(0)} kcal',
-      gram: e.quantityLine,
-      subtitle: '${e.mealLabel} · ${_shortDate(e.entryDate)}',
+      title: entry.displayTitle,
+      kcal: '${entry.caloriesKcal.toStringAsFixed(0)} kcal',
+      gram: entry.quantityLine,
+      subtitle: '${entry.mealLabel} | ${_shortDate(entry.entryDate)}',
       trailing: trailing,
+      trailingBusy: trailingBusy,
+      onTrailingTap: onTrailingTap,
     );
   }
 
@@ -665,6 +882,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     required String gram,
     String? subtitle,
     required IconData trailing,
+    bool trailingBusy = false,
+    VoidCallback? onTrailingTap,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -730,18 +949,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF818894)),
-                    ),
-                    child: Icon(
-                      trailing,
-                      size: 18,
-                      color: trailing == Icons.favorite
-                          ? AppColors.profileActiveTab
-                          : AppColors.white,
+                  InkWell(
+                    onTap: trailingBusy ? null : onTrailingTap,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF818894)),
+                      ),
+                      child: trailingBusy
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.white,
+                              ),
+                            )
+                          : Icon(
+                              trailing,
+                              size: 18,
+                              color: trailing == Icons.favorite
+                                  ? AppColors.profileActiveTab
+                                  : AppColors.white,
+                            ),
                     ),
                   ),
                 ],
@@ -755,10 +989,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 height: 50,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Color.fromARGB(120, 0, 0, 0),
-                      Colors.transparent,
-                    ],
+                    colors: [Color.fromARGB(120, 0, 0, 0), Colors.transparent],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -773,10 +1004,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 height: 50,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Color.fromARGB(120, 0, 0, 0),
-                    ],
+                    colors: [Colors.transparent, Color.fromARGB(120, 0, 0, 0)],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),

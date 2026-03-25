@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:disabilitymne/features/progress/controller/progress_controller.dart';
 import 'package:disabilitymne/features/progress/model/progress_model.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,50 @@ class _ProgressScreenState extends State<ProgressScreen> {
   static const Color _orange = Color(0xFFE67E22);
   static const Color _blue = Color(0xFF4B7FA8);
   static const Color _bodyActivityDivider = Color(0xFF696D73);
+
+  double _resolveAxisMax(List<double> values, {required double minMax}) {
+    final highestValue = values.fold<double>(0.0, math.max);
+    final rawMax = math.max(highestValue, minMax);
+    if (rawMax <= 0) {
+      return minMax;
+    }
+
+    final exponent = math.pow(10, (math.log(rawMax) / math.ln10).floor()).toDouble();
+    for (final multiplier in const [1.0, 2.0, 5.0, 10.0]) {
+      final candidate = multiplier * exponent;
+      if (candidate >= rawMax) {
+        return candidate;
+      }
+    }
+
+    return 10 * exponent;
+  }
+
+  List<double> _buildAxisTicks(double axisMax) =>
+      List<double>.generate(6, (index) => axisMax - ((axisMax / 5) * index));
+
+  String _formatAxisLabel(double value) {
+    if (value == value.roundToDouble() || value >= 100) {
+      return value.round().toString();
+    }
+
+    return value.toStringAsFixed(1);
+  }
+
+  String _titleCase(String value) {
+    if (value.trim().isEmpty) {
+      return value;
+    }
+
+    return value
+        .split(RegExp(r'[_\s]+'))
+        .where((part) => part.isNotEmpty)
+        .map(
+          (part) =>
+              '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}',
+        )
+        .join(' ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +153,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final items = [
       ('${stats.streakDays}', 'Day Streak', Icons.local_fire_department),
       ('${stats.totalWorkouts}', 'Total Workouts', Icons.fitness_center),
-      ('${stats.caloriesPercent.toStringAsFixed(0)}%', 'Calories Burned',
+      ('${stats.caloriesPercent.toStringAsFixed(0)}%', 'Weekly Goal',
           Icons.whatshot),
       (
         '${stats.activityPeriodWeeks} week${stats.activityPeriodWeeks == 1 ? '' : 's'}',
@@ -216,6 +262,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ];
     final days = points.map((e) => e.label).toList();
     final values = points.map((e) => e.value).toList();
+    final yAxisMax = _resolveAxisMax(values, minMax: 5);
+    final yAxisTicks = _buildAxisTicks(yAxisMax);
     final barColors = [
       const Color(0xFFE67E22), // Sat - orange
       const Color(0xFFE9967A), // Sun - light red/salmon
@@ -259,7 +307,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _buildProgressYAxis(),
+                _buildProgressYAxis(yAxisTicks),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Stack(
@@ -275,7 +323,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: List.generate(days.length, (i) {
-                          final h = (values[i] / 100).clamp(0.0, 1.0);
+                          final h = yAxisMax > 0
+                              ? (values[i] / yAxisMax).clamp(0.0, 1.0).toDouble()
+                              : 0.0;
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -312,13 +362,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 
-  Widget _buildProgressYAxis() {
+  Widget _buildProgressYAxis(List<double> yAxisTicks) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: [100, 80, 60, 40, 20, 0]
+      children: yAxisTicks
           .map((v) => Text(
-                '$v',
+                _formatAxisLabel(v),
                 style: TextStyle(
                   fontSize: 10,
                   color: Colors.grey.shade700,
@@ -342,6 +392,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ];
     final days = points.map((e) => e.label).toList();
     final values = points.map((e) => e.value).toList();
+    final yAxisMax = _resolveAxisMax(values, minMax: 100);
+    final yAxisTicks = _buildAxisTicks(yAxisMax);
     const chartHeight = 220.0;
     const leftPadding = 32.0;
     const bottomPadding = 24.0;
@@ -351,7 +403,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Weekly Calorie',
+          'Weekly Calories',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -389,9 +441,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [100, 80, 60, 40, 20, 0]
+                        children: yAxisTicks
                             .map((v) => Text(
-                                  '$v',
+                                  _formatAxisLabel(v),
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.grey.shade700,
@@ -408,6 +460,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       child: CustomPaint(
                         painter: _WeeklyCaloriePainter(
                           values: values,
+                          maxValue: yAxisMax,
                           lineColor: const Color(0xFF9B8AFE),
                           fillColor: const Color(0x409B8AFE),
                           gridColor: Colors.grey.shade300,
@@ -481,7 +534,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               _bodyMetricRow(
                 label: 'BMI',
                 value: Text(
-                  bodyMetrics.bmi?.toStringAsFixed(1) ?? '—',
+                  bodyMetrics.bmi?.toStringAsFixed(1) ?? '--',
                   style: const TextStyle(
                     color: _blue,
                     fontSize: 15,
@@ -499,7 +552,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               _bodyMetricRow(
                 label: 'Activity Level',
                 value: Text(
-                  bodyMetrics.activityLevel ?? 'Unknown',
+                  _titleCase(bodyMetrics.activityLevel ?? 'Unknown'),
                   style: const TextStyle(
                     color: _orange,
                     fontSize: 15,
@@ -507,7 +560,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
                 subtitle: const Text(
-                  'Based on recent workouts',
+                  'From your profile',
                   style: TextStyle(color: Colors.white, fontSize: 13),
                 ),
               ),
@@ -546,7 +599,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-                '→',
+                '->',
                 style: TextStyle(color: Colors.white, fontSize: 15),
               ),
             ),
@@ -602,12 +655,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
 class _WeeklyCaloriePainter extends CustomPainter {
   final List<double> values;
+  final double maxValue;
   final Color lineColor;
   final Color fillColor;
   final Color gridColor;
 
   _WeeklyCaloriePainter({
     required this.values,
+    required this.maxValue,
     required this.lineColor,
     required this.fillColor,
     this.gridColor = Colors.white24,
@@ -618,14 +673,14 @@ class _WeeklyCaloriePainter extends CustomPainter {
     if (values.isEmpty || size.width <= 0 || size.height <= 0) return;
     final w = size.width;
     final h = size.height;
-    const yMax = 100.0;
+    final yMax = maxValue <= 0 ? 100.0 : maxValue;
 
-    // Dotted grid: horizontal lines at 0, 20, 40, 60, 80, 100
+    // Dotted grid: 5 equal horizontal sections.
     final gridPaint = Paint()
       ..color = gridColor
       ..strokeWidth = 1;
-    for (var yVal = 0; yVal <= 100; yVal += 20) {
-      final y = h - (yVal / yMax) * h;
+    for (var step = 0; step <= 5; step++) {
+      final y = h - ((step / 5) * h);
       _drawDottedLine(canvas, Offset(0, y), Offset(w, y), gridPaint);
     }
     // Vertical grid: 7 lines (one per day)
@@ -635,7 +690,7 @@ class _WeeklyCaloriePainter extends CustomPainter {
       _drawDottedLine(canvas, Offset(x, 0), Offset(x, h), gridPaint);
     }
 
-    // Data points: Y axis 0-100, so y = h - (value/100)*h
+    // Data points scale to the dynamic Y axis max.
     final points = <Offset>[];
     for (var i = 0; i < values.length; i++) {
       final x = i * stepX;

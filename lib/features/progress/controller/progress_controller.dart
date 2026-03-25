@@ -19,6 +19,8 @@ class ProgressController extends GetxController {
         totalWorkouts: 0,
         caloriesPercent: 0,
         activityPeriodWeeks: 0,
+        weeklyCaloriesBurnedKcal: 0,
+        weeklyCalorieTargetKcal: 0,
       );
 
   ProgressCharts get charts =>

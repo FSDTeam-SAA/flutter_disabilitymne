@@ -23,16 +23,20 @@ class NutritionData {
 
   factory NutritionData.fromJson(Map<String, dynamic> json) {
     return NutritionData(
-      date: DateTime.parse(json['date']),
-      totals: Totals.fromJson(json['totals']),
-      macroPercentages: MacroPercentages.fromJson(json['macroPercentages']),
-      macroProgress: MacroProgress.fromJson(json['macroProgress']),
-      targets: Targets.fromJson(json['targets']),
-      energy: Energy.fromJson(json['energy']),
-      totalEntries: json['totalEntries'],
-      meals: (json['meals'] as List).map((e) => Meal.fromJson(e)).toList(),
-      mealRecommendations: (json['mealRecommendations'] as List)
-          .map((e) => MealRecommendation.fromJson(e))
+      date: DateTime.tryParse(_stringValue(json['date'])) ?? DateTime.now(),
+      totals: Totals.fromJson(_jsonMap(json['totals'])),
+      macroPercentages: MacroPercentages.fromJson(
+        _jsonMap(json['macroPercentages']),
+      ),
+      macroProgress: MacroProgress.fromJson(_jsonMap(json['macroProgress'])),
+      targets: Targets.fromJson(_jsonMap(json['targets'])),
+      energy: Energy.fromJson(_jsonMap(json['energy'])),
+      totalEntries: _intValue(json['totalEntries']),
+      meals: (json['meals'] as List? ?? [])
+          .map((e) => Meal.fromJson(_jsonMap(e)))
+          .toList(),
+      mealRecommendations: (json['mealRecommendations'] as List? ?? [])
+          .map((e) => MealRecommendation.fromJson(_jsonMap(e)))
           .toList(),
     );
   }
@@ -47,7 +51,9 @@ class NutritionData {
       'energy': energy.toJson(),
       'totalEntries': totalEntries,
       'meals': meals.map((e) => e.toJson()).toList(),
-      'mealRecommendations': mealRecommendations.map((e) => e.toJson()).toList(),
+      'mealRecommendations': mealRecommendations
+          .map((e) => e.toJson())
+          .toList(),
     };
   }
 
@@ -97,13 +103,13 @@ class Totals {
 
   factory Totals.fromJson(Map<String, dynamic> json) {
     return Totals(
-      caloriesKcal: (json['caloriesKcal'] ?? 0).toDouble(),
-      proteinG: (json['proteinG'] ?? 0).toDouble(),
-      carbsG: (json['carbsG'] ?? 0).toDouble(),
-      fatG: (json['fatG'] ?? 0).toDouble(),
-      fiberG: (json['fiberG'] ?? 0).toDouble(),
-      sugarG: (json['sugarG'] ?? 0).toDouble(),
-      totalGrams: (json['totalGrams'] ?? 0).toDouble(),
+      caloriesKcal: _doubleValue(json['caloriesKcal']),
+      proteinG: _doubleValue(json['proteinG']),
+      carbsG: _doubleValue(json['carbsG']),
+      fatG: _doubleValue(json['fatG']),
+      fiberG: _doubleValue(json['fiberG']),
+      sugarG: _doubleValue(json['sugarG']),
+      totalGrams: _doubleValue(json['totalGrams']),
     );
   }
 
@@ -133,9 +139,9 @@ class MacroPercentages {
 
   factory MacroPercentages.fromJson(Map<String, dynamic> json) {
     return MacroPercentages(
-      proteinPercent: (json['proteinPercent'] ?? 0).toDouble(),
-      carbsPercent: (json['carbsPercent'] ?? 0).toDouble(),
-      fatPercent: (json['fatPercent'] ?? 0).toDouble(),
+      proteinPercent: _doubleValue(json['proteinPercent']),
+      carbsPercent: _doubleValue(json['carbsPercent']),
+      fatPercent: _doubleValue(json['fatPercent']),
     );
   }
 
@@ -161,9 +167,9 @@ class MacroProgress {
 
   factory MacroProgress.fromJson(Map<String, dynamic> json) {
     return MacroProgress(
-      carbs: MacroItem.fromJson(json['carbs']),
-      protein: MacroItem.fromJson(json['protein']),
-      fat: MacroItem.fromJson(json['fat']),
+      carbs: MacroItem.fromJson(_jsonMap(json['carbs'])),
+      protein: MacroItem.fromJson(_jsonMap(json['protein'])),
+      fat: MacroItem.fromJson(_jsonMap(json['fat'])),
     );
   }
 
@@ -191,10 +197,10 @@ class MacroItem {
 
   factory MacroItem.fromJson(Map<String, dynamic> json) {
     return MacroItem(
-      consumedG: (json['consumedG'] ?? 0).toDouble(),
-      targetG: (json['targetG'] ?? 0).toDouble(),
-      remainingG: (json['remainingG'] ?? 0).toDouble(),
-      progressPercent: (json['progressPercent'] ?? 0).toDouble(),
+      consumedG: _doubleValue(json['consumedG']),
+      targetG: _doubleValue(json['targetG']),
+      remainingG: _doubleValue(json['remainingG']),
+      progressPercent: _doubleValue(json['progressPercent']),
     );
   }
 
@@ -225,11 +231,11 @@ class Targets {
 
   factory Targets.fromJson(Map<String, dynamic> json) {
     return Targets(
-      weightKg: (json['weightKg'] ?? 0).toDouble(),
-      goal: json['goal'] ?? '',
-      multipliers: Multipliers.fromJson(json['multipliers']),
-      macros: MacroTargets.fromJson(json['macros']),
-      calories: Calories.fromJson(json['calories']),
+      weightKg: _doubleValue(json['weightKg']),
+      goal: _stringValue(json['goal']),
+      multipliers: Multipliers.fromJson(_jsonMap(json['multipliers'])),
+      macros: MacroTargets.fromJson(_jsonMap(json['macros'])),
+      calories: Calories.fromJson(_jsonMap(json['calories'])),
     );
   }
 
@@ -257,9 +263,9 @@ class Multipliers {
 
   factory Multipliers.fromJson(Map<String, dynamic> json) {
     return Multipliers(
-      proteinPerKg: (json['proteinPerKg'] ?? 0).toDouble(),
-      carbsPerKg: (json['carbsPerKg'] ?? 0).toDouble(),
-      fatPerKg: (json['fatPerKg'] ?? 0).toDouble(),
+      proteinPerKg: _doubleValue(json['proteinPerKg']),
+      carbsPerKg: _doubleValue(json['carbsPerKg']),
+      fatPerKg: _doubleValue(json['fatPerKg']),
     );
   }
 
@@ -285,18 +291,14 @@ class MacroTargets {
 
   factory MacroTargets.fromJson(Map<String, dynamic> json) {
     return MacroTargets(
-      proteinG: (json['proteinG'] ?? 0).toDouble(),
-      carbsG: (json['carbsG'] ?? 0).toDouble(),
-      fatG: (json['fatG'] ?? 0).toDouble(),
+      proteinG: _doubleValue(json['proteinG']),
+      carbsG: _doubleValue(json['carbsG']),
+      fatG: _doubleValue(json['fatG']),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'proteinG': proteinG,
-      'carbsG': carbsG,
-      'fatG': fatG,
-    };
+    return {'proteinG': proteinG, 'carbsG': carbsG, 'fatG': fatG};
   }
 }
 
@@ -323,14 +325,14 @@ class Calories {
 
   factory Calories.fromJson(Map<String, dynamic> json) {
     return Calories(
-      proteinCalories: (json['proteinCalories'] ?? 0).toDouble(),
-      carbsCalories: (json['carbsCalories'] ?? 0).toDouble(),
-      fatCalories: (json['fatCalories'] ?? 0).toDouble(),
-      macroCalories: (json['macroCalories'] ?? 0).toDouble(),
-      recommendedCalories: (json['recommendedCalories'] ?? 0).toDouble(),
-      minCalories: (json['minCalories'] ?? 0).toDouble(),
-      maxCalories: (json['maxCalories'] ?? 0).toDouble(),
-      remainingCalories: (json['remainingCalories'] ?? 0).toDouble(),
+      proteinCalories: _doubleValue(json['proteinCalories']),
+      carbsCalories: _doubleValue(json['carbsCalories']),
+      fatCalories: _doubleValue(json['fatCalories']),
+      macroCalories: _doubleValue(json['macroCalories']),
+      recommendedCalories: _doubleValue(json['recommendedCalories']),
+      minCalories: _doubleValue(json['minCalories']),
+      maxCalories: _doubleValue(json['maxCalories']),
+      remainingCalories: _doubleValue(json['remainingCalories']),
     );
   }
 
@@ -367,12 +369,12 @@ class Energy {
 
   factory Energy.fromJson(Map<String, dynamic> json) {
     return Energy(
-      eatenKcal: (json['eatenKcal'] ?? 0).toDouble(),
-      burnedKcal: (json['burnedKcal'] ?? 0).toDouble(),
-      netKcal: (json['netKcal'] ?? 0).toDouble(),
-      goalKcal: (json['goalKcal'] ?? 0).toDouble(),
-      remainingKcal: (json['remainingKcal'] ?? 0).toDouble(),
-      status: json['status'] ?? '',
+      eatenKcal: _doubleValue(json['eatenKcal']),
+      burnedKcal: _doubleValue(json['burnedKcal']),
+      netKcal: _doubleValue(json['netKcal']),
+      goalKcal: _doubleValue(json['goalKcal']),
+      remainingKcal: _doubleValue(json['remainingKcal']),
+      status: _stringValue(json['status']),
     );
   }
 
@@ -409,14 +411,16 @@ class Meal {
 
   factory Meal.fromJson(Map<String, dynamic> json) {
     return Meal(
-      mealType: json['mealType'] ?? '',
-      mealLabel: json['mealLabel'] ?? '',
-      totalEntries: json['totalEntries'] ?? 0,
-      totals: Totals.fromJson(json['totals']),
-      macroPercentages: MacroPercentages.fromJson(json['macroPercentages']),
-      recommendation: Recommendation.fromJson(json['recommendation']),
+      mealType: _stringValue(json['mealType']),
+      mealLabel: _stringValue(json['mealLabel']),
+      totalEntries: _intValue(json['totalEntries']),
+      totals: Totals.fromJson(_jsonMap(json['totals'])),
+      macroPercentages: MacroPercentages.fromJson(
+        _jsonMap(json['macroPercentages']),
+      ),
+      recommendation: Recommendation.fromJson(_jsonMap(json['recommendation'])),
       entries: (json['entries'] as List? ?? [])
-          .map((e) => DiaryEntry.fromJson(e))
+          .map((e) => DiaryEntry.fromJson(_jsonMap(e)))
           .toList(),
     );
   }
@@ -437,37 +441,73 @@ class Meal {
 class DiaryEntry {
   final String? id;
   final String foodName;
+  final String brandName;
   final int? fdcId;
   final String date;
   final String mealType;
+  final String mealLabel;
   final double quantity;
   final String servingLabel;
   final double servingGrams;
+  final double totalGrams;
+  final double caloriesKcal;
+  final double proteinG;
+  final double carbsG;
+  final double fatG;
+  final bool isFavorite;
   final Map<String, dynamic>? nutrientsPer100g;
 
   DiaryEntry({
     this.id,
     required this.foodName,
+    required this.brandName,
     this.fdcId,
     required this.date,
     required this.mealType,
+    required this.mealLabel,
     required this.quantity,
     required this.servingLabel,
     required this.servingGrams,
+    required this.totalGrams,
+    required this.caloriesKcal,
+    required this.proteinG,
+    required this.carbsG,
+    required this.fatG,
+    required this.isFavorite,
     this.nutrientsPer100g,
   });
 
   factory DiaryEntry.fromJson(Map<String, dynamic> json) {
+    final quantity = _doubleValue(json['quantity']);
+    final totalGrams = _doubleValue(json['totalGrams']);
+    final fallbackServingGrams = quantity > 0 && totalGrams > 0
+        ? totalGrams / quantity
+        : totalGrams;
+
     return DiaryEntry(
       id: json['id']?.toString(),
-      foodName: json['foodName'] ?? 'Unknown',
-      fdcId: json['fdcId'],
-      date: json['date'] ?? '',
-      mealType: json['mealType'] ?? '',
-      quantity: (json['quantity'] ?? 0).toDouble(),
-      servingLabel: json['servingLabel'] ?? '',
-      servingGrams: (json['servingGrams'] ?? 0).toDouble(),
-      nutrientsPer100g: json['nutrientsPer100g'],
+      foodName: _stringValue(json['foodName'], fallback: 'Unknown'),
+      brandName: _stringValue(json['brandName']),
+      fdcId: _intOrNull(json['fdcId']),
+      date: _stringValue(
+        json['entryDate'],
+        fallback: _stringValue(json['date']),
+      ),
+      mealType: _stringValue(json['mealType']),
+      mealLabel: _stringValue(json['mealLabel']),
+      quantity: quantity,
+      servingLabel: _stringValue(json['servingLabel']),
+      servingGrams: _doubleValue(
+        json['servingGrams'],
+        fallback: fallbackServingGrams,
+      ),
+      totalGrams: totalGrams,
+      caloriesKcal: _doubleValue(json['caloriesKcal']),
+      proteinG: _doubleValue(json['proteinG']),
+      carbsG: _doubleValue(json['carbsG']),
+      fatG: _doubleValue(json['fatG']),
+      isFavorite: json['isFavorite'] == true,
+      nutrientsPer100g: _jsonMapOrNull(json['nutrientsPer100g']),
     );
   }
 
@@ -475,21 +515,48 @@ class DiaryEntry {
     return {
       'id': id,
       'foodName': foodName,
+      'brandName': brandName,
       'fdcId': fdcId,
       'date': date,
       'mealType': mealType,
+      'mealLabel': mealLabel,
       'quantity': quantity,
       'servingLabel': servingLabel,
       'servingGrams': servingGrams,
+      'totalGrams': totalGrams,
+      'caloriesKcal': caloriesKcal,
+      'proteinG': proteinG,
+      'carbsG': carbsG,
+      'fatG': fatG,
+      'isFavorite': isFavorite,
       'nutrientsPer100g': nutrientsPer100g,
     };
   }
 
   double get calories {
+    if (caloriesKcal > 0) return caloriesKcal;
     if (nutrientsPer100g == null) return 0;
     final kcal = nutrientsPer100g!['caloriesKcal'] ?? 0;
     final ratio = (quantity * servingGrams) / 100;
     return (kcal is num ? kcal.toDouble() : 0) * ratio;
+  }
+
+  String get displayTitle {
+    if (brandName.isEmpty) return foodName;
+    return '$foodName | $brandName';
+  }
+
+  String get quantityLine {
+    final quantityLabel = quantity.toStringAsFixed(
+      quantity == quantity.roundToDouble() ? 0 : 1,
+    );
+    final grams = totalGrams > 0
+        ? '${totalGrams.toStringAsFixed(0)} g total'
+        : '';
+    if (grams.isEmpty) {
+      return '$quantityLabel $servingLabel';
+    }
+    return '$quantityLabel x $servingLabel | $grams';
   }
 }
 
@@ -510,11 +577,13 @@ class MealRecommendation {
 
   factory MealRecommendation.fromJson(Map<String, dynamic> json) {
     return MealRecommendation(
-      mealType: json['mealType'] ?? '',
-      mealLabel: json['mealLabel'] ?? '',
-      recommendation: Recommendation.fromJson(json['recommendation']),
-      totals: Totals.fromJson(json['totals']),
-      macroPercentages: MacroPercentages.fromJson(json['macroPercentages']),
+      mealType: _stringValue(json['mealType']),
+      mealLabel: _stringValue(json['mealLabel']),
+      recommendation: Recommendation.fromJson(_jsonMap(json['recommendation'])),
+      totals: Totals.fromJson(_jsonMap(json['totals'])),
+      macroPercentages: MacroPercentages.fromJson(
+        _jsonMap(json['macroPercentages']),
+      ),
     );
   }
 
@@ -542,9 +611,13 @@ class Recommendation {
 
   factory Recommendation.fromJson(Map<String, dynamic> json) {
     return Recommendation(
-      recommendedCalories: CalorieRange.fromJson(json['recommendedCalories']),
-      eatenKcal: (json['eatenKcal'] ?? 0).toDouble(),
-      remainingCalories: CalorieRange.fromJson(json['remainingCalories']),
+      recommendedCalories: CalorieRange.fromJson(
+        _jsonMap(json['recommendedCalories']),
+      ),
+      eatenKcal: _doubleValue(json['eatenKcal']),
+      remainingCalories: CalorieRange.fromJson(
+        _jsonMap(json['remainingCalories']),
+      ),
     );
   }
 
@@ -565,20 +638,22 @@ class CalorieRange {
 
   factory CalorieRange.fromJson(Map<String, dynamic> json) {
     return CalorieRange(
-      minKcal: (json['minKcal'] ?? json['toMinKcal'] ?? 0).toDouble(),
-      maxKcal: (json['maxKcal'] ?? json['toMaxKcal'] ?? 0).toDouble(),
+      minKcal: _doubleValue(
+        json['minKcal'],
+        fallback: _doubleValue(json['toMinKcal']),
+      ),
+      maxKcal: _doubleValue(
+        json['maxKcal'],
+        fallback: _doubleValue(json['toMaxKcal']),
+      ),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'minKcal': minKcal,
-      'maxKcal': maxKcal,
-    };
+    return {'minKcal': minKcal, 'maxKcal': maxKcal};
   }
 }
 
-/// Single logged item as returned by `/nutrition/history`, `/nutrition/favorites`, etc.
 class NutritionEntrySummary {
   final String id;
   final String entryDate;
@@ -600,6 +675,7 @@ class NutritionEntrySummary {
   final String imageUrl;
   final String notes;
   final bool isFavorite;
+  final String favoriteKind;
 
   NutritionEntrySummary({
     required this.id,
@@ -622,46 +698,52 @@ class NutritionEntrySummary {
     required this.imageUrl,
     required this.notes,
     required this.isFavorite,
+    required this.favoriteKind,
   });
 
   factory NutritionEntrySummary.fromJson(Map<String, dynamic> json) {
     return NutritionEntrySummary(
-      id: json['id']?.toString() ?? '',
-      entryDate: json['entryDate']?.toString() ?? '',
-      mealType: json['mealType']?.toString() ?? '',
-      mealLabel: json['mealLabel']?.toString() ?? '',
-      foodName: json['foodName']?.toString() ?? 'Unknown',
-      brandName: json['brandName']?.toString() ?? '',
-      source: json['source']?.toString() ?? '',
-      fdcId: json['fdcId'] is int
-          ? json['fdcId'] as int
-          : int.tryParse('${json['fdcId'] ?? ''}'),
-      quantity: (json['quantity'] ?? 0).toDouble(),
-      servingLabel: json['servingLabel']?.toString() ?? '',
-      totalGrams: (json['totalGrams'] ?? 0).toDouble(),
-      caloriesKcal: (json['caloriesKcal'] ?? 0).toDouble(),
-      proteinG: (json['proteinG'] ?? 0).toDouble(),
-      carbsG: (json['carbsG'] ?? 0).toDouble(),
-      fatG: (json['fatG'] ?? 0).toDouble(),
-      fiberG: (json['fiberG'] ?? 0).toDouble(),
-      sugarG: (json['sugarG'] ?? 0).toDouble(),
-      imageUrl: json['imageUrl']?.toString() ?? '',
-      notes: json['notes']?.toString() ?? '',
+      id: _stringValue(json['id']),
+      entryDate: _stringValue(
+        json['entryDate'],
+        fallback: _stringValue(json['date']),
+      ),
+      mealType: _stringValue(json['mealType']),
+      mealLabel: _stringValue(json['mealLabel']),
+      foodName: _stringValue(json['foodName'], fallback: 'Unknown'),
+      brandName: _stringValue(json['brandName']),
+      source: _stringValue(json['source']),
+      fdcId: _intOrNull(json['fdcId']),
+      quantity: _doubleValue(json['quantity']),
+      servingLabel: _stringValue(json['servingLabel']),
+      totalGrams: _doubleValue(json['totalGrams']),
+      caloriesKcal: _doubleValue(json['caloriesKcal']),
+      proteinG: _doubleValue(json['proteinG']),
+      carbsG: _doubleValue(json['carbsG']),
+      fatG: _doubleValue(json['fatG']),
+      fiberG: _doubleValue(json['fiberG']),
+      sugarG: _doubleValue(json['sugarG']),
+      imageUrl: _stringValue(json['imageUrl']),
+      notes: _stringValue(json['notes']),
       isFavorite: json['isFavorite'] == true,
+      favoriteKind: _stringValue(json['favoriteKind'], fallback: 'food'),
     );
   }
 
   String get displayTitle {
     if (brandName.isEmpty) return foodName;
-    return '$foodName · $brandName';
+    return '$foodName | $brandName';
   }
 
   String get quantityLine {
     final g = totalGrams > 0 ? '${totalGrams.toStringAsFixed(0)} g total' : '';
+    final quantityLabel = quantity.toStringAsFixed(
+      quantity == quantity.roundToDouble() ? 0 : 1,
+    );
     if (g.isEmpty) {
-      return '${quantity.toStringAsFixed(quantity == quantity.roundToDouble() ? 0 : 1)} $servingLabel';
+      return '$quantityLabel $servingLabel';
     }
-    return '${quantity.toStringAsFixed(quantity == quantity.roundToDouble() ? 0 : 1)} × $servingLabel · $g';
+    return '$quantityLabel x $servingLabel | $g';
   }
 }
 
@@ -681,25 +763,15 @@ class NutritionHistoryPage {
   });
 
   factory NutritionHistoryPage.fromJson(Map<String, dynamic> json) {
-    int asInt(dynamic v, [int fallback = 0]) {
-      if (v is int) return v;
-      if (v is num) return v.toInt();
-      return int.tryParse('$v') ?? fallback;
-    }
-
-    final raw = json['entries'];
-    final list = raw is List
-        ? raw
-            .map((e) => NutritionEntrySummary.fromJson(
-                Map<String, dynamic>.from(e as Map)))
-            .toList()
-        : <NutritionEntrySummary>[];
+    final rawEntries = json['entries'] as List? ?? [];
     return NutritionHistoryPage(
-      page: asInt(json['page'], 1),
-      limit: asInt(json['limit'], 20),
-      total: asInt(json['total'], 0),
-      totalPages: asInt(json['totalPages'], 0),
-      entries: list,
+      page: _intValue(json['page'], 1),
+      limit: _intValue(json['limit'], 20),
+      total: _intValue(json['total']),
+      totalPages: _intValue(json['totalPages']),
+      entries: rawEntries
+          .map((e) => NutritionEntrySummary.fromJson(_jsonMap(e)))
+          .toList(),
     );
   }
 }
@@ -716,11 +788,10 @@ class NutritionFavoriteSections {
   });
 
   factory NutritionFavoriteSections.fromJson(Map<String, dynamic> json) {
-    List<NutritionEntrySummary> parseList(dynamic v) {
-      if (v is! List) return [];
-      return v
-          .map((e) => NutritionEntrySummary.fromJson(
-              Map<String, dynamic>.from(e as Map)))
+    List<NutritionEntrySummary> parseList(dynamic value) {
+      if (value is! List) return [];
+      return value
+          .map((e) => NutritionEntrySummary.fromJson(_jsonMap(e)))
           .toList();
     }
 
@@ -730,4 +801,49 @@ class NutritionFavoriteSections {
       recipes: parseList(json['recipes']),
     );
   }
+}
+
+Map<String, dynamic> _jsonMap(dynamic value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) {
+    return value.map(
+      (key, dynamic mapValue) => MapEntry(key.toString(), mapValue),
+    );
+  }
+  return <String, dynamic>{};
+}
+
+Map<String, dynamic>? _jsonMapOrNull(dynamic value) {
+  if (value == null) return null;
+  final map = _jsonMap(value);
+  return map.isEmpty ? null : map;
+}
+
+double _doubleValue(dynamic value, {double fallback = 0}) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? fallback;
+  return fallback;
+}
+
+int _intValue(dynamic value, [int fallback = 0]) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? fallback;
+  return fallback;
+}
+
+int? _intOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String && value.trim().isNotEmpty) {
+    return int.tryParse(value);
+  }
+  return null;
+}
+
+String _stringValue(dynamic value, {String fallback = ''}) {
+  if (value == null) return fallback;
+  final normalized = value.toString();
+  return normalized.isEmpty ? fallback : normalized;
 }

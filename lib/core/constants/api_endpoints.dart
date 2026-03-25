@@ -30,10 +30,12 @@ base class ApiEndpoints {
 
   static const String getAllRecipies = _Recipies.getAllRecipies;
   static String getRecipeDetail(String id) => _Recipies.getRecipeDetails(id);
+  static String toggleRecipeFavorite(String id) => _Recipies.toggleFavorite(id);
 
-  static String getExcerisesData(String id) => _ExceriseData.getExcerisesData(id);
-  static String putExcerisesData(String id) => _ExceriseData.putExcerisesData(id);
-
+  static String getExcerisesData(String id) =>
+      _ExceriseData.getExcerisesData(id);
+  static String putExcerisesData(String id) =>
+      _ExceriseData.putExcerisesData(id);
 
   //------------notification----------------
   /// ### get
@@ -92,6 +94,7 @@ base class ApiEndpoints {
   //------------------------- Daily Tracker --------------------------
   /// ### get, patch
   static const String dailyTracker = _DailyTracker.dailyTracker;
+
   /// ### post
   static const String dailyTrackerNotes = _DailyTracker.dailyTrackerNotes;
 
@@ -101,16 +104,20 @@ base class ApiEndpoints {
   static const String nutritionHistory = _Nutrition.history;
   static const String nutritionFavorites = _Nutrition.favorites;
   static const String nutritionFavoriteSections = _Nutrition.favoriteSections;
+  static const String nutritionFavoriteMeals = _Nutrition.favoriteMeals;
   static const String nutritionFoodSuggestions = _Nutrition.foodSuggestions;
   static const String nutritionFoodSearch = _Nutrition.foodSearch;
   static String nutritionFoodDetails(dynamic fdcId) =>
       _Nutrition.foodDetails(fdcId);
   static String nutritionDiaryEntryById(dynamic entryId) =>
       _Nutrition.diaryEntryById(entryId);
+  static String nutritionFavoriteMealById(dynamic mealFavoriteId) =>
+      _Nutrition.favoriteMealById(mealFavoriteId);
+
   /// ### post
   static const String nutritionDiaryEntries = _Nutrition.diaryEntries;
 
-   // ---------------------- Payments -----------------------------
+  // ---------------------- Payments -----------------------------
   /// ### get
   static const String paymentPlans = _Payments.plans;
   static const String paymentCheckout = _Payments.checkout;
@@ -162,12 +169,16 @@ class _Recipies {
   static const String _recipesRoute = '${ApiEndpoints.baseUrl}/recipes';
   static const String getAllRecipies = '$_recipesRoute/all';
   static String getRecipeDetails(String id) => '$_recipesRoute/$id';
+  static String toggleFavorite(String id) => '$_recipesRoute/$id/favorite';
 }
 
 class _ExceriseData {
-  static const String _excersisesDataRoute = '${ApiEndpoints.baseUrl}/users/me/exercises';
-  static String getExcerisesData(String id) => '$_excersisesDataRoute/$id/settings';
-  static String putExcerisesData(String id) => '$_excersisesDataRoute/$id/settings';
+  static const String _excersisesDataRoute =
+      '${ApiEndpoints.baseUrl}/users/me/exercises';
+  static String getExcerisesData(String id) =>
+      '$_excersisesDataRoute/$id/settings';
+  static String putExcerisesData(String id) =>
+      '$_excersisesDataRoute/$id/settings';
 }
 
 // ---------------------- Verification -----------------------------
@@ -185,12 +196,13 @@ class _Report {
 
 // ---------------------- Notification -----------------------------
 class _Notification {
-  static const String _notificationRoute =
-      '${ApiEndpoints.baseUrl}/users';
+  static const String _notificationRoute = '${ApiEndpoints.baseUrl}/users';
   static String markNotificationAsRead(String notificationId) =>
       '$_notificationRoute/me/notifications/$notificationId/read';
-  static const String markAllAsRead = '$_notificationRoute/me/notifications/read-all';
-  static const String getAllNotifications = '$_notificationRoute/me/notifications';
+  static const String markAllAsRead =
+      '$_notificationRoute/me/notifications/read-all';
+  static const String getAllNotifications =
+      '$_notificationRoute/me/notifications';
 }
 
 // ---------------------- USER -----------------------------
@@ -259,11 +271,14 @@ class _Nutrition {
   static const String history = '$_route/history';
   static const String favorites = '$_route/favorites';
   static const String favoriteSections = '$_route/favorites/sections';
+  static const String favoriteMeals = '$_route/favorites/meals';
   static const String foodSuggestions = '$_route/foods/suggestions';
   static const String foodSearch = '$_route/foods/search';
   static String foodDetails(dynamic fdcId) => '$_route/foods/$fdcId';
   static const String diaryEntries = '$_route/diary/entries';
   static String diaryEntryById(dynamic entryId) => '$diaryEntries/$entryId';
+  static String favoriteMealById(dynamic mealFavoriteId) =>
+      '$favoriteMeals/$mealFavoriteId';
 }
 
 //---------------------- Payments -----------------------------

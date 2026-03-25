@@ -37,4 +37,24 @@ final class RecipesInterfaceImpl extends RecipesInterface {
       },
     );
   }
+
+  @override
+  FutureRequest<Success<NoData>> toggleFavorite({
+    required String id,
+    required bool isFavorite,
+  }) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.patch(
+          ApiEndpoints.toggleRecipeFavorite(id),
+          data: {'isFavorite': isFavorite},
+        );
+        debugPrint('TOGGLE RECIPE FAVORITE RESPONSE => ${response.data}');
+        return Success(
+          data: NoData(),
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
+  }
 }

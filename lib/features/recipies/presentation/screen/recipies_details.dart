@@ -13,6 +13,7 @@ class RecipeDetailsScreen extends StatefulWidget {
 
 class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   final RecipeController controller = Get.find<RecipeController>();
+  bool _favoriteBusy = false;
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
           final String image =
               recipe.recipeImage ??
               "https://images.unsplash.com/photo-1517673132405-a56a62b18caf";
+          final bool isFavorite = recipe.isFavorite == true;
 
           return Column(
             children: [
@@ -98,16 +100,45 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                           ],
                         ),
 
-                        // /// Favorite Button
-                        // const CircleAvatar(
-                        //   radius: 16,
-                        //   backgroundColor: Colors.white,
-                        //   child: Icon(
-                        //     Icons.favorite,
-                        //     color: Colors.red,
-                        //     size: 18,
-                        //   ),
-                        // ),
+                        GestureDetector(
+                          onTap: _favoriteBusy
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _favoriteBusy = true;
+                                  });
+                                  await controller.toggleFavorite(
+                                    recipeId: widget.id,
+                                    isFavorite: !isFavorite,
+                                  );
+                                  if (!mounted) return;
+                                  setState(() {
+                                    _favoriteBusy = false;
+                                  });
+                                },
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.white,
+                            child: _favoriteBusy
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.black87,
+                                    ),
+                                  )
+                                : Icon(
+                                    isFavorite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: isFavorite
+                                        ? Colors.red
+                                        : Colors.black87,
+                                    size: 18,
+                                  ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

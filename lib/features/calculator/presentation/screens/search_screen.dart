@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
+import 'package:disabilitymne/features/calculator/controller/calculator_controller.dart';
 import 'package:disabilitymne/features/calculator/presentation/screens/choose_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -50,10 +51,7 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
     });
 
     try {
-      await Future.wait([
-        _fetchSuggestions(query),
-        _fetchFoods(query),
-      ]);
+      await Future.wait([_fetchSuggestions(query), _fetchFoods(query)]);
     } finally {
       if (mounted) {
         setState(() {
@@ -75,10 +73,7 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
 
     final uri = Uri.parse(
       ApiEndpoints.nutritionFoodSuggestions,
-    ).replace(queryParameters: {
-      'q': query.trim(),
-      'limit': '10',
-    });
+    ).replace(queryParameters: {'q': query.trim(), 'limit': '10'});
     final response = await Get.find<AuthorizedPigeon>().get(uri.toString());
     final root = response.data;
     final data = root is Map<String, dynamic> ? root['data'] : null;
@@ -108,11 +103,7 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
     }
 
     final uri = Uri.parse(ApiEndpoints.nutritionFoodSearch).replace(
-      queryParameters: {
-        'query': query.trim(),
-        'page': '1',
-        'pageSize': '20',
-      },
+      queryParameters: {'query': query.trim(), 'page': '1', 'pageSize': '20'},
     );
     final response = await Get.find<AuthorizedPigeon>().get(uri.toString());
     final root = response.data;
@@ -187,13 +178,21 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
                   decoration: InputDecoration(
                     hintText: 'Search foods',
                     hintStyle: TextStyle(color: Colors.grey[500]),
-                    prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 22),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.grey[400],
+                      size: 22,
+                    ),
                     suffixIcon: IconButton(
                       onPressed: () {
                         _searchController.clear();
                         _searchNow('');
                       },
-                      icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -266,14 +265,21 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
                       title: food.description,
                       calories: '${food.caloriesKcal.toStringAsFixed(0)} kcal',
                       subtitle: food.portionSubtitle,
-                      onAddTap: () {
-                        Get.to(
+                      onAddTap: () async {
+                        final tracked = await Get.to<bool>(
                           () => FoodDetailScreen(
                             fdcId: food.fdcId,
                             mealType: widget.mealType,
-                            entryDate: _toApiDate(widget.date ?? DateTime.now()),
+                            entryDate: _toApiDate(
+                              widget.date ?? DateTime.now(),
+                            ),
                           ),
                         );
+
+                        if (tracked == true &&
+                            Get.isRegistered<CalculatorController>()) {
+                          await Get.find<CalculatorController>().fetchDiary();
+                        }
                       },
                     );
                   },
@@ -333,17 +339,18 @@ class FoodTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         calories,
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Colors.grey[400], fontSize: 13),
                       ),
                     ],
                     if (subtitle != null) ...[
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.edit_outlined, size: 14, color: Colors.grey[400]),
+                          Icon(
+                            Icons.edit_outlined,
+                            size: 14,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
@@ -373,11 +380,7 @@ class FoodTile extends StatelessWidget {
                     border: Border.all(color: Colors.white30),
                     color: Colors.transparent,
                   ),
-                  child: const Icon(
-                    Icons.add,
-                    size: 20,
-                    color: Colors.white,
-                  ),
+                  child: const Icon(Icons.add, size: 20, color: Colors.white),
                 ),
               ),
             ],
