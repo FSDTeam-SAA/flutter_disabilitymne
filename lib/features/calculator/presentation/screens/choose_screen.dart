@@ -278,7 +278,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                             Expanded(
                               flex: 4,
                               child: DropdownButtonFormField<_PortionOption>(
-                                value: _selectedPortion,
+                                initialValue: _selectedPortion,
                                 dropdownColor: const Color(0xFF1D222F),
                                 icon: const Icon(
                                   Icons.keyboard_arrow_down,
@@ -322,7 +322,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
-                          value: _selectedMeal,
+                          initialValue: _selectedMeal,
                           dropdownColor: const Color(0xFF1D222F),
                           icon: const Icon(
                             Icons.keyboard_arrow_down,

@@ -73,4 +73,61 @@ final class CalculatorInterfaceImpl extends CalculatorInterface {
       },
     );
   }
+
+  @override
+  FutureRequest<Success<NutritionHistoryPage>> getNutritionHistory({
+    int page = 1,
+    int limit = 30,
+    String? mealType,
+    String? query,
+  }) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final queryParams = <String, String>{
+          'page': page.toString(),
+          'limit': limit.toString(),
+          if (mealType != null && mealType.isNotEmpty) 'mealType': mealType,
+          if (query != null && query.trim().isNotEmpty) 'query': query.trim(),
+        };
+        final uri = Uri.parse(ApiEndpoints.nutritionHistory)
+            .replace(queryParameters: queryParams);
+        final response = await appPigeon.get(uri.toString());
+        debugPrint('GET NUTRITION HISTORY RESPONSE => ${response.data}');
+        final data = extractBodyData(response);
+        if (data is! Map) {
+          throw Exception('Invalid nutrition history response');
+        }
+        return Success(
+          data: NutritionHistoryPage.fromJson(
+              Map<String, dynamic>.from(data)),
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
+  }
+
+  @override
+  FutureRequest<Success<NutritionFavoriteSections>>
+      getNutritionFavoriteSections({
+    int limit = 50,
+  }) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final uri = Uri.parse(ApiEndpoints.nutritionFavoriteSections)
+            .replace(queryParameters: {'limit': limit.toString()});
+        final response = await appPigeon.get(uri.toString());
+        debugPrint(
+            'GET NUTRITION FAVORITE SECTIONS RESPONSE => ${response.data}');
+        final data = extractBodyData(response);
+        if (data is! Map) {
+          throw Exception('Invalid favorite sections response');
+        }
+        return Success(
+          data: NutritionFavoriteSections.fromJson(
+              Map<String, dynamic>.from(data)),
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
+  }
 }
