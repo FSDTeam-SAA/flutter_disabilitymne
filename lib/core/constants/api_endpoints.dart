@@ -22,8 +22,11 @@ base class ApiEndpoints {
   static const String sendReport = _Report.sendReport;
 
   //-------------------------Program--------------------------
+  static const String getExplorePrograms = _Program.getExplorePrograms;
+  static const String getMyPrograms = _Program.getMyPrograms;
   static const String getAllPrograms = _Program.getAllPrograms;
   static String getProgramDetail(String id) => _Program.getProgramDetails(id);
+  static String startProgram(String id) => _Program.startProgram(id);
 
   static const String getAllLibrary = _Excerise.getAllLibrary;
   static String getLibraryDetail(String id) => _Excerise.getLibraryDetails(id);
@@ -155,8 +158,11 @@ class _HelpSupport {
 //------------------------------ Program -----------------------------
 class _Program {
   static const String _programRoute = '${ApiEndpoints.baseUrl}/programs';
+  static const String getExplorePrograms = '$_programRoute/explore';
+  static const String getMyPrograms = '$_programRoute/my';
   static const String getAllPrograms = '$_programRoute/all';
   static String getProgramDetails(String id) => '$_programRoute/$id';
+  static String startProgram(String id) => '$_programRoute/$id/start';
 }
 
 class _Excerise {

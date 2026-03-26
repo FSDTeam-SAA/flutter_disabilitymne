@@ -35,10 +35,30 @@ final class ProgramInterfaceImpl extends ProgramInterface {
     return await asyncTryCatch(
       tryFunc: () async {
         final response = await appPigeon.get(
-          ApiEndpoints.getAllPrograms,
+          ApiEndpoints.getExplorePrograms,
           data: params.toJson(),
         );
         debugPrint('GET EXPLORE PROGRAM RESPONSE => ${response.data}');
+        final programs = ProgramModel.fromJsonList(response.data['data']);
+        return Success(
+          data: programs,
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
+  }
+
+  @override
+  FutureRequest<Success<List<ProgramModel>>> getMyPrograms(
+    ProgramModel params,
+  ) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.get(
+          ApiEndpoints.getMyPrograms,
+          data: params.toJson(),
+        );
+        debugPrint('GET MY PROGRAM RESPONSE => ${response.data}');
         final programs = ProgramModel.fromJsonList(response.data['data']);
         return Success(
           data: programs,
@@ -89,31 +109,58 @@ final class ProgramInterfaceImpl extends ProgramInterface {
   }
 
   @override
+  FutureRequest<Success<ProgramModel>> startProgram(ProgramModel params) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.post(
+          ApiEndpoints.startProgram(params.id ?? ''),
+        );
+        debugPrint('START PROGRAM RESPONSE => ${response.data}');
+        final programDetail = ProgramModel.fromJson(response.data['data']);
+        return Success(
+          data: programDetail,
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
+  }
+
+  @override
   FutureRequest<Success<ExerciseData>> getExercisesData(
     ExerciseData params,
   ) async {
-    return await asyncTryCatch(tryFunc: () async {
-      final response = await appPigeon.get(
-        ApiEndpoints.getExcerisesData(params.exercise.id),
-      );
-      debugPrint('GET EXERCISES RESPONSE => ${response.data}');
-      final exercise = ExerciseData.fromJson(response.data['data']);
-      return Success(data: exercise, message: extractSuccessMessage(response));
-    });
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.get(
+          ApiEndpoints.getExcerisesData(params.exercise.id),
+        );
+        debugPrint('GET EXERCISES RESPONSE => ${response.data}');
+        final exercise = ExerciseData.fromJson(response.data['data']);
+        return Success(
+          data: exercise,
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
   }
 
   @override
   FutureRequest<Success<ExerciseData>> putExercisesData(
     ExerciseData params,
   ) async {
-    return await asyncTryCatch(tryFunc: () async {
-      final response = await appPigeon.put(
-        ApiEndpoints.putExcerisesData(params.exercise.id),
-        data: params.toJson(),
-      );
-      debugPrint('PUT EXERCISES RESPONSE => ${response.data}');
-      final exercise = ExerciseData.fromJson(response.data['data']);
-      return Success(data: exercise, message: extractSuccessMessage(response));
-    });
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.put(
+          ApiEndpoints.putExcerisesData(params.exercise.id),
+          data: params.toJson(),
+        );
+        debugPrint('PUT EXERCISES RESPONSE => ${response.data}');
+        final exercise = ExerciseData.fromJson(response.data['data']);
+        return Success(
+          data: exercise,
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
   }
 }

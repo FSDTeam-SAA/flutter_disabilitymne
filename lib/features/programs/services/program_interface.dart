@@ -10,13 +10,11 @@ abstract base class ProgramInterface extends BaseRepository {
   FutureRequest<Success<List<ProgramModel>>> getExploreProgram(
     ProgramModel params,
   );
+  FutureRequest<Success<List<ProgramModel>>> getMyPrograms(ProgramModel params);
   FutureRequest<Success<LibraryModel>> getLibraryDetail(LibraryModel params);
   FutureRequest<Success<ProgramModel>> getProgramDetail(ProgramModel params);
+  FutureRequest<Success<ProgramModel>> startProgram(ProgramModel params);
 
-  FutureRequest<Success<ExerciseData>> getExercisesData(
-    ExerciseData params,
-  );
-  FutureRequest<Success<ExerciseData>> putExercisesData(
-    ExerciseData params,
-  );
+  FutureRequest<Success<ExerciseData>> getExercisesData(ExerciseData params);
+  FutureRequest<Success<ExerciseData>> putExercisesData(ExerciseData params);
 }

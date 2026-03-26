@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/programs/presentation/widgets/explore_program_widget.dart';
 import 'package:disabilitymne/features/programs/presentation/widgets/library_widget.dart';
+import 'package:disabilitymne/features/programs/presentation/widgets/my_program_widget.dart';
 import 'package:flutter/material.dart';
 
 class ProgramsScreen extends StatefulWidget {
@@ -96,11 +97,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
             Expanded(
               child: IndexedStack(
                 index: selectedTab,
-                children: [
-                  Scaffold(),
-                  ExploreWidget(),
-                  LibraryWidget(),
-                ],
+                children: [MyProgramWidget(), ExploreWidget(), LibraryWidget()],
               ),
             ),
           ],

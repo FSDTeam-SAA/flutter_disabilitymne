@@ -1,13 +1,47 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/programs/controller/my_program_controller.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_screen.dart';
+import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:flutter/material.dart';
-import 'package:get/route_manager.dart';
+import 'package:get/get.dart';
 
 class ReadyStartScreen extends StatelessWidget {
   final ProgramModel program;
   const ReadyStartScreen({super.key, required this.program});
+
+  Future<void> _startProgramTracking() async {
+    if (program.id == null || program.id!.isEmpty) {
+      return;
+    }
+
+    final response = await Get.find<ProgramInterface>().startProgram(
+      ProgramModel(id: program.id),
+    );
+
+    response.fold(
+      (error) {
+        Get.snackbar("Error", error.uiMessage);
+      },
+      (_) {
+        if (Get.isRegistered<MyProgramController>()) {
+          Get.find<MyProgramController>().getPrograms(showLoader: false);
+        }
+      },
+    );
+  }
+
+  void _goToWorkout() {
+    if (program.exercises != null &&
+        program.exercises!.isNotEmpty &&
+        program.exercises!.first.executionMode == 'countdown') {
+      Get.to(() => ExerciseWorkoutScreen(program: program, initialIndex: 0));
+      return;
+    }
+
+    Get.to(() => ExerciseScreen(program: program, initialIndex: 0));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,22 +127,9 @@ class ReadyStartScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () {
-                      if (program.exercises != null &&
-                          program.exercises!.isNotEmpty &&
-                          program.exercises!.first.executionMode ==
-                              'countdown') {
-                        Get.to(
-                          () => ExerciseWorkoutScreen(
-                            program: program,
-                            initialIndex: 0,
-                          ),
-                        );
-                      } else {
-                        Get.to(
-                          () => ExerciseScreen(program: program, initialIndex: 0),
-                        );
-                      }
+                    onPressed: () async {
+                      await _startProgramTracking();
+                      _goToWorkout();
                     },
                     child: const Text(
                       "I'm Ready",
