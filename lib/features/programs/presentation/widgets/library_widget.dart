@@ -98,13 +98,29 @@ class ExerciseCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    model.exerciseImage ??
-                        "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b",
-                    height: 70,
-                    width: 70,
-                    fit: BoxFit.cover,
-                  ),
+                  child: model.exerciseImage == null ||
+                          model.exerciseImage!.isEmpty
+                      ? Container(
+                          height: 70,
+                          width: 70,
+                          color: Colors.white12,
+                          child: const Icon(Icons.image_not_supported,
+                              color: Colors.white54, size: 30),
+                        )
+                      : Image.network(
+                          model.exerciseImage!,
+                          height: 70,
+                          width: 70,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                            height: 70,
+                            width: 70,
+                            color: Colors.white12,
+                            child: const Icon(Icons.image_not_supported,
+                                color: Colors.white54, size: 30),
+                          ),
+                        ),
                 ),
 
                 Container(

@@ -67,35 +67,53 @@ class ProgramCard extends StatelessWidget {
         height: 160,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          image: DecorationImage(
-            image: NetworkImage(
-              image ?? "https://via.placeholder.com/400x200.png?text=Program",
-            ),
-            fit: BoxFit.cover,
-          ),
+          color: Colors.white12,
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                Colors.black.withOpacity(0.2),
-                Colors.black.withOpacity(0.8),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: image == null || image!.isEmpty
+                    ? const Center(
+                        child: Icon(Icons.image_not_supported,
+                            color: Colors.white54, size: 50),
+                      )
+                    : Image.network(
+                        image!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Center(
+                          child: Icon(Icons.image_not_supported,
+                              color: Colors.white54, size: 50),
+                        ),
+                      ),
+              ),
             ),
-          ),
-          padding: const EdgeInsets.all(20),
-          alignment: Alignment.bottomLeft,
-          child: Text(
-            title ?? "",
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withOpacity(0.2),
+                    Colors.black.withOpacity(0.8),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              padding: const EdgeInsets.all(20),
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                title ?? "",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
