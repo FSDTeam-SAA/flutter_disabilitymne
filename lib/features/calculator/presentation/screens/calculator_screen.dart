@@ -160,22 +160,27 @@ class CalculatorScreen extends GetView<CalculatorController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Column(
-                        children: [
-                          Text(
-                            "Eaten",
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "${eatenKcal.toStringAsFixed(0)} kcal",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Column(
+                          children: [
+                            const Text(
+                              "Eaten",
+                              style: TextStyle(color: Colors.white70),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "${eatenKcal.toStringAsFixed(0)} kcal",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(
                         height: 220,
@@ -241,46 +246,57 @@ class CalculatorScreen extends GetView<CalculatorController> {
                           ],
                         ),
                       ),
-                      Column(
-                        children: [
-                          Text(
-                            "Burned",
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "${burnedKcal.toStringAsFixed(0)} kcal",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Column(
+                          children: [
+                            const Text(
+                              "Burned",
+                              style: TextStyle(color: Colors.white70),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "${burnedKcal.toStringAsFixed(0)} kcal",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      MacroCard(
-                        title: 'Carbs',
-                        value:
-                            '${carbs.consumedG} / ${carbs.targetG}g',
-                        progress: (carbs.progressPercent / 100).clamp(0, 1),
+                      Expanded(
+                        child: MacroCard(
+                          title: 'Carbs',
+                          value: '${carbs.consumedG} / ${carbs.targetG}g',
+                          progress: (carbs.progressPercent / 100).clamp(0, 1),
+                        ),
                       ),
-                      MacroCard(
-                        title: 'Protein',
-                        value:
-                            '${protein.consumedG.toStringAsFixed(0)} / ${protein.targetG.toStringAsFixed(0)}g',
-                        progress: (protein.progressPercent / 100).clamp(0, 1),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: MacroCard(
+                          title: 'Protein',
+                          value:
+                              '${protein.consumedG.toStringAsFixed(0)} / ${protein.targetG.toStringAsFixed(0)}g',
+                          progress: (protein.progressPercent / 100).clamp(0, 1),
+                        ),
                       ),
-                      MacroCard(
-                        title: 'Fat',
-                        value:
-                            '${fat.consumedG.toStringAsFixed(0)} / ${fat.targetG.toStringAsFixed(0)}g',
-                        progress: (fat.progressPercent / 100).clamp(0, 1),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: MacroCard(
+                          title: 'Fat',
+                          value:
+                              '${fat.consumedG.toStringAsFixed(0)} / ${fat.targetG.toStringAsFixed(0)}g',
+                          progress: (fat.progressPercent / 100).clamp(0, 1),
+                        ),
                       ),
                     ],
                   ),
@@ -395,7 +411,6 @@ class MacroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: (MediaQuery.of(context).size.width - 48) / 3,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF1B2940),
@@ -406,9 +421,13 @@ class MacroCard extends StatelessWidget {
         children: [
           Text(title, style: const TextStyle(color: Colors.white)),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
