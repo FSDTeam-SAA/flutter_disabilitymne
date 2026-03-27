@@ -6,7 +6,7 @@ class ProgramModel {
   final String? programLevel;
   final String? userType;
   final String? plan;
-  final String? assignedUser;
+  final dynamic assignedUser;
   final String? programDescription;
   final String? safetyNote;
   final String? mobilityType;
@@ -50,32 +50,37 @@ class ProgramModel {
   });
 
   factory ProgramModel.fromJson(Map<String, dynamic> json) {
+    final exercisesJson = json['exercises'] as List? ?? const [];
+
     return ProgramModel(
-      id: json['id'] ?? '',
-      programName: json['programName'] ?? '',
-      programDuration: json['programDuration'] ?? '',
-      durationMinutes: json['durationMinutes'] ?? 0,
-      programLevel: json['programLevel'] ?? '',
-      userType: json['userType'] ?? '',
-      plan: json['plan'] ?? '',
+      id: json['id']?.toString() ?? '',
+      programName: json['programName']?.toString() ?? '',
+      programDuration: json['programDuration']?.toString() ?? '',
+      durationMinutes: _toInt(json['durationMinutes']),
+      programLevel: json['programLevel']?.toString() ?? '',
+      userType: json['userType']?.toString() ?? '',
+      plan: json['plan']?.toString() ?? '',
       assignedUser: json['assignedUser'],
-      programDescription: json['programDescription'] ?? '',
-      safetyNote: json['safetyNote'] ?? '',
-      mobilityType: json['mobilityType'] ?? '',
-      weekCount: json['weekCount'] ?? 0,
-      totalExercises: json['totalExercises'] ?? 0,
-      exerciseIds: List<String>.from(json['exerciseIds'] ?? []),
-      exercises: (json['exercises'] as List)
-          .map((e) => ProgramExerciseModel.fromJson(e))
+      programDescription: json['programDescription']?.toString() ?? '',
+      safetyNote: json['safetyNote']?.toString() ?? '',
+      mobilityType: json['mobilityType']?.toString() ?? '',
+      weekCount: _toInt(json['weekCount']),
+      totalExercises: _toInt(json['totalExercises']),
+      exerciseIds: _toStringList(json['exerciseIds']),
+      exercises: exercisesJson
+          .whereType<Map>()
+          .map(
+            (e) => ProgramExerciseModel.fromJson(Map<String, dynamic>.from(e)),
+          )
           .toList(),
-      status: json['status'] ?? '',
+      status: json['status']?.toString() ?? '',
       isActive: json['isActive'] ?? false,
-      programImage: json['programImage'] ?? '',
-      programThumbnail: json['programThumbnail'] ?? '',
-      programImages: List<String>.from(json['programImages'] ?? []),
-      programThumbnails: List<String>.from(json['programThumbnails'] ?? []),
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      programImage: json['programImage']?.toString() ?? '',
+      programThumbnail: json['programThumbnail']?.toString() ?? '',
+      programImages: _toStringList(json['programImages']),
+      programThumbnails: _toStringList(json['programThumbnails']),
+      createdAt: _toDateTime(json['createdAt']),
+      updatedAt: _toDateTime(json['updatedAt']),
     );
   }
   // toJson method
@@ -107,8 +112,15 @@ class ProgramModel {
     };
   }
 
-  static List<ProgramModel> fromJsonList(List data) {
-    return data.map((e) => ProgramModel.fromJson(e)).toList();
+  static List<ProgramModel> fromJsonList(dynamic data) {
+    if (data is! List) {
+      return const [];
+    }
+
+    return data
+        .whereType<Map>()
+        .map((e) => ProgramModel.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 }
 
@@ -119,7 +131,7 @@ class ProgramExerciseModel {
   final int order;
   final String userType;
   final String plan;
-  final String? assignedUser;
+  final dynamic assignedUser;
   final String description;
   final List<String> keyBenefits;
   final List<String> muscleGroups;
@@ -165,29 +177,29 @@ class ProgramExerciseModel {
 
   factory ProgramExerciseModel.fromJson(Map<String, dynamic> json) {
     return ProgramExerciseModel(
-      id: json['id'] ?? '',
-      exerciseName: json['exerciseName'] ?? '',
-      name: json['name'] ?? '',
-      order: json['order'] ?? 0,
-      userType: json['userType'] ?? '',
-      plan: json['plan'] ?? '',
+      id: json['id']?.toString() ?? '',
+      exerciseName: json['exerciseName']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      order: _toInt(json['order']) ?? 0,
+      userType: json['userType']?.toString() ?? '',
+      plan: json['plan']?.toString() ?? '',
       assignedUser: json['assignedUser'],
-      description: json['description'] ?? '',
-      keyBenefits: List<String>.from(json['keyBenefits'] ?? []),
-      muscleGroups: List<String>.from(json['muscleGroups'] ?? []),
-      exerciseImages: List<String>.from(json['exerciseImages'] ?? []),
-      image: json['image'] ?? '',
-      targetMuscleImages: List<String>.from(json['targetMuscleImages'] ?? []),
-      targetMuscleImage: json['targetMuscleImage'] ?? '',
-      demoVideos: List<String>.from(json['demoVideos'] ?? []),
-      demoVideo: json['demoVideo'] ?? '',
-      defaultSets: json['defaultSets'] ?? [],
-      durationSeconds: json['durationSeconds'],
-      calories: json['calories'],
+      description: json['description']?.toString() ?? '',
+      keyBenefits: _toStringList(json['keyBenefits']),
+      muscleGroups: _toStringList(json['muscleGroups']),
+      exerciseImages: _toStringList(json['exerciseImages']),
+      image: json['image']?.toString() ?? '',
+      targetMuscleImages: _toStringList(json['targetMuscleImages']),
+      targetMuscleImage: json['targetMuscleImage']?.toString() ?? '',
+      demoVideos: _toStringList(json['demoVideos']),
+      demoVideo: json['demoVideo']?.toString() ?? '',
+      defaultSets: (json['defaultSets'] as List? ?? const []),
+      durationSeconds: _toInt(json['durationSeconds']),
+      calories: _toInt(json['calories']),
       isVisibleInLibrary: json['isVisibleInLibrary'] ?? false,
-      status: json['status'] ?? '',
+      status: json['status']?.toString() ?? '',
       isActive: json['isActive'] ?? false,
-      executionMode: json['executionMode'],
+      executionMode: json['executionMode']?.toString(),
     );
   }
 
@@ -219,4 +231,27 @@ class ProgramExerciseModel {
       'executionMode': executionMode,
     };
   }
+}
+
+int? _toInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
+}
+
+DateTime? _toDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  return DateTime.tryParse(value.toString());
+}
+
+List<String> _toStringList(dynamic value) {
+  if (value is! List) {
+    return const [];
+  }
+
+  return value
+      .where((item) => item != null)
+      .map((item) => item.toString())
+      .toList();
 }

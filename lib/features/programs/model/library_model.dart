@@ -3,7 +3,7 @@ class LibraryModel {
   final String? exerciseName;
   final String? userType;
   final String? plan;
-  final String? assignedUser;
+  final dynamic assignedUser;
   final String? description;
   final List<String>? keyBenefits;
   final List<String>? muscleGroups;
@@ -47,37 +47,40 @@ class LibraryModel {
 
   factory LibraryModel.fromJson(Map<String, dynamic> json) {
     return LibraryModel(
-      id: json['id'] ?? '',
-      exerciseName: json['exerciseName'] ?? '',
-      userType: json['userType'] ?? '',
-      plan: json['plan'] ?? '',
+      id: json['id']?.toString() ?? '',
+      exerciseName: json['exerciseName']?.toString() ?? '',
+      userType: json['userType']?.toString() ?? '',
+      plan: json['plan']?.toString() ?? '',
       assignedUser: json['assignedUser'],
-      description: json['description'] ?? '',
-      keyBenefits: List<String>.from(json['keyBenefits'] ?? []),
-      muscleGroups: List<String>.from(json['muscleGroups'] ?? []),
-      exerciseImage: json['exerciseImage'] ?? '',
-      demoVideo: json['demoVideo'] ?? '',
-      targetMuscleImage: json['targetMuscleImage'] ?? '',
-      exerciseImages: List<String>.from(json['exerciseImages'] ?? []),
-      targetMuscleImages: List<String>.from(json['targetMuscleImages'] ?? []),
-      demoVideos: List<String>.from(json['demoVideos'] ?? []),
+      description: json['description']?.toString() ?? '',
+      keyBenefits: _toStringList(json['keyBenefits']),
+      muscleGroups: _toStringList(json['muscleGroups']),
+      exerciseImage: json['exerciseImage']?.toString() ?? '',
+      demoVideo: json['demoVideo']?.toString() ?? '',
+      targetMuscleImage: json['targetMuscleImage']?.toString() ?? '',
+      exerciseImages: _toStringList(json['exerciseImages']),
+      targetMuscleImages: _toStringList(json['targetMuscleImages']),
+      demoVideos: _toStringList(json['demoVideos']),
       isVisibleInLibrary: json['isVisibleInLibrary'] ?? false,
-      status: json['status'] ?? '',
+      status: json['status']?.toString() ?? '',
       isActive: json['isActive'] ?? false,
-      programNames: List<String>.from(json['programNames'] ?? []),
-      programCount: json['programCount'] ?? 0,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
-          : null,
+      programNames: _toStringList(json['programNames']),
+      programCount: _toInt(json['programCount']),
+      createdAt: _toDateTime(json['createdAt']),
+      updatedAt: _toDateTime(json['updatedAt']),
     );
   }
 
   /// Convert List
-  static List<LibraryModel> fromJsonList(List data) {
-    return data.map((e) => LibraryModel.fromJson(e)).toList();
+  static List<LibraryModel> fromJsonList(dynamic data) {
+    if (data is! List) {
+      return const [];
+    }
+
+    return data
+        .whereType<Map>()
+        .map((e) => LibraryModel.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   /// For API params
@@ -106,4 +109,27 @@ class LibraryModel {
       "updatedAt": updatedAt?.toIso8601String(),
     };
   }
+}
+
+int? _toInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
+}
+
+DateTime? _toDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  return DateTime.tryParse(value.toString());
+}
+
+List<String> _toStringList(dynamic value) {
+  if (value is! List) {
+    return const [];
+  }
+
+  return value
+      .where((item) => item != null)
+      .map((item) => item.toString())
+      .toList();
 }
