@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/programs/controller/workout_session_controller.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
+import 'package:disabilitymne/features/programs/model/model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_screen.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +12,18 @@ import 'package:chewie/chewie.dart';
 
 class ExerciseWorkoutScreen extends StatefulWidget {
   final ProgramModel program;
+  final int dayIndex;
+  final String dayLabel;
+  final List<ProgramExerciseModel> dayExercises;
+  final String sessionTag;
   final int initialIndex;
   const ExerciseWorkoutScreen({
     super.key,
     required this.program,
+    required this.dayIndex,
+    required this.dayLabel,
+    required this.dayExercises,
+    required this.sessionTag,
     this.initialIndex = 0,
   });
 
@@ -53,7 +63,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
   }
 
   Future<void> _initializeExerciseVideo() async {
-    final exercises = widget.program.exercises ?? [];
+    final exercises = widget.dayExercises;
     if (exercises.isEmpty || currentExerciseIndex >= exercises.length) return;
 
     final currentExercise = exercises[currentExerciseIndex];
@@ -148,35 +158,70 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
     _timer = null;
   }
 
-
   void nextExercise() {
-    final totalExercises = widget.program.exercises?.length ?? 0;
+    final exercises = widget.dayExercises;
+    final totalExercises = exercises.length;
+    final currentExercise = exercises.isNotEmpty &&
+            currentExerciseIndex >= 0 &&
+            currentExerciseIndex < exercises.length
+        ? exercises[currentExerciseIndex]
+        : null;
+
+    if (currentExercise != null &&
+        Get.isRegistered<WorkoutSessionController>(tag: widget.sessionTag)) {
+      final sessionController =
+          Get.find<WorkoutSessionController>(tag: widget.sessionTag);
+      sessionController.markExerciseCompleted(
+        exercise: currentExercise,
+        sets: _defaultSetsFromExercise(currentExercise),
+        durationMinutes: (seconds / 60).ceil(),
+      );
+    }
+
     if (currentExerciseIndex < totalExercises - 1) {
       final nextIdx = currentExerciseIndex + 1;
-      final nextExecMode = widget.program.exercises![nextIdx].executionMode;
+      final nextExecMode = exercises[nextIdx].executionMode;
 
       if (nextExecMode == 'countdown') {
         Get.to(
           () => ExerciseWorkoutScreen(
             program: widget.program,
+            dayIndex: widget.dayIndex,
+            dayLabel: widget.dayLabel,
+            dayExercises: widget.dayExercises,
+            sessionTag: widget.sessionTag,
             initialIndex: nextIdx,
           ),
           preventDuplicates: false,
         );
       } else {
         Get.to(
-          () => ExerciseScreen(program: widget.program, initialIndex: nextIdx),
+          () => ExerciseScreen(
+            program: widget.program,
+            dayIndex: widget.dayIndex,
+            dayLabel: widget.dayLabel,
+            dayExercises: widget.dayExercises,
+            sessionTag: widget.sessionTag,
+            initialIndex: nextIdx,
+          ),
           preventDuplicates: false,
         );
       }
     } else {
-      Get.to(() => WorkoutCompleteScreen());
+      Get.to(
+        () => WorkoutCompleteScreen(
+          program: widget.program,
+          dayIndex: widget.dayIndex,
+          dayLabel: widget.dayLabel,
+          sessionTag: widget.sessionTag,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final exercises = widget.program.exercises ?? [];
+    final exercises = widget.dayExercises;
     final currentExercise = exercises.isNotEmpty
         ? exercises[currentExerciseIndex]
         : null;
@@ -479,5 +524,32 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
         ),
       ),
     );
+  }
+
+  List<SetModel> _defaultSetsFromExercise(ProgramExerciseModel exercise) {
+    if (exercise.defaultSets.isEmpty) {
+      return const [];
+    }
+
+    final List<SetModel> sets = [];
+    for (var i = 0; i < exercise.defaultSets.length; i++) {
+      final item = exercise.defaultSets[i];
+      if (item is! Map) {
+        continue;
+      }
+
+      final setNumber = _safeInt(item['setNumber']) ?? (i + 1);
+      final reps = _safeInt(item['reps']) ?? 0;
+      final weightKg = _safeInt(item['weightKg']) ?? 0;
+      sets.add(SetModel(setNumber: setNumber, reps: reps, weightKg: weightKg));
+    }
+
+    return sets;
+  }
+
+  int? _safeInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
   }
 }

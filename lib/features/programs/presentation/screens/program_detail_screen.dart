@@ -290,7 +290,11 @@ class ProgramDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ProgramDetailController(program));
+    final controllerTag = 'program-detail-${program.id ?? program.programName ?? 'program'}';
+    final controller = Get.put(
+      ProgramDetailController(program),
+      tag: controllerTag,
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xff0E1A2B),
@@ -309,27 +313,45 @@ class ProgramDetailScreen extends StatelessWidget {
 
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// Banner Image
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      controller.image,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
+          Obx(() {
+            final selectedWorkoutDay = controller.selectedWorkoutDay;
+            final selectedDayLabel = selectedWorkoutDay?.dayLabel.isNotEmpty == true
+                ? selectedWorkoutDay!.dayLabel
+                : 'Today';
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Banner Image
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: controller.image.isNotEmpty
+                          ? Image.network(
+                              controller.image,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              height: 200,
+                              width: double.infinity,
+                              color: const Color(0xff1C2533),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.image_not_supported,
+                                color: Colors.white38,
+                                size: 36,
+                              ),
+                            ),
                     ),
                   ),
-                ),
 
                 const SizedBox(height: 16),
                 Padding(
@@ -362,7 +384,57 @@ class ProgramDetailScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  /// Workout Day Selector
+                  if (controller.workoutDays.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Workout Day",
+                            style: AppText.mdSemiBold_16_600.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: controller.workoutDays.map((day) {
+                                final isSelected = controller.selectedDayIndex.value == day.dayIndex;
+                                return GestureDetector(
+                                  onTap: () => controller.selectWorkoutDay(day.dayIndex),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(right: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: isSelected ? const Color(0xff6FA8DC) : Colors.white.withOpacity(0.06),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? const Color(0xff9bd8ff)
+                                            : const Color(0xFF70A9D2).withOpacity(0.5),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      day.dayLabel.isNotEmpty ? day.dayLabel : "Day ${day.dayIndex}",
+                                      style: AppText.xsRegular_12_400.copyWith(
+                                        color: isSelected ? Colors.white : const Color(0xFF70A9D2),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  const SizedBox(height: 24),
 
                 /// Description
                 Padding(
@@ -438,41 +510,48 @@ class ProgramDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                /// Exercise List
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${controller.totalExercises} Exercise in this workout plan",
-                        style: AppText.lgMedium_18_500.copyWith(
-                          color: Colors.white,
+                  /// Exercise List
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "${controller.exercises.length} Exercise for $selectedDayLabel",
+                          style: AppText.lgMedium_18_500.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: controller.exercises.length,
-                        itemBuilder: (context, index) {
-                          final exercise = controller.exercises[index];
+                        if (controller.exercises.isEmpty)
+                          Text(
+                            "No exercises scheduled for this day.",
+                            style: AppText.smRegular_14_400.copyWith(color: Colors.white70),
+                          )
+                        else
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: controller.exercises.length,
+                            itemBuilder: (context, index) {
+                              final exercise = controller.exercises[index];
 
-                          return _buildWorkoutStep(
-                            index + 1,
-                            exercise.exerciseName,
-                            index == controller.exercises.length - 1,
-                          );
-                        },
-                      ),
-                    ],
+                              return _buildWorkoutStep(
+                                index + 1,
+                                exercise.exerciseName,
+                                index == controller.exercises.length - 1,
+                              );
+                            },
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                ],
+              ),
+            );
+          }),
 
           /// Start Workout Button
           Positioned(
@@ -489,7 +568,20 @@ class ProgramDetailScreen extends StatelessWidget {
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  Get.to(() => ReadyStartScreen(program: controller.program));
+                  final selectedWorkoutDay = controller.selectedWorkoutDay;
+                  if (selectedWorkoutDay == null || selectedWorkoutDay.exercises.isEmpty) {
+                    Get.snackbar("No workout available", "Select a day with assigned exercises.");
+                    return;
+                  }
+
+                  Get.to(
+                    () => ReadyStartScreen(
+                      program: controller.program,
+                      dayIndex: selectedWorkoutDay.dayIndex,
+                      dayLabel: selectedWorkoutDay.dayLabel,
+                      dayExercises: selectedWorkoutDay.exercises,
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,

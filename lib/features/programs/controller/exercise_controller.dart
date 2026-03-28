@@ -144,9 +144,9 @@ class ExerciseController extends GetxController {
     
     final List<SetModel> updatedSets = [];
     for (int i = 0; i < setControllers.length; i++) {
-        final kg = int.tryParse(setControllers[i]['kg']?.text ?? '0') ?? 0;
-        final reps = int.tryParse(setControllers[i]['reps']?.text ?? '0') ?? 0;
-        updatedSets.add(SetModel(setNumber: i + 1, reps: reps, weightKg: kg));
+      final kg = int.tryParse(setControllers[i]['kg']?.text ?? '0') ?? 0;
+      final reps = int.tryParse(setControllers[i]['reps']?.text ?? '0') ?? 0;
+      updatedSets.add(SetModel(setNumber: i + 1, reps: reps, weightKg: kg));
     }
 
     // Use existing data if available, otherwise create a minimal default object
@@ -178,5 +178,16 @@ class ExerciseController extends GetxController {
         Get.snackbar("Success", "Exercise settings saved successfully.");
       },
     );
+  }
+
+  List<SetModel> getCurrentSets() {
+    final List<SetModel> currentSets = [];
+    for (int i = 0; i < setControllers.length; i++) {
+      final kg = int.tryParse(setControllers[i]['kg']?.text ?? '0') ?? 0;
+      final reps = int.tryParse(setControllers[i]['reps']?.text ?? '0') ?? 0;
+      currentSets.add(SetModel(setNumber: i + 1, reps: reps, weightKg: kg));
+    }
+
+    return currentSets;
   }
 }

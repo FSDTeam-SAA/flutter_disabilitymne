@@ -17,4 +17,7 @@ abstract base class ProgramInterface extends BaseRepository {
 
   FutureRequest<Success<ExerciseData>> getExercisesData(ExerciseData params);
   FutureRequest<Success<ExerciseData>> putExercisesData(ExerciseData params);
+  FutureRequest<Success<NoData>> completeWorkoutSession(
+    Map<String, dynamic> payload,
+  );
 }

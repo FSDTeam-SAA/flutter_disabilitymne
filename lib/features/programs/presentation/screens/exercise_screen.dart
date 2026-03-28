@@ -1,4 +1,5 @@
 import 'package:disabilitymne/features/programs/controller/exercise_controller.dart';
+import 'package:disabilitymne/features/programs/controller/workout_session_controller.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
@@ -10,10 +11,18 @@ import 'package:chewie/chewie.dart';
 
 class ExerciseScreen extends StatefulWidget {
   final ProgramModel program;
+  final int dayIndex;
+  final String dayLabel;
+  final List<ProgramExerciseModel> dayExercises;
+  final String sessionTag;
   final int initialIndex;
   const ExerciseScreen({
     super.key,
     required this.program,
+    required this.dayIndex,
+    required this.dayLabel,
+    required this.dayExercises,
+    required this.sessionTag,
     this.initialIndex = 0,
   });
 
@@ -33,7 +42,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   void initState() {
     super.initState();
     currentExerciseIndex = widget.initialIndex;
-    final exercises = widget.program.exercises ?? [];
+    final exercises = widget.dayExercises;
     final currentExercise = exercises.isNotEmpty
         ? exercises[currentExerciseIndex]
         : null;
@@ -63,7 +72,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   }
 
   Future<void> _initializeExerciseVideo() async {
-    final exercises = widget.program.exercises ?? [];
+    final exercises = widget.dayExercises;
     if (exercises.isEmpty || currentExerciseIndex >= exercises.length) return;
 
     final currentExercise = exercises[currentExerciseIndex];
@@ -115,38 +124,73 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   }
 
   void nextExercise() {
-    final totalExercises = widget.program.exercises?.length ?? 0;
+    final exercises = widget.dayExercises;
+    final totalExercises = exercises.length;
+    final currentExercise = exercises.isNotEmpty &&
+            currentExerciseIndex >= 0 &&
+            currentExerciseIndex < exercises.length
+        ? exercises[currentExerciseIndex]
+        : null;
+
+    if (currentExercise != null &&
+        Get.isRegistered<WorkoutSessionController>(tag: widget.sessionTag)) {
+      final sessionController =
+          Get.find<WorkoutSessionController>(tag: widget.sessionTag);
+      sessionController.markExerciseCompleted(
+        exercise: currentExercise,
+        sets: controller.getCurrentSets(),
+      );
+    }
+
     debugPrint(
       "Next Exercise clicked. Current Index: $currentExerciseIndex, Total: $totalExercises",
     );
 
     if (currentExerciseIndex < totalExercises - 1) {
       final nextIdx = currentExerciseIndex + 1;
-      final nextExecMode = widget.program.exercises![nextIdx].executionMode;
+      final nextExecMode = exercises[nextIdx].executionMode;
 
       if (nextExecMode == 'countdown') {
         Get.to(
           () => ExerciseWorkoutScreen(
             program: widget.program,
+            dayIndex: widget.dayIndex,
+            dayLabel: widget.dayLabel,
+            dayExercises: widget.dayExercises,
+            sessionTag: widget.sessionTag,
             initialIndex: nextIdx,
           ),
           preventDuplicates: false,
         );
       } else {
         Get.to(
-          () => ExerciseScreen(program: widget.program, initialIndex: nextIdx),
+          () => ExerciseScreen(
+            program: widget.program,
+            dayIndex: widget.dayIndex,
+            dayLabel: widget.dayLabel,
+            dayExercises: widget.dayExercises,
+            sessionTag: widget.sessionTag,
+            initialIndex: nextIdx,
+          ),
           preventDuplicates: false,
         );
       }
     } else {
       debugPrint("Exercise completed. Popping back to Program screen.");
-      Get.to(() => WorkoutCompleteScreen());
+      Get.to(
+        () => WorkoutCompleteScreen(
+          program: widget.program,
+          dayIndex: widget.dayIndex,
+          dayLabel: widget.dayLabel,
+          sessionTag: widget.sessionTag,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final exercises = widget.program.exercises ?? [];
+    final exercises = widget.dayExercises;
     final currentExercise = exercises.isNotEmpty
         ? exercises[currentExerciseIndex]
         : null;

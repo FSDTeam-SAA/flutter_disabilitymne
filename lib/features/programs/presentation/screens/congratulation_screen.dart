@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:disabilitymne/features/programs/controller/workout_session_controller.dart';
+import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
+import 'package:disabilitymne/features/programs/services/program_interface.dart';
 
 class WorkoutCompleteScreen extends StatefulWidget {
-  const WorkoutCompleteScreen({super.key});
+  final ProgramModel program;
+  final int dayIndex;
+  final String dayLabel;
+  final String sessionTag;
+
+  const WorkoutCompleteScreen({
+    super.key,
+    required this.program,
+    required this.dayIndex,
+    required this.dayLabel,
+    required this.sessionTag,
+  });
 
   @override
   State<WorkoutCompleteScreen> createState() => _WorkoutCompleteScreenState();
@@ -9,12 +24,97 @@ class WorkoutCompleteScreen extends StatefulWidget {
 
 class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
   int selectedIndex = -1;
+  bool isSubmitting = false;
+  final TextEditingController notesController = TextEditingController();
 
   final List<Map<String, dynamic>> reactions = [
-    {"image": "assets/logo/Group.png", "title": "Easy"},
-    {"image": "assets/logo/Frame.png", "title": "Intermediate"},
-    {"image": "assets/logo/3.png", "title": "Very Hard"},
+    {"image": "assets/logo/Group.png", "title": "Easy", "level": "easy"},
+    {"image": "assets/logo/Frame.png", "title": "Intermediate", "level": "intermediate"},
+    {"image": "assets/logo/3.png", "title": "Very Hard", "level": "very_hard"},
   ];
+
+  @override
+  void dispose() {
+    notesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitWorkoutCompletion() async {
+    if (isSubmitting) return;
+
+    if (widget.program.id == null || widget.program.id!.isEmpty) {
+      Get.snackbar("Error", "Program id is missing. Please try again.");
+      return;
+    }
+
+    if (!Get.isRegistered<WorkoutSessionController>(tag: widget.sessionTag)) {
+      Get.snackbar("Error", "Workout session data was not found.");
+      return;
+    }
+
+    final sessionController = Get.find<WorkoutSessionController>(tag: widget.sessionTag);
+    if (!sessionController.isDayComplete) {
+      Get.snackbar(
+        "Workout incomplete",
+        "Complete all assigned exercises before submitting this day.",
+      );
+      return;
+    }
+
+    final exercisesPayload = sessionController.buildExercisePayload();
+    if (exercisesPayload.isEmpty) {
+      Get.snackbar("Workout incomplete", "No completed exercises found for this session.");
+      return;
+    }
+
+    final payload = <String, dynamic>{
+      'programId': widget.program.id,
+      'dayIndex': widget.dayIndex,
+      'weekStartDate': sessionController.weekStartDate,
+      'tzOffsetMinutes': sessionController.tzOffsetMinutes,
+      'exercises': exercisesPayload,
+    };
+
+    if (selectedIndex >= 0) {
+      payload['experienceLevel'] = reactions[selectedIndex]['level'];
+    }
+
+    final note = notesController.text.trim();
+    if (note.isNotEmpty) {
+      payload['notes'] = note;
+    }
+
+    setState(() {
+      isSubmitting = true;
+    });
+
+    final response = await Get.find<ProgramInterface>().completeWorkoutSession(payload);
+    response.fold(
+      (error) {
+        if (!mounted) return;
+        setState(() {
+          isSubmitting = false;
+        });
+        Get.snackbar("Error", error.uiMessage);
+      },
+      (success) {
+        if (!mounted) return;
+        setState(() {
+          isSubmitting = false;
+        });
+        Get.snackbar("Success", success.message);
+
+        if (Get.isRegistered<WorkoutSessionController>(tag: widget.sessionTag)) {
+          Get.delete<WorkoutSessionController>(tag: widget.sessionTag, force: true);
+        }
+
+        Navigator.popUntil(
+          context,
+          (route) => !Navigator.canPop(context),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +148,14 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
                 "You have completed todays all workout for this program",
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                widget.dayLabel.isNotEmpty ? "Completed: ${widget.dayLabel}" : "Completed day ${widget.dayIndex}",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 13),
               ),
 
               const SizedBox(height: 30),
@@ -122,6 +230,7 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
 
               /// Notes TextField
               TextField(
+                controller: notesController,
                 maxLines: 3,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -147,21 +256,16 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.popUntil(
-                      context,
-                      (route) => !Navigator.canPop(context),
-                    );
-                  },
+                  onPressed: isSubmitting ? null : _submitWorkoutCompletion,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff6FA9D6),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
-                    "Next Program",
-                    style: TextStyle(fontSize: 16),
+                  child: Text(
+                    isSubmitting ? "Submitting..." : "Complete Workout Day",
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ),
@@ -173,7 +277,12 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
                 width: double.infinity,
                 height: 50,
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.popUntil(
+                      context,
+                      (route) => !Navigator.canPop(context),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.white30),
                     shape: RoundedRectangleBorder(

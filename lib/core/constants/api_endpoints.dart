@@ -27,6 +27,7 @@ base class ApiEndpoints {
   static const String getAllPrograms = _Program.getAllPrograms;
   static String getProgramDetail(String id) => _Program.getProgramDetails(id);
   static String startProgram(String id) => _Program.startProgram(id);
+  static const String completeWorkoutSession = _Program.completeWorkoutSession;
 
   static const String getAllLibrary = _Excerise.getAllLibrary;
   static String getLibraryDetail(String id) => _Excerise.getLibraryDetails(id);
@@ -163,6 +164,8 @@ class _Program {
   static const String getAllPrograms = '$_programRoute/all';
   static String getProgramDetails(String id) => '$_programRoute/$id';
   static String startProgram(String id) => '$_programRoute/$id/start';
+  static const String completeWorkoutSession =
+      '${ApiEndpoints.baseUrl}/users/me/workouts/sessions/complete';
 }
 
 class _Excerise {

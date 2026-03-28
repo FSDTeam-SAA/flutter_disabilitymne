@@ -14,6 +14,7 @@ class ProgramModel {
   final int? totalExercises;
   final List<String>? exerciseIds;
   final List<ProgramExerciseModel>? exercises;
+  final List<ProgramWorkoutDay>? workoutDays;
   final String? status;
   final bool? isActive;
   final String? programImage;
@@ -39,6 +40,7 @@ class ProgramModel {
     this.totalExercises,
     this.exerciseIds,
     this.exercises,
+    this.workoutDays,
     this.status,
     this.isActive,
     this.programImage,
@@ -73,6 +75,10 @@ class ProgramModel {
             (e) => ProgramExerciseModel.fromJson(Map<String, dynamic>.from(e)),
           )
           .toList(),
+      workoutDays: (json['workoutDays'] as List? ?? const [])
+          .whereType<Map>()
+          .map((e) => ProgramWorkoutDay.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
       status: json['status']?.toString() ?? '',
       isActive: json['isActive'] ?? false,
       programImage: json['programImage']?.toString() ?? '',
@@ -101,6 +107,7 @@ class ProgramModel {
       'totalExercises': totalExercises,
       'exerciseIds': exerciseIds,
       'exercises': exercises?.map((e) => e.toJson()).toList(),
+      'workoutDays': workoutDays?.map((e) => e.toJson()).toList(),
       'status': status,
       'isActive': isActive,
       'programImage': programImage,
@@ -121,6 +128,47 @@ class ProgramModel {
         .whereType<Map>()
         .map((e) => ProgramModel.fromJson(Map<String, dynamic>.from(e)))
         .toList();
+  }
+}
+
+class ProgramWorkoutDay {
+  final int dayIndex;
+  final String dayLabel;
+  final List<String> exerciseIds;
+  final int totalExercises;
+  final List<ProgramExerciseModel> exercises;
+
+  ProgramWorkoutDay({
+    required this.dayIndex,
+    required this.dayLabel,
+    required this.exerciseIds,
+    required this.totalExercises,
+    required this.exercises,
+  });
+
+  factory ProgramWorkoutDay.fromJson(Map<String, dynamic> json) {
+    final exercisesJson = json['exercises'] as List? ?? const [];
+
+    return ProgramWorkoutDay(
+      dayIndex: _toInt(json['dayIndex']) ?? 0,
+      dayLabel: json['dayLabel']?.toString() ?? '',
+      exerciseIds: _toStringList(json['exerciseIds']),
+      totalExercises: _toInt(json['totalExercises']) ?? 0,
+      exercises: exercisesJson
+          .whereType<Map>()
+          .map((e) => ProgramExerciseModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'dayIndex': dayIndex,
+      'dayLabel': dayLabel,
+      'exerciseIds': exerciseIds,
+      'totalExercises': totalExercises,
+      'exercises': exercises.map((e) => e.toJson()).toList(),
+    };
   }
 }
 

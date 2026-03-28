@@ -163,4 +163,23 @@ final class ProgramInterfaceImpl extends ProgramInterface {
       },
     );
   }
+
+  @override
+  FutureRequest<Success<NoData>> completeWorkoutSession(
+    Map<String, dynamic> payload,
+  ) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.post(
+          ApiEndpoints.completeWorkoutSession,
+          data: payload,
+        );
+        debugPrint('COMPLETE WORKOUT SESSION RESPONSE => ${response.data}');
+        return Success(
+          data: NoData(),
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
+  }
 }

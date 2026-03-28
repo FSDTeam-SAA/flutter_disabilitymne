@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/programs/controller/my_program_controller.dart';
+import 'package:disabilitymne/features/programs/controller/workout_session_controller.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_screen.dart';
@@ -9,7 +10,23 @@ import 'package:get/get.dart';
 
 class ReadyStartScreen extends StatelessWidget {
   final ProgramModel program;
-  const ReadyStartScreen({super.key, required this.program});
+  final int dayIndex;
+  final String dayLabel;
+  final List<ProgramExerciseModel> dayExercises;
+
+  const ReadyStartScreen({
+    super.key,
+    required this.program,
+    required this.dayIndex,
+    required this.dayLabel,
+    required this.dayExercises,
+  });
+
+  String get _sessionTag {
+    final rawId = program.id ?? '';
+    final id = rawId.isNotEmpty ? rawId : 'program';
+    return 'workout-session-$id-$dayIndex';
+  }
 
   Future<void> _startProgramTracking() async {
     if (program.id == null || program.id!.isEmpty) {
@@ -33,14 +50,47 @@ class ReadyStartScreen extends StatelessWidget {
   }
 
   void _goToWorkout() {
-    if (program.exercises != null &&
-        program.exercises!.isNotEmpty &&
-        program.exercises!.first.executionMode == 'countdown') {
-      Get.to(() => ExerciseWorkoutScreen(program: program, initialIndex: 0));
+    if (dayExercises.isEmpty) {
       return;
     }
 
-    Get.to(() => ExerciseScreen(program: program, initialIndex: 0));
+    if (Get.isRegistered<WorkoutSessionController>(tag: _sessionTag)) {
+      Get.delete<WorkoutSessionController>(tag: _sessionTag, force: true);
+    }
+    Get.put(
+      WorkoutSessionController(
+        program: program,
+        dayIndex: dayIndex,
+        dayLabel: dayLabel,
+        dayExercises: dayExercises,
+      ),
+      tag: _sessionTag,
+    );
+
+    if (dayExercises.first.executionMode == 'countdown') {
+      Get.to(
+        () => ExerciseWorkoutScreen(
+          program: program,
+          dayIndex: dayIndex,
+          dayLabel: dayLabel,
+          dayExercises: dayExercises,
+          sessionTag: _sessionTag,
+          initialIndex: 0,
+        ),
+      );
+      return;
+    }
+
+    Get.to(
+      () => ExerciseScreen(
+        program: program,
+        dayIndex: dayIndex,
+        dayLabel: dayLabel,
+        dayExercises: dayExercises,
+        sessionTag: _sessionTag,
+        initialIndex: 0,
+      ),
+    );
   }
 
   @override
@@ -89,7 +139,7 @@ class ReadyStartScreen extends StatelessWidget {
                       InfoRow(
                         icon: Icons.check_circle,
                         color: Colors.green,
-                        text: "${program.totalExercises ?? 0} Exercise",
+                        text: "${dayExercises.length} Exercise",
                       ),
                       const SizedBox(height: 12),
                       InfoRow(
@@ -101,7 +151,7 @@ class ReadyStartScreen extends StatelessWidget {
                       InfoRow(
                         icon: Icons.calendar_month,
                         color: Colors.blueAccent,
-                        text: "${program.weekCount ?? 0} Week Program",
+                        text: dayLabel.isNotEmpty ? dayLabel : "Day $dayIndex",
                       ),
                       const SizedBox(height: 12),
                       InfoRow(
@@ -129,6 +179,11 @@ class ReadyStartScreen extends StatelessWidget {
                     ),
                     onPressed: () async {
                       await _startProgramTracking();
+                      if (dayExercises.isEmpty) {
+                        Get.snackbar("No workout available", "No exercises are assigned for this day.");
+                        return;
+                      }
+
                       _goToWorkout();
                     },
                     child: const Text(
