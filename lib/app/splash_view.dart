@@ -21,7 +21,7 @@ class _SplashViewState extends State<SplashView> {
   }
 
   void _navigateNext() {
-    Get.offAll(() => const LanguageScreen());
+    Get.offAll(() => LanguageScreen());
   }
 
   @override

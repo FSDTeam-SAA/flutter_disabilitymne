@@ -314,6 +314,10 @@ class ProgramDetailScreen extends StatelessWidget {
       body: Stack(
         children: [
           Obx(() {
+            // Read observable to ensure GetX registers the listener,
+            // preventing 'Improper use of a GetX' error if workoutDays is empty.
+            controller.selectedDayIndex.value;
+            
             final selectedWorkoutDay = controller.selectedWorkoutDay;
             final selectedDayLabel = selectedWorkoutDay?.dayLabel.isNotEmpty == true
                 ? selectedWorkoutDay!.dayLabel
