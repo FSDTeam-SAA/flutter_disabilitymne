@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
 
@@ -249,14 +250,33 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
 
                         const SizedBox(height: 10),
 
-                        Text(
-                          recipe.howToPrepare ??
-                              "No preparation instructions available",
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            height: 1.5,
-                          ),
-                        ),
+                        recipe.howToPrepare != null && recipe.howToPrepare!.isNotEmpty
+                            ? Html(
+                                data: recipe.howToPrepare,
+                                shrinkWrap: true,
+                                style: {
+                                  "body": Style(
+                                    color: Colors.white70,
+                                    margin: Margins.zero,
+                                    padding: HtmlPaddings.zero,
+                                    lineHeight: LineHeight.number(1.5),
+                                    fontSize: FontSize(14.0),
+                                  ),
+                                  "p": Style(
+                                    color: Colors.white70,
+                                    margin: Margins.only(bottom: 8.0),
+                                    padding: HtmlPaddings.zero,
+                                    lineHeight: LineHeight.number(1.5),
+                                  ),
+                                },
+                              )
+                            : const Text(
+                                "No preparation instructions available",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  height: 1.5,
+                                ),
+                              ),
                       ],
                     ),
                   ),
