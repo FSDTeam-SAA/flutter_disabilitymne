@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _listenProfileAndShowUpgradePopup();
   }
 
-  /// When profile user is loaded, show upgrade popup once for free_trial (within 6 days) or for six_month_plan/premium_plan when subscriptionEndsAt within 6 days.
+  /// When profile user is loaded, show upgrade popup when subscription ends within 6 days.
   void _listenProfileAndShowUpgradePopup() {
     if (!Get.isRegistered<ProfileController>()) return;
     final profileController = Get.find<ProfileController>();
@@ -795,7 +795,7 @@ borderRadius: BorderRadius.circular(8),
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Obx(() {
           final user = Get.find<ProfileController>().user.value;
-          final showChat = user?.selectedPlan == 'premium_plan';
+          final showChat = user?.selectedPlan == 'premium';
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

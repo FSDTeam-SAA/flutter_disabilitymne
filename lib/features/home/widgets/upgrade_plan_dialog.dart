@@ -5,13 +5,13 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 /// Plan keys matching backend subscriptionPlans.js
-const String kPlanFreeTrial = 'free_trial';
-const String kPlanSixMonth = 'six_month_plan';
-const String kPlanPremium = 'premium_plan';
+const String kPlanMonthly = 'monthly';
+const String kPlanQuarterly = 'quarterly';
+const String kPlanAnnual = 'annual';
+const String kPlanPremium = 'premium';
 
 const int _daysThreshold = 6;
 
-const String _storageKeyTrialPopup = 'upgrade_popup_trial_shown';
 const String _storageKeySubEndPrefix = 'upgrade_popup_sub_end_';
 
 /// Returns days until [isoDate]; negative if in the past.
@@ -25,28 +25,11 @@ int _daysUntil(String? isoDate) {
   return endDay.difference(today).inDays;
 }
 
-/// True if we should show the trial popup (free_trial plan or trialEndsAt set; ends within 6 days or ended), and we haven't shown it once yet.
-bool shouldShowTrialPopup(UserModel user) {
-  final plan = user.selectedPlan;
-  final trialEndsAt = user.trialEndsAt;
-  final isTrialUser = plan == kPlanFreeTrial || trialEndsAt != null;
-  if (!isTrialUser) return false;
-  final endsAt = trialEndsAt ?? user.subscriptionEndsAt;
-  if (endsAt == null || endsAt.isEmpty) return false;
-  final days = _daysUntil(endsAt);
-  if (days > _daysThreshold) return false;
-  final box = GetStorage();
-  return box.read<bool>(_storageKeyTrialPopup) != true;
-}
-
-void markTrialPopupShown() {
-  GetStorage().write(_storageKeyTrialPopup, true);
-}
-
-/// True if user is on six_month_plan or premium_plan and subscription ends within 6 days or ended, and we haven't shown for this end date.
+/// True if user is on a paid plan and subscription ends within 6 days or ended, and we haven't shown for this end date.
 bool shouldShowSubscriptionEndPopup(UserModel user) {
   final plan = user.selectedPlan;
-  if (plan != kPlanSixMonth && plan != kPlanPremium) return false;
+  final isSupportedPlan = plan == kPlanMonthly || plan == kPlanQuarterly || plan == kPlanAnnual || plan == kPlanPremium;
+  if (!isSupportedPlan) return false;
   final endsAt = user.subscriptionEndsAt;
   if (endsAt == null || endsAt.isEmpty) return false;
   final days = _daysUntil(endsAt);
@@ -61,26 +44,20 @@ void markSubscriptionEndPopupShown(UserModel user) {
   GetStorage().write('$_storageKeySubEndPrefix${user.id}_$endsAt', true);
 }
 
-/// Builds the message: "Your free trial has been finished with in X Days" or "Your subscription ends in X days".
-String messageTitle(UserModel user, {required bool isTrial}) {
-  final isoDate = isTrial ? (user.trialEndsAt ?? user.subscriptionEndsAt) : user.subscriptionEndsAt;
+/// Builds the message: "Your subscription has been finished within X Days".
+String messageTitle(UserModel user) {
+  final isoDate = user.subscriptionEndsAt;
   final days = _daysUntil(isoDate);
   if (days < 0) {
-    return isTrial
-        ? 'Your free trial has finished.'
-        : 'Your subscription has finished.';
+    return 'Your subscription has finished.';
   }
   if (days == 0) {
-    return isTrial
-        ? 'Your free trial finishes today.'
-        : 'Your subscription finishes today.';
+    return 'Your subscription finishes today.';
   }
-  return isTrial
-      ? 'Your free trial has been finished with in $days Days'
-      : 'Your subscription has been finished with in $days Days';
+  return 'Your subscription has been finished with in $days Days';
 }
 
-/// Dialog shown on home when trial or subscription is ending (within 6 days). Dark blue modal, "Not now" / "Upgrade Plan".
+/// Dialog shown on home when subscription is ending (within 6 days). Dark blue modal, "Not now" / "Upgrade Plan".
 void showUpgradePlanDialog({
   required String title,
   required VoidCallback onUpgrade,
@@ -184,20 +161,12 @@ class _UpgradePlanDialog extends StatelessWidget {
   }
 }
 
-/// Call from HomeScreen when profile user is available: shows popup once for trial, or when subscription ends in 6 days for six_month/premium.
+/// Call from HomeScreen when profile user is available: shows popup when subscription ends in 6 days.
 void maybeShowUpgradePopup(UserModel user) {
-  if (shouldShowTrialPopup(user)) {
-    markTrialPopupShown();
-    showUpgradePlanDialog(
-      title: messageTitle(user, isTrial: true),
-      onUpgrade: () => Get.to(() => const ChoosePlanScreen()),
-    );
-    return;
-  }
   if (shouldShowSubscriptionEndPopup(user)) {
     markSubscriptionEndPopupShown(user);
     showUpgradePlanDialog(
-      title: messageTitle(user, isTrial: false),
+      title: messageTitle(user),
       onUpgrade: () => Get.to(() => const ChoosePlanScreen()),
     );
   }
