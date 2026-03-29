@@ -27,23 +27,29 @@ class MyProgramWidget extends StatelessWidget {
         );
       }
 
-      return ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: controller.programList.length,
-        itemBuilder: (context, index) {
-          final program = controller.programList[index];
+      return RefreshIndicator(
+        onRefresh: () => controller.getPrograms(showLoader: false),
+        color: const Color(0xff6FA8DC),
+        backgroundColor: const Color(0xff0E1A2B),
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: controller.programList.length,
+          itemBuilder: (context, index) {
+            final program = controller.programList[index];
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: ProgramCard(
-              title: program.programName,
-              image: program.programThumbnail,
-              onTap: () {
-                Get.to(() => ProgramDetailScreen(program: program));
-              },
-            ),
-          );
-        },
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: ProgramCard(
+                title: program.programName,
+                image: program.programThumbnail,
+                onTap: () {
+                  Get.to(() => ProgramDetailScreen(program: program));
+                },
+              ),
+            );
+          },
+        ),
       );
     });
   }

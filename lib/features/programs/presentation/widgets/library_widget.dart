@@ -53,14 +53,20 @@ class LibraryWidget extends StatelessWidget {
               );
             }
 
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: controller.filteredList.length,
-              itemBuilder: (context, index) {
-                final exercise = controller.filteredList[index];
+            return RefreshIndicator(
+              onRefresh: () => controller.fetchExercises(),
+              color: const Color(0xff6FA8DC),
+              backgroundColor: const Color(0xff0E1A2B),
+              child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: controller.filteredList.length,
+                itemBuilder: (context, index) {
+                  final exercise = controller.filteredList[index];
 
-                return ExerciseCard(model: exercise);
-              },
+                  return ExerciseCard(model: exercise);
+                },
+              ),
             );
           }),
         ),
