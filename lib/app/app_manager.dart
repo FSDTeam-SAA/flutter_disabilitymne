@@ -4,6 +4,7 @@ import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:disabilitymne/features/language/language_screen.dart';
 import 'package:disabilitymne/features/onboarding/gender_selection_screen.dart';
 import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,7 @@ class AppManager extends GetxController {
       if (onboardingCompleted) {
         Get.offAll(() => AppGround());
       } else {
-        Get.offAll(() => const GenderSelectionScreen());
+        Get.offAll(() => const LanguageScreen());
       }
     }
     update();
