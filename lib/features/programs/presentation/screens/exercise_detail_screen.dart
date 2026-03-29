@@ -10,6 +10,41 @@ class ExerciseDetailScreen extends StatelessWidget {
 
   const ExerciseDetailScreen({super.key, required this.id});
 
+  Future<void> _refreshExercise(ExerciseDetailController controller) async {
+    await controller.fetchExerciseDetail();
+  }
+
+  Widget _buildRefreshableState({
+    required ExerciseDetailController controller,
+    required Widget child,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minHeight = constraints.maxHeight > 48
+            ? constraints.maxHeight - 48
+            : 0.0;
+
+        return RefreshIndicator(
+          onRefresh: () => _refreshExercise(controller),
+          color: const Color(0xff6FA8DC),
+          backgroundColor: const Color(0xff0E1A2B),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.all(24),
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(minHeight: minHeight),
+                child: Center(child: child),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(
@@ -37,13 +72,17 @@ class ExerciseDetailScreen extends StatelessWidget {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return _buildRefreshableState(
+            controller: controller,
+            child: const CircularProgressIndicator(color: Colors.white),
+          );
         }
 
         final model = controller.exercise.value;
 
         if (model == null) {
-          return Center(
+          return _buildRefreshableState(
+            controller: controller,
             child: Text(
               "Exercise not found",
               style: AppText.mdMedium_16_500.copyWith(color: Colors.white),
@@ -51,257 +90,265 @@ class ExerciseDetailScreen extends StatelessWidget {
           );
         }
 
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// Video/Image Header
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-                child: Obx(() {
-                  if (controller.isPlayingVideo.value &&
-                      controller.isVideoInitialized.value &&
-                      controller.chewieController != null) {
-                    return Container(
-                      height: 220,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: Colors.black,
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Chewie(controller: controller.chewieController!),
-                    );
-                  }
-
-                  // Show Image with Play Button
-                  final videoUrl =
-                      model.demoVideo ??
-                      (model.demoVideos?.isNotEmpty == true
-                          ? model.demoVideos!.first
-                          : '');
-
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          videoUrl.isNotEmpty
-                              ? videoUrl
-                              : (model.exerciseImage ?? ''),
-                          height: 220,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                height: 220,
-                                width: double.infinity,
-                                color: Colors.white10,
-                                child: const Icon(
-                                  Icons.image,
-                                  color: Colors.white24,
-                                  size: 50,
-                                ),
-                              ),
-                        ),
-                      ),
-                      if (videoUrl.isNotEmpty)
-                        GestureDetector(
-                          onTap: () => controller.playVideo(),
-                          child: Container(
-                            height: 56,
-                            width: 56,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow,
-                              size: 32,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                }),
-              ),
-
-              const SizedBox(height: 10),
-
-              /// Title and Plan
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      model.exerciseName ?? '',
-                      style: AppText.xxlSemiBold_24_600.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                    if (model.plan != null && model.plan!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+        return RefreshIndicator(
+          onRefresh: () => _refreshExercise(controller),
+          color: const Color(0xff6FA8DC),
+          backgroundColor: const Color(0xff0E1A2B),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// Video/Image Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  child: Obx(() {
+                    if (controller.isPlayingVideo.value &&
+                        controller.isVideoInitialized.value &&
+                        controller.chewieController != null) {
+                      return Container(
+                        height: 220,
+                        width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: Colors.blue.withOpacity(0.3),
-                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.black,
                         ),
-                        child: Text(
-                          model.plan!.toUpperCase(),
-                          style: AppText.xsMedium_12_500.copyWith(
-                            color: Colors.blueAccent,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Chewie(controller: controller.chewieController!),
+                      );
+                    }
 
-              const SizedBox(height: 24),
+                    // Show Image with Play Button
+                    final videoUrl =
+                        model.demoVideo ??
+                        (model.demoVideos?.isNotEmpty == true
+                            ? model.demoVideos!.first
+                            : '');
 
-              /// Description
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Description",
-                      style: AppText.lgMedium_18_500.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      model.description ?? 'No description available.',
-                      style: AppText.smRegular_14_400.copyWith(
-                        color: Colors.white70,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              /// Target Muscle Groups (Chips)
-              if (model.muscleGroups != null && model.muscleGroups!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Target Muscle Groups",
-                        style: AppText.lgMedium_18_500.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: model.muscleGroups!.map((muscle) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white10),
-                            ),
-                            child: Text(
-                              muscle,
-                              style: AppText.smMedium_14_500.copyWith(
-                                color: Colors.white70,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-
-              /// Key Benefits
-              if (model.keyBenefits != null && model.keyBenefits!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Key Benefits",
-                        style: AppText.lgMedium_18_500.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ...model.keyBenefits!.map(
-                        (benefit) => _buildBenefitItem(benefit),
-                      ),
-                    ],
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-
-              /// Target Muscle Image
-              if (model.targetMuscleImage != null &&
-                  model.targetMuscleImage!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Muscle Diagram",
-                        style: AppText.lgMedium_18_500.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
                           child: Image.network(
-                            model.targetMuscleImage!,
-                            height: 250,
-                            fit: BoxFit.contain,
+                            videoUrl.isNotEmpty
+                                ? videoUrl
+                                : (model.exerciseImage ?? ''),
+                            height: 220,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.accessibility_new,
-                                  size: 150,
+                                Container(
+                                  height: 220,
+                                  width: double.infinity,
                                   color: Colors.white10,
+                                  child: const Icon(
+                                    Icons.image,
+                                    color: Colors.white24,
+                                    size: 50,
+                                  ),
                                 ),
                           ),
                         ),
+                        if (videoUrl.isNotEmpty)
+                          GestureDetector(
+                            onTap: () => controller.playVideo(),
+                            child: Container(
+                              height: 56,
+                              width: 56,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.8),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.play_arrow,
+                                size: 32,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
+                ),
+
+                const SizedBox(height: 10),
+
+                /// Title and Plan
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        model.exerciseName ?? '',
+                        style: AppText.xxlSemiBold_24_600.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
-                      const SizedBox(height: 40),
+                      if (model.plan != null && model.plan!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: Colors.blue.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Text(
+                            model.plan!.toUpperCase(),
+                            style: AppText.xsMedium_12_500.copyWith(
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-            ],
+
+                const SizedBox(height: 24),
+
+                /// Description
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Description",
+                        style: AppText.lgMedium_18_500.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        model.description ?? 'No description available.',
+                        style: AppText.smRegular_14_400.copyWith(
+                          color: Colors.white70,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                /// Target Muscle Groups (Chips)
+                if (model.muscleGroups != null &&
+                    model.muscleGroups!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Target Muscle Groups",
+                          style: AppText.lgMedium_18_500.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: model.muscleGroups!.map((muscle) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white10),
+                              ),
+                              child: Text(
+                                muscle,
+                                style: AppText.smMedium_14_500.copyWith(
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 24),
+
+                /// Key Benefits
+                if (model.keyBenefits != null && model.keyBenefits!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Key Benefits",
+                          style: AppText.lgMedium_18_500.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ...model.keyBenefits!.map(
+                          (benefit) => _buildBenefitItem(benefit),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 24),
+
+                /// Target Muscle Image
+                if (model.targetMuscleImage != null &&
+                    model.targetMuscleImage!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Muscle Diagram",
+                          style: AppText.lgMedium_18_500.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              model.targetMuscleImage!,
+                              height: 250,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(
+                                    Icons.accessibility_new,
+                                    size: 150,
+                                    color: Colors.white10,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       }),

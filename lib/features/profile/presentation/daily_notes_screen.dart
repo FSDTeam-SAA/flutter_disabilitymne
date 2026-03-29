@@ -158,67 +158,104 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
   }
 
   Widget _buildContent() {
-    if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
-      );
-    }
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (_loading) {
+          return _buildRefreshableState(
+            constraints: constraints,
+            child: const CircularProgressIndicator(color: Colors.white),
+          );
+        }
+        if (_error != null) {
+          return _buildRefreshableState(
+            constraints: constraints,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: _loadNotes,
+                    child: const Text(
+                      'Retry',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        if (_notes.isEmpty) {
+          return _buildRefreshableState(
+            constraints: constraints,
+            child: Text(
+              _selectedFilter == NotesFilter.daily
+                  ? 'No notes for today'
+                  : _selectedFilter == NotesFilter.week
+                  ? 'No notes this week'
+                  : 'No notes yet',
+              style: const TextStyle(color: Colors.white54, fontSize: 14),
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: _loadNotes,
+          color: const Color(0xff6FA8DC),
+          backgroundColor: const Color(0xff0E1A2B),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             children: [
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: _loadNotes,
-                child: const Text(
-                  'Retry',
-                  style: TextStyle(color: Colors.white),
+              if (_meta != null && _meta!.total > 0)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    '${_notes.length} of ${_meta!.total} note${_meta!.total == 1 ? '' : 's'}',
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
                 ),
-              ),
+              ..._notes.map(_buildNoteCard),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRefreshableState({
+    required BoxConstraints constraints,
+    required Widget child,
+  }) {
+    final minHeight = constraints.maxHeight > 48
+        ? constraints.maxHeight - 48
+        : 0.0;
+
+    return RefreshIndicator(
+      onRefresh: _loadNotes,
+      color: const Color(0xff6FA8DC),
+      backgroundColor: const Color(0xff0E1A2B),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
         ),
-      );
-    }
-    if (_notes.isEmpty) {
-      return Center(
-        child: Text(
-          _selectedFilter == NotesFilter.daily
-              ? 'No notes for today'
-              : _selectedFilter == NotesFilter.week
-              ? 'No notes this week'
-              : 'No notes yet',
-          style: const TextStyle(color: Colors.white54, fontSize: 14),
-        ),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_meta != null && _meta!.total > 0)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text(
-              '${_notes.length} of ${_meta!.total} note${_meta!.total == 1 ? '' : 's'}',
-              style: const TextStyle(color: Colors.white54, fontSize: 12),
-            ),
+        padding: const EdgeInsets.all(24),
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: Center(child: child),
           ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: _notes.length,
-            itemBuilder: (context, index) => _buildNoteCard(_notes[index]),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

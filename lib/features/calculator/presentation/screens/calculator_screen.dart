@@ -333,7 +333,9 @@ class CalculatorScreen extends GetView<CalculatorController> {
                     final title = meal.mealLabel.isEmpty
                         ? mealType
                         : meal.mealLabel;
-                    final eaten = meal.totals.caloriesKcal.toStringAsFixed(0);
+                    final eatenKcal = meal.totals.caloriesKcal.toStringAsFixed(
+                      0,
+                    );
                     final minKcal = meal
                         .recommendation
                         .recommendedCalories
@@ -344,14 +346,19 @@ class CalculatorScreen extends GetView<CalculatorController> {
                         .recommendedCalories
                         .maxKcal
                         .toStringAsFixed(0);
-                    final entries = meal.totalEntries;
+                    final recommendedRange = '$minKcal - $maxKcal kcal';
                     return MealTile(
                       title: title,
-                      subtitle:
-                          'Recommended: $minKcal - $maxKcal kcal  |  Eaten: $eaten kcal  |  Entries: $entries',
-                      onTap: () {
+                      recommendedRange: recommendedRange,
+                      eatenKcal: '$eatenKcal kcal',
+                      entryCount: meal.totalEntries,
+                      onViewTap: () {
                         Get.to(
-                          () => HistoryScreen(meal: meal, diaryDate: diaryDate),
+                          () => HistoryScreen(
+                            meal: meal,
+                            diaryDate: diaryDate,
+                            initialTab: MealScreenTab.myMeal,
+                          ),
                         );
                       },
                       onAddTap: () {
@@ -456,67 +463,127 @@ class MacroCard extends StatelessWidget {
 
 class MealTile extends StatelessWidget {
   final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
+  final String recommendedRange;
+  final String eatenKcal;
+  final int entryCount;
+  final VoidCallback? onViewTap;
   final VoidCallback? onAddTap;
 
   const MealTile({
     super.key,
     required this.title,
-    required this.subtitle,
-    this.onTap,
+    required this.recommendedRange,
+    required this.eatenKcal,
+    required this.entryCount,
+    this.onViewTap,
     this.onAddTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.white30),
-          borderRadius: BorderRadius.circular(12),
-          color: const Color(0xFF16263B),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white60, fontSize: 12),
-                  ),
-                ],
-              ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white30),
+        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFF16263B),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
             ),
-            const SizedBox(width: 12),
-            InkWell(
-              onTap: onAddTap,
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                height: 34,
-                width: 34,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white30),
-                  shape: BoxShape.circle,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _MealInfoChip(label: 'Recommended', value: recommendedRange),
+              _MealInfoChip(label: 'Eaten', value: eatenKcal),
+              _MealInfoChip(label: 'Items', value: '$entryCount'),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onViewTap,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white30),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('View Meal'),
                 ),
-                child: const Icon(Icons.add, color: Colors.white),
               ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: onAddTap,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6FA8D1),
+                    foregroundColor: const Color(0xFF0D1B2A),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Food'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MealInfoChip extends StatelessWidget {
+  const _MealInfoChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white60, fontSize: 11),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
