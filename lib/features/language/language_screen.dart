@@ -107,7 +107,7 @@ class _LanguageCard extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? AppColors.gradientButtonStart
-                : Colors.white.withOpacity(0.3),
+                : Colors.white.withValues(alpha:  0.3),
             width: 1,
           ),
         ),
