@@ -41,6 +41,8 @@ class LibraryWidget extends StatelessWidget {
         Expanded(
           child: RefreshIndicator(
             onRefresh: controller.fetchExercises,
+            color: const Color(0xff6FA8DC),
+            backgroundColor: const Color(0xff0E1A2B),
             child: Obx(() {
               if (controller.isLoading.value &&
                   controller.filteredList.isEmpty) {

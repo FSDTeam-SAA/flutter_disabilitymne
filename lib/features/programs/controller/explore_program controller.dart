@@ -17,8 +17,8 @@ class ProgramController extends GetxController {
     getPrograms();
   }
 
-  Future<void> getPrograms() async {
-    isLoading.value = true;
+  Future<void> getPrograms({bool showLoader = true}) async {
+    if (showLoader) isLoading.value = true;
 
     final response =
         await programInterface.getExploreProgram(ProgramModel());

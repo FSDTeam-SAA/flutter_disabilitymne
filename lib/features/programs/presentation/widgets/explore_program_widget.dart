@@ -17,7 +17,9 @@ class ExploreWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: controller.getPrograms,
+      onRefresh: () => controller.getPrograms(showLoader: false),
+      color: const Color(0xff6FA8DC),
+      backgroundColor: const Color(0xff0E1A2B),
       child: Obx(() {
         if (controller.isLoading.value && controller.programList.isEmpty) {
           return ListView(
