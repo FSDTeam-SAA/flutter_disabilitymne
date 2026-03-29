@@ -5,7 +5,6 @@ import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:disabilitymne/features/language/language_screen.dart';
-import 'package:disabilitymne/features/onboarding/gender_selection_screen.dart';
 import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
