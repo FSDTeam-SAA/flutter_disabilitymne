@@ -31,7 +31,6 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
   static const Color _borderColor = Color(0xFF5B8FB7);
   static const Color _dividerColor = Color(0xFF696D73);
 
-
   @override
   void initState() {
     super.initState();
@@ -199,22 +198,22 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
   // }
 
   Widget _buildHabitCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _borderColor, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 380;
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(isCompact ? 16 : 20),
+          decoration: BoxDecoration(
+            color: _cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _borderColor, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(
-                flex: 3,
-                child: Text(
+              if (isCompact) ...[
+                const Text(
                   'Daily Habits',
                   style: TextStyle(
                     color: Colors.white,
@@ -222,47 +221,94 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
-              Expanded(
-                flex: 4,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                      .map((d) => Expanded(
-                            child: Center(
-                              child: Text(
-                                d,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ))
-                      .toList(),
+                const SizedBox(height: 12),
+                _buildDayHeaderRow(fontSize: 11),
+              ] else
+                Row(
+                  children: [
+                    const Expanded(
+                      flex: 3,
+                      child: Text(
+                        'Daily Habits',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Expanded(flex: 4, child: _buildDayHeaderRow()),
+                  ],
+                ),
+              const SizedBox(height: 12),
+              Divider(height: 1, thickness: 1, color: _dividerColor),
+              const SizedBox(height: 12),
+              Obx(
+                () => Column(
+                  children: List.generate(controller.habits.length, (
+                    habitIndex,
+                  ) {
+                    final habit = controller.habits[habitIndex];
+                    final isLastItem =
+                        habitIndex == controller.habits.length - 1;
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: isLastItem ? 0 : 14),
+                      child: _habitRow(habitIndex, habit, isCompact: isCompact),
+                    );
+                  }),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Divider(height: 1, thickness: 1, color: _dividerColor),
-          const SizedBox(height: 12),
-          Obx(() => Column(
-                children: List.generate(controller.habits.length, (habitIndex) {
-                  final habit = controller.habits[habitIndex];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: _habitRow(habitIndex, habit),
-                  );
-                }),
-              )),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _habitRow(int habitIndex, Habit habit) {
+  Widget _buildDayHeaderRow({double fontSize = 12}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ...['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(
+          (day) => Expanded(
+            child: Center(
+              child: Text(
+                day,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _habitRow(int habitIndex, Habit habit, {required bool isCompact}) {
+    if (isCompact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${habit.title} ${habit.emoji}',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _buildHabitChecksRow(habitIndex, habit, boxSize: 28),
+        ],
+      );
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -279,52 +325,58 @@ class _DailyTrackerScreenState extends State<DailyTrackerScreen> {
             ),
           ),
         ),
-        Expanded(
-          flex: 4,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(7, (arrayIndex) {
-              final checked = habit.days[arrayIndex];
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: GestureDetector(
-                      onTap: () => controller.toggleHabitDay(habitIndex, arrayIndex),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: checked ? _checkboxCheckedGreen : _checkboxUncheckedBorder,
-                            width: 1,
-                          ),
-                        ),
-                        child: checked
-                            ? Center(
-                                child: Image.asset(
-                                  'assets/image/check_icon.png',
-                                  width: 14,
-                                  height: 14,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Icon(
-                                    Icons.check,
-                                    color: _checkboxCheckedGreen,
-                                    size: 14,
-                                  ),
-                                ),
-                              )
-                            : null,
+        Expanded(flex: 4, child: _buildHabitChecksRow(habitIndex, habit)),
+      ],
+    );
+  }
+
+  Widget _buildHabitChecksRow(int habitIndex, Habit habit, {double? boxSize}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(7, (arrayIndex) {
+        final checked = habit.days[arrayIndex];
+        final checkbox = GestureDetector(
+          onTap: () => controller.toggleHabitDay(habitIndex, arrayIndex),
+          child: Container(
+            width: boxSize,
+            height: boxSize,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: checked
+                    ? _checkboxCheckedGreen
+                    : _checkboxUncheckedBorder,
+                width: 1,
+              ),
+            ),
+            child: checked
+                ? Center(
+                    child: Image.asset(
+                      'assets/image/check_icon.png',
+                      width: 14,
+                      height: 14,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.check,
+                        color: _checkboxCheckedGreen,
+                        size: 14,
                       ),
                     ),
-                  ),
-                ),
-              );
-            }),
+                  )
+                : null,
           ),
-        ),
-      ],
+        );
+
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: boxSize == null
+                ? AspectRatio(aspectRatio: 1, child: checkbox)
+                : Center(child: checkbox),
+          ),
+        );
+      }),
     );
   }
 

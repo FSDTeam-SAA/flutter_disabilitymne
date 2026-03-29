@@ -53,41 +53,55 @@ class CalculatorScreen extends GetView<CalculatorController> {
             }
 
             if (controller.errorMessage.isNotEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        controller.errorMessage.value,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () => controller.retry(),
-                        child: const Text('Retry'),
-                      ),
-                    ],
+              return RefreshIndicator(
+                onRefresh: () => controller.fetchDiary(),
+                color: Colors.white,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 120,
                   ),
+                  children: [
+                    Text(
+                      controller.errorMessage.value,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => controller.retry(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
                 ),
               );
             }
 
             if (controller.nutritionData.value == null) {
-              return const Center(
-                child: Text(
-                  'No data available',
-                  style: TextStyle(color: Colors.white),
+              return RefreshIndicator(
+                onRefresh: () => controller.fetchDiary(),
+                color: Colors.white,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(vertical: 140),
+                  children: const [
+                    Center(
+                      child: Text(
+                        'No data available',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
               );
             }
 
-            return _buildLoadedState(controller.nutritionData.value!);
+            return RefreshIndicator(
+              onRefresh: () => controller.fetchDiary(),
+              color: Colors.white,
+              child: _buildLoadedState(controller.nutritionData.value!),
+            );
           }),
         ),
       ),
@@ -155,6 +169,7 @@ class CalculatorScreen extends GetView<CalculatorController> {
           const SizedBox(height: 10),
           Expanded(
             child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
                   Row(
@@ -336,10 +351,7 @@ class CalculatorScreen extends GetView<CalculatorController> {
                           'Recommended: $minKcal - $maxKcal kcal  |  Eaten: $eaten kcal  |  Entries: $entries',
                       onTap: () {
                         Get.to(
-                          () => HistoryScreen(
-                            meal: meal,
-                            diaryDate: diaryDate,
-                          ),
+                          () => HistoryScreen(meal: meal, diaryDate: diaryDate),
                         );
                       },
                       onAddTap: () {
@@ -360,7 +372,6 @@ class CalculatorScreen extends GetView<CalculatorController> {
       ),
     );
   }
-
 
   String _formatHeaderDate(DateTime date) {
     final now = DateTime.now();

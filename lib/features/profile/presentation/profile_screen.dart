@@ -84,8 +84,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Obx(() {
                     final user = controller.user.value;
                     final profileImageUrl = user?.profileImage;
-                    final hasProfileImage = profileImageUrl != null &&
-                        profileImageUrl.isNotEmpty;
+                    final hasProfileImage =
+                        profileImageUrl != null && profileImageUrl.isNotEmpty;
                     final pickedPath = controller.pickedImagePath.value;
 
                     ImageProvider<Object> avatarImage;
@@ -94,22 +94,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     } else if (hasProfileImage) {
                       avatarImage = NetworkImage(profileImageUrl);
                     } else {
-                      avatarImage = const AssetImage("assets/image/app_logo.png");
+                      avatarImage = const AssetImage(
+                        "assets/image/app_logo.png",
+                      );
                     }
 
                     final name = [
                       user?.firstName,
                       user?.lastName,
                     ].whereType<String>().join(' ').trim();
-                    final displayName =
-                        name.isNotEmpty ? name : 'User';
+                    final displayName = name.isNotEmpty ? name : 'User';
 
                     return Row(
                       children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundImage: avatarImage,
-                        ),
+                        CircleAvatar(radius: 24, backgroundImage: avatarImage),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -175,127 +173,131 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   /// Settings List
                   Expanded(
-                    child: ListView(
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.person_outline,
-                          title: "My Profile",
-                          subtitle: "View personal details",
-                          onTap: () {
-                            Get.to(() => MyProfileScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.lock_outline,
-                          title: "Change Password",
-                          subtitle: "Update your password",
-                          onTap: () {
-                            Get.to(() => ChangePasswordScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.note_outlined,
-                          title: "Daily Notes",
-                          subtitle: "View Notes you have added daily",
-                          onTap: () {
-                            Get.to(() => const DailyNotesScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.workspace_premium_outlined,
-                          title: "Subscription & Billing",
-                          subtitle: "Manage your plan",
-                          onTap: () {
-                            Get.to(() => ChoosePlanScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.language,
-                          title: "Language & Accessibility",
-                          subtitle: "English/Serbian",
-                          onTap: () {
-                            Get.to(() => const LanguageAccessibilityScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.notifications_none,
-                          title: "Notification Settings",
-                          subtitle: "Manage alerts",
-                          onTap: () {
-                            Get.to(() => NotificationScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.support_agent_outlined,
-                          title: "Help & Support",
-                          subtitle: "FAQs and contact",
-                          onTap: () {
-                            Get.to(() => HelpSupportScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.chat_bubble_outline,
-                          title: "Chat with Admin",
-                          subtitle: "Message support",
-                          onTap: () {
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.privacy_tip_outlined,
-                          title: "Privacy & Legal",
-                          subtitle: "Privacy policy & data",
-                          onTap: () {
-                            Get.to(() => const PrivacyLegalScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.description_outlined,
-                          title: "Terms of Service",
-                          subtitle: "App usage terms and conditions",
-                          onTap: () {
-                            Get.to(() => const TermsConditionScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.lock_outline,
-                          title: "Privacy & Security",
-                          subtitle: "View personal details",
-                          onTap: () {
-                            // This seems to be a placeholder or test route
-                            // Get.to(() => ExerciseWorkoutScreen(program: ProgramModel(), initialIndex: 0));
-                          },
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        /// Sign Out
-                        Center(
-                          child: TextButton.icon(
-                            onPressed: () {
-                              showLogoutDialog(
-                                onConfirm: () {
-                                  Get.find<AuthInterface>().logout();
-                                },
-                              );
+                    child: RefreshIndicator(
+                      onRefresh: controller.getProfile,
+                      color: Colors.white,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          _SettingsTile(
+                            icon: Icons.person_outline,
+                            title: "My Profile",
+                            subtitle: "View personal details",
+                            onTap: () {
+                              Get.to(() => MyProfileScreen());
                             },
-                            icon: const Icon(
-                              Icons.logout,
-                              size: 24,
-                              color: Colors.red,
-                            ),
-                            label: const Text(
-                              "Sign Out",
-                              style: TextStyle(
+                          ),
+                          _SettingsTile(
+                            icon: Icons.lock_outline,
+                            title: "Change Password",
+                            subtitle: "Update your password",
+                            onTap: () {
+                              Get.to(() => ChangePasswordScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.note_outlined,
+                            title: "Daily Notes",
+                            subtitle: "View Notes you have added daily",
+                            onTap: () {
+                              Get.to(() => const DailyNotesScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.workspace_premium_outlined,
+                            title: "Subscription & Billing",
+                            subtitle: "Manage your plan",
+                            onTap: () {
+                              Get.to(() => ChoosePlanScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.language,
+                            title: "Language & Accessibility",
+                            subtitle: "English/Serbian",
+                            onTap: () {
+                              Get.to(() => const LanguageAccessibilityScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.notifications_none,
+                            title: "Notification Settings",
+                            subtitle: "Manage alerts",
+                            onTap: () {
+                              Get.to(() => NotificationScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.support_agent_outlined,
+                            title: "Help & Support",
+                            subtitle: "FAQs and contact",
+                            onTap: () {
+                              Get.to(() => HelpSupportScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.chat_bubble_outline,
+                            title: "Chat with Admin",
+                            subtitle: "Message support",
+                            onTap: () {},
+                          ),
+                          _SettingsTile(
+                            icon: Icons.privacy_tip_outlined,
+                            title: "Privacy & Legal",
+                            subtitle: "Privacy policy & data",
+                            onTap: () {
+                              Get.to(() => const PrivacyLegalScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.description_outlined,
+                            title: "Terms of Service",
+                            subtitle: "App usage terms and conditions",
+                            onTap: () {
+                              Get.to(() => const TermsConditionScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.lock_outline,
+                            title: "Privacy & Security",
+                            subtitle: "View personal details",
+                            onTap: () {
+                              // This seems to be a placeholder or test route
+                              // Get.to(() => ExerciseWorkoutScreen(program: ProgramModel(), initialIndex: 0));
+                            },
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          /// Sign Out
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: () {
+                                showLogoutDialog(
+                                  onConfirm: () {
+                                    Get.find<AuthInterface>().logout();
+                                  },
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.logout,
+                                size: 24,
                                 color: Colors.red,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
+                              ),
+                              label: const Text(
+                                "Sign Out",
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 20),
-                      ],
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
                   ),
                 ],

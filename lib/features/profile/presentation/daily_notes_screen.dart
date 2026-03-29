@@ -6,11 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// Filter options for daily tracker notes.
-enum NotesFilter {
-  all,
-  week,
-  daily,
-}
+enum NotesFilter { all, week, daily }
 
 class DailyNotesScreen extends StatefulWidget {
   const DailyNotesScreen({super.key});
@@ -38,7 +34,8 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
 
   String? _weekStartDateForFilter() {
     // Week and Daily both narrow to current week; Daily then filters to today only.
-    if (_selectedFilter == NotesFilter.week || _selectedFilter == NotesFilter.daily) {
+    if (_selectedFilter == NotesFilter.week ||
+        _selectedFilter == NotesFilter.daily) {
       return weekStartDateFromSelected(DateTime.now());
     }
     return null;
@@ -115,9 +112,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
         child: Column(
           children: [
             _buildCategoryFilter(),
-            Expanded(
-              child: _buildContent(),
-            ),
+            Expanded(child: _buildContent()),
           ],
         ),
       ),
@@ -127,12 +122,12 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
   Widget _buildCategoryFilter() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
         children: [
           _buildFilterChip('All', NotesFilter.all),
-          const SizedBox(width: 8),
           _buildFilterChip('Week', NotesFilter.week),
-          const SizedBox(width: 8),
           _buildFilterChip('Daily', NotesFilter.daily),
         ],
       ),
@@ -183,7 +178,10 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _loadNotes,
-                child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  'Retry',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),
@@ -196,8 +194,8 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
           _selectedFilter == NotesFilter.daily
               ? 'No notes for today'
               : _selectedFilter == NotesFilter.week
-                  ? 'No notes this week'
-                  : 'No notes yet',
+              ? 'No notes this week'
+              : 'No notes yet',
           style: const TextStyle(color: Colors.white54, fontSize: 14),
         ),
       );
@@ -227,7 +225,9 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
   Widget _buildNoteCard(DailyTrackerNoteItem note) {
     final dateLabel = note.date != null && note.date!.isNotEmpty
         ? _formatDateFromString(note.date!)
-        : (note.createdAt != null ? _formatDateFromString(formatDateOnly(note.createdAt!)) : '--');
+        : (note.createdAt != null
+              ? _formatDateFromString(formatDateOnly(note.createdAt!))
+              : '--');
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -239,10 +239,11 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 340;
+              final titleSection = Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
                     Icons.edit_note_outlined,
@@ -250,17 +251,23 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
                     size: 24,
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    'Daily tracker',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  const Flexible(
+                    child: Text(
+                      'Daily tracker',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
-              ),
-              Row(
+              );
+
+              final dateSection = Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
                     Icons.calendar_today,
@@ -268,13 +275,40 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
                     size: 14,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    dateLabel,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  Flexible(
+                    child: Text(
+                      dateLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ],
-              ),
-            ],
+              );
+
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleSection,
+                    const SizedBox(height: 8),
+                    dateSection,
+                  ],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: titleSection),
+                  const SizedBox(width: 12),
+                  Flexible(child: dateSection),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 12),
           Text(
@@ -289,10 +323,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
             const SizedBox(height: 8),
             Text(
               'Week ${note.weekNumber}',
-              style: const TextStyle(
-                color: Colors.white38,
-                fontSize: 11,
-              ),
+              style: const TextStyle(color: Colors.white38, fontSize: 11),
             ),
           ],
         ],
