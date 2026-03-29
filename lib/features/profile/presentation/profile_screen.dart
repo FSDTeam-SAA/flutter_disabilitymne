@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
+import 'package:disabilitymne/features/progress/controller/progress_controller.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/daily_notes_screen.dart';
@@ -23,7 +24,28 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late ProfileController controller;
+  late final ProfileController controller;
+  late final ProgressController progressController;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<ProfileController>();
+    final hasProgressController = Get.isRegistered<ProgressController>();
+    progressController = hasProgressController
+        ? Get.find<ProgressController>()
+        : Get.put(ProgressController(Get.find()), permanent: false);
+    if (hasProgressController && !progressController.isLoading.value) {
+      progressController.fetchProgress();
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    await Future.wait([
+      controller.getProfile(),
+      progressController.fetchProgress(),
+    ]);
+  }
 
   void showLogoutDialog({required VoidCallback onConfirm}) {
     Get.defaultDialog(
@@ -67,7 +89,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    controller = Get.find<ProfileController>();
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BackgroundImage(
@@ -141,40 +162,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 16),
 
                   /// Progress Cards
-                  Row(
-                    children: const [
-                      Expanded(
-                        child: _StatCard(
-                          title: "Streak",
-                          value: "7",
-                          icon: Icons.local_fire_department_outlined,
+                  Obx(() {
+                    final progressData = progressController.progressData.value;
+                    final hasProgressData = progressData != null;
+                    final stats = progressController.stats;
+
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _StatCard(
+                            title: "Streak",
+                            value: hasProgressData
+                                ? '${stats.streakDays}'
+                                : '--',
+                            icon: Icons.local_fire_department_outlined,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: _StatCard(
-                          title: "Workouts",
-                          value: "9",
-                          icon: Icons.fitness_center,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _StatCard(
+                            title: "Workouts",
+                            value: hasProgressData
+                                ? '${stats.totalWorkouts}'
+                                : '--',
+                            icon: Icons.fitness_center,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: _StatCard(
-                          title: "Calories",
-                          value: "0%",
-                          icon: Icons.local_fire_department,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _StatCard(
+                            title: "Calories",
+                            value: hasProgressData
+                                ? '${stats.caloriesPercent.toStringAsFixed(0)}%'
+                                : '--',
+                            icon: Icons.local_fire_department,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    );
+                  }),
 
                   const SizedBox(height: 20),
 
                   /// Settings List
                   Expanded(
                     child: RefreshIndicator(
-                      onRefresh: controller.getProfile,
+                      onRefresh: _handleRefresh,
                       color: Colors.white,
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),

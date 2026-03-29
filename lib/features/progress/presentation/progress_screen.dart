@@ -31,7 +31,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
       return minMax;
     }
 
-    final exponent = math.pow(10, (math.log(rawMax) / math.ln10).floor()).toDouble();
+    final exponent = math
+        .pow(10, (math.log(rawMax) / math.ln10).floor())
+        .toDouble();
     for (final multiplier in const [1.0, 2.0, 5.0, 10.0]) {
       final candidate = multiplier * exponent;
       if (candidate >= rawMax) {
@@ -69,12 +71,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    controller = Get.put(
-      ProgressController(Get.find()),
-      permanent: false,
-    );
+  void initState() {
+    super.initState();
+    controller = Get.isRegistered<ProgressController>()
+        ? Get.find<ProgressController>()
+        : Get.put(ProgressController(Get.find()), permanent: false);
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _screenBg,
       appBar: AppBar(
@@ -153,12 +158,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final items = [
       ('${stats.streakDays}', 'Day Streak', Icons.local_fire_department),
       ('${stats.totalWorkouts}', 'Total Workouts', Icons.fitness_center),
-      ('${stats.caloriesPercent.toStringAsFixed(0)}%', 'Weekly Goal',
-          Icons.whatshot),
+      (
+        '${stats.caloriesPercent.toStringAsFixed(0)}%',
+        'Weekly Goal',
+        Icons.whatshot,
+      ),
       (
         '${stats.activityPeriodWeeks} week${stats.activityPeriodWeeks == 1 ? '' : 's'}',
         'Activity Period',
-        Icons.calendar_today
+        Icons.calendar_today,
       ),
     ];
     return Row(
@@ -166,9 +174,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
         Expanded(
           child: Column(
             children: [
-              _summaryCard(items[0].$1, items[0].$2, _summaryIconPaths[0], items[0].$3),
+              _summaryCard(
+                items[0].$1,
+                items[0].$2,
+                _summaryIconPaths[0],
+                items[0].$3,
+              ),
               const SizedBox(height: 12),
-              _summaryCard(items[2].$1, items[2].$2, _summaryIconPaths[2], items[2].$3),
+              _summaryCard(
+                items[2].$1,
+                items[2].$2,
+                _summaryIconPaths[2],
+                items[2].$3,
+              ),
             ],
           ),
         ),
@@ -176,9 +194,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
         Expanded(
           child: Column(
             children: [
-              _summaryCard(items[1].$1, items[1].$2, _summaryIconPaths[1], items[1].$3),
+              _summaryCard(
+                items[1].$1,
+                items[1].$2,
+                _summaryIconPaths[1],
+                items[1].$3,
+              ),
               const SizedBox(height: 12),
-              _summaryCard(items[3].$1, items[3].$2, _summaryIconPaths[3], items[3].$3),
+              _summaryCard(
+                items[3].$1,
+                items[3].$2,
+                _summaryIconPaths[3],
+                items[3].$3,
+              ),
             ],
           ),
         ),
@@ -186,7 +214,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 
-  Widget _summaryCard(String value, String label, String iconPath, IconData fallbackIcon) {
+  Widget _summaryCard(
+    String value,
+    String label,
+    String iconPath,
+    IconData fallbackIcon,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -223,11 +256,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   child: Image.asset(
                     iconPath,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => Icon(
-                      fallbackIcon,
-                      color: Colors.white,
-                      size: 22,
-                    ),
+                    errorBuilder: (_, _, _) =>
+                        Icon(fallbackIcon, color: Colors.white, size: 22),
                   ),
                 ),
               ),
@@ -324,7 +354,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: List.generate(days.length, (i) {
                           final h = yAxisMax > 0
-                              ? (values[i] / yAxisMax).clamp(0.0, 1.0).toDouble()
+                              ? (values[i] / yAxisMax)
+                                    .clamp(0.0, 1.0)
+                                    .toDouble()
                               : 0.0;
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.end,
@@ -367,13 +399,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: yAxisTicks
-          .map((v) => Text(
-                _formatAxisLabel(v),
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey.shade700,
-                ),
-              ))
+          .map(
+            (v) => Text(
+              _formatAxisLabel(v),
+              style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
+            ),
+          )
           .toList(),
     );
   }
@@ -442,13 +473,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: yAxisTicks
-                            .map((v) => Text(
-                                  _formatAxisLabel(v),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ))
+                            .map(
+                              (v) => Text(
+                                _formatAxisLabel(v),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            )
                             .toList(),
                       ),
                     ),
@@ -474,13 +507,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: days
-                            .map((d) => Text(
-                                  d,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ))
+                            .map(
+                              (d) => Text(
+                                d,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            )
                             .toList(),
                       ),
                     ),
@@ -572,12 +607,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildWeightRow(BodyMetrics bodyMetrics) {
-    final hasWeights = bodyMetrics.weightKg != null && bodyMetrics.goalWeightKg != null;
+    final hasWeights =
+        bodyMetrics.weightKg != null && bodyMetrics.goalWeightKg != null;
 
     final weightText = hasWeights
         ? '${bodyMetrics.weightKg!.toStringAsFixed(1)}kg'
         : 'No data';
-    final goalText = hasWeights ? '${bodyMetrics.goalWeightKg!.toStringAsFixed(1)}kg' : '';
+    final goalText = hasWeights
+        ? '${bodyMetrics.goalWeightKg!.toStringAsFixed(1)}kg'
+        : '';
 
     final change = bodyMetrics.weightChangeThisMonthKg;
     final hasChange = change != 0;
@@ -616,7 +654,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
       ),
       subtitle: Text(
         changeLabel,
-        style: TextStyle(color: hasChange ? changeColor : Colors.white, fontSize: 13),
+        style: TextStyle(
+          color: hasChange ? changeColor : Colors.white,
+          fontSize: 13,
+        ),
       ),
     );
   }
@@ -644,10 +685,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             value,
           ],
         ),
-        if (subtitle != null) ...[
-          const SizedBox(height: 4),
-          subtitle,
-        ],
+        if (subtitle != null) ...[const SizedBox(height: 4), subtitle],
       ],
     );
   }
@@ -762,7 +800,9 @@ class _ProgressGridPainter extends CustomPainter {
     final w = size.width;
     final chartH = size.height - 22;
     if (chartH <= 0) return;
-    final gridPaint = Paint()..color = gridColor..strokeWidth = 1;
+    final gridPaint = Paint()
+      ..color = gridColor
+      ..strokeWidth = 1;
     for (var yVal = 0; yVal <= 100; yVal += 20) {
       final y = chartH - (yVal / 100) * chartH;
       _drawDashedLine(canvas, Offset(0, y), Offset(w, y), gridPaint);
