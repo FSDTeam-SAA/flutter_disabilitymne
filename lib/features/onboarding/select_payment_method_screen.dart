@@ -160,8 +160,8 @@ class _PaymentMethodCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF5B9BD5).withOpacity(0.5)
-                : Colors.white.withOpacity(0.06),
+                ? const Color(0xFF5B9BD5).withValues(alpha:0.5)
+                : Colors.white.withValues(alpha:0.06),
             width: isSelected ? 1.5 : 1,
           ),
         ),

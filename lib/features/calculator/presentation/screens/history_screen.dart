@@ -5,15 +5,24 @@ import 'package:disabilitymne/core/theme/text_style.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/calculator/controller/calculator_controller.dart';
 import 'package:disabilitymne/features/calculator/model/calculator_model.dart';
+import 'package:disabilitymne/features/calculator/presentation/screens/search_screen.dart';
 import 'package:disabilitymne/features/calculator/services/calculator_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+enum MealScreenTab { myMeal, recent, saved }
+
 class HistoryScreen extends StatefulWidget {
   final Meal meal;
   final DateTime diaryDate;
+  final MealScreenTab initialTab;
 
-  const HistoryScreen({super.key, required this.meal, required this.diaryDate});
+  const HistoryScreen({
+    super.key,
+    required this.meal,
+    required this.diaryDate,
+    this.initialTab = MealScreenTab.myMeal,
+  });
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -25,8 +34,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Timer? _searchDebounce;
   late final CalculatorInterface _api;
-
-  int _selectedTabIndex = 0;
+  late int _selectedTabIndex;
 
   bool _historyLoading = false;
   String? _historyError;
@@ -48,7 +56,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void initState() {
     super.initState();
     _api = Get.find<CalculatorInterface>();
-    _loadHistory();
+    _selectedTabIndex = widget.initialTab.index;
+    _loadSelectedTab();
   }
 
   @override
@@ -62,6 +71,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final mm = date.month.toString().padLeft(2, '0');
     final dd = date.day.toString().padLeft(2, '0');
     return '${date.year}-$mm-$dd';
+  }
+
+  MealScreenTab get _selectedTab => MealScreenTab.values[_selectedTabIndex];
+
+  bool get _showsSearchBar => _selectedTab != MealScreenTab.myMeal;
+
+  String get _searchHintText {
+    switch (_selectedTab) {
+      case MealScreenTab.recent:
+        return 'Search recent foods';
+      case MealScreenTab.saved:
+        return 'Search saved meals';
+      case MealScreenTab.myMeal:
+        return '';
+    }
+  }
+
+  void _loadSelectedTab() {
+    switch (_selectedTab) {
+      case MealScreenTab.myMeal:
+        _loadTracked();
+        break;
+      case MealScreenTab.recent:
+        _loadHistory();
+        break;
+      case MealScreenTab.saved:
+        _loadFavorites();
+        break;
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    _searchDebounce?.cancel();
+    switch (_selectedTab) {
+      case MealScreenTab.myMeal:
+        await _loadTracked();
+        break;
+      case MealScreenTab.recent:
+        await _loadHistory();
+        break;
+      case MealScreenTab.saved:
+        await _loadFavorites();
+        break;
+    }
   }
 
   Future<void> _loadHistory({bool append = false}) async {
@@ -183,15 +236,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _onTabSelected(int index) {
-    setState(() => _selectedTabIndex = index);
+    if (_selectedTabIndex == index) return;
 
-    if (index == 0) {
-      _loadHistory();
-    } else if (index == 1) {
-      _loadFavorites();
-    } else {
-      _loadTracked();
+    _searchDebounce?.cancel();
+    if (_searchController.text.isNotEmpty) {
+      _searchController.clear();
     }
+
+    setState(() => _selectedTabIndex = index);
+    _loadSelectedTab();
   }
 
   void _debouncedHistoryReload() {
@@ -264,6 +317,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void _refreshCalculatorDiary() {
     if (!Get.isRegistered<CalculatorController>()) return;
     Get.find<CalculatorController>().fetchDiary();
+  }
+
+  Future<void> _openAddFoodSearch() async {
+    final tracked = await Get.to<bool>(
+      () => BreakfastSearchScreen(
+        mealType: widget.meal.mealType,
+        date: widget.diaryDate,
+      ),
+    );
+
+    if (tracked == true) {
+      await _loadTracked();
+      _refreshCalculatorDiary();
+    }
   }
 
   Future<bool> _confirmDelete(String foodName) async {
@@ -414,14 +481,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }).toList();
   }
 
-  List<DiaryEntry> _filterDiary(List<DiaryEntry> list, String query) {
-    if (query.isEmpty) return list;
-    final lower = query.toLowerCase();
-    return list
-        .where((entry) => entry.foodName.toLowerCase().contains(lower))
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -431,10 +490,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
           child: Column(
             children: [
               _buildHeader(),
-              _buildSearchBar(),
+              if (_showsSearchBar) _buildSearchBar(),
               _buildTabBar(),
               Expanded(child: _buildTabContent()),
-              if (_selectedTabIndex == 0) _buildDoneButton(),
             ],
           ),
         ),
@@ -444,8 +502,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(8, 10, 16, 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           IconButton(
             icon: const Icon(
@@ -455,9 +514,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             onPressed: () => Get.back(),
           ),
-          Text(
-            widget.meal.mealLabel,
-            style: AppText.xlSemiBold_20_600.copyWith(color: AppColors.white),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.meal.mealLabel,
+                  style: AppText.xlSemiBold_20_600.copyWith(
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Review logged items, recent foods, and saved meals.',
+                  style: AppText.smRegular_14_400.copyWith(
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -471,13 +546,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
         controller: _searchController,
         onChanged: (_) {
           setState(() {});
-          if (_selectedTabIndex == 0) {
+          if (_selectedTab == MealScreenTab.recent) {
             _debouncedHistoryReload();
           }
         },
         style: const TextStyle(color: AppColors.white),
         decoration: InputDecoration(
-          hintText: 'Food or meal',
+          hintText: _searchHintText,
           hintStyle: AppText.smRegular_14_400.copyWith(color: AppColors.white),
           prefixIcon: const Icon(Icons.search, color: AppColors.white),
           suffixIcon: _searchController.text.isNotEmpty
@@ -486,7 +561,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   onPressed: () {
                     _searchController.clear();
                     _searchDebounce?.cancel();
-                    if (_selectedTabIndex == 0) {
+                    if (_selectedTab == MealScreenTab.recent) {
                       _loadHistory();
                     } else {
                       setState(() {});
@@ -519,9 +594,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildTabItem(0, Icons.history, 'History'),
-          _buildTabItem(1, Icons.favorite_border, 'Favorite'),
-          _buildTabItem(2, Icons.track_changes, 'Tracked'),
+          _buildTabItem(0, Icons.restaurant_menu_outlined, 'My Meal'),
+          _buildTabItem(1, Icons.history, 'Recent'),
+          _buildTabItem(2, Icons.favorite_border, 'Saved'),
         ],
       ),
     );
@@ -559,98 +634,115 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildTabContent() {
-    switch (_selectedTabIndex) {
-      case 0:
-        return _buildHistoryList();
-      case 1:
-        return _buildFavoriteContent();
-      case 2:
-        return _buildTrackedContent();
-      default:
-        return _buildHistoryList();
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        late final Widget child;
+        switch (_selectedTabIndex) {
+          case 0:
+            child = _buildTrackedContent(constraints);
+            break;
+          case 1:
+            child = _buildHistoryList(constraints);
+            break;
+          case 2:
+            child = _buildFavoriteContent(constraints);
+            break;
+          default:
+            child = _buildTrackedContent(constraints);
+        }
+
+        return RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: const Color(0xff6FA8DC),
+          backgroundColor: const Color(0xff0E1A2B),
+          child: child,
+        );
+      },
+    );
   }
 
-  Widget _buildHistoryList() {
+  Widget _buildHistoryList(BoxConstraints constraints) {
     if (_historyLoading && _historyEntries.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.white),
+      return _buildScrollableState(
+        constraints: constraints,
+        child: const CircularProgressIndicator(color: AppColors.white),
       );
     }
 
     if (_historyError != null && _historyEntries.isEmpty) {
-      return _buildErrorState(_historyError!, _loadHistory);
+      return _buildScrollableState(
+        constraints: constraints,
+        child: _buildErrorState(_historyError!, _loadHistory),
+      );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'All recent',
-            style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: _historyEntries.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No entries in history',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount:
-                        _historyEntries.length +
-                        (_historyPage < _historyTotalPages ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == _historyEntries.length) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: _historyLoadingMore
-                                ? const CircularProgressIndicator(
-                                    color: AppColors.white,
-                                  )
-                                : TextButton(
-                                    onPressed: () => _loadHistory(append: true),
-                                    child: const Text(
-                                      'Load more',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ),
-                          ),
-                        );
-                      }
-
-                      final entry = _historyEntries[index];
-                      return _buildSummaryCard(
-                        entry,
-                        trailing: Icons.close,
-                        trailingBusy: _busyEntryIds.contains(entry.id),
-                        onTrailingTap: () => _deleteEntry(
-                          entryId: entry.id,
-                          foodName: entry.foodName,
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
       ),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      children: [
+        Text(
+          'Recent items',
+          style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
+        ),
+        const SizedBox(height: 16),
+        if (_historyEntries.isEmpty)
+          SizedBox(
+            height: constraints.maxHeight > 140
+                ? constraints.maxHeight - 140
+                : 140,
+            child: Center(
+              child: Text(
+                _searchController.text.trim().isEmpty
+                    ? 'No recent items yet'
+                    : 'No matching recent foods',
+                style: const TextStyle(color: Colors.white70),
+              ),
+            ),
+          )
+        else
+          ..._historyEntries.map(
+            (entry) => _buildSummaryCard(
+              entry,
+              trailing: Icons.close,
+              trailingBusy: _busyEntryIds.contains(entry.id),
+              onTrailingTap: () =>
+                  _deleteEntry(entryId: entry.id, foodName: entry.foodName),
+            ),
+          ),
+        if (_historyPage < _historyTotalPages)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: _historyLoadingMore
+                  ? const CircularProgressIndicator(color: AppColors.white)
+                  : TextButton(
+                      onPressed: () => _loadHistory(append: true),
+                      child: const Text(
+                        'Load more',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildFavoriteContent() {
+  Widget _buildFavoriteContent(BoxConstraints constraints) {
     if (_favoriteLoading && _favoriteSections == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.white),
+      return _buildScrollableState(
+        constraints: constraints,
+        child: const CircularProgressIndicator(color: AppColors.white),
       );
     }
 
     if (_favoriteError != null && _favoriteSections == null) {
-      return _buildErrorState(_favoriteError!, _loadFavorites);
+      return _buildScrollableState(
+        constraints: constraints,
+        child: _buildErrorState(_favoriteError!, _loadFavorites),
+      );
     }
 
     final sections =
@@ -661,35 +753,36 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final meals = _filterSummaries(sections.meals, query);
     final recipes = _filterSummaries(sections.recipes, query);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView(
-        children: [
-          _buildFavoriteSection(
-            title: 'Food',
-            emptyText: query.isEmpty
-                ? 'No favorite foods yet'
-                : 'No matching foods',
-            entries: foods,
-          ),
-          const SizedBox(height: 20),
-          _buildFavoriteSection(
-            title: 'Meals',
-            emptyText: query.isEmpty
-                ? 'No favorite meals yet'
-                : 'No matching meals',
-            entries: meals,
-          ),
-          const SizedBox(height: 20),
-          _buildFavoriteSection(
-            title: 'Recipes',
-            emptyText: query.isEmpty
-                ? 'No favorite recipes yet'
-                : 'No matching recipes',
-            entries: recipes,
-          ),
-        ],
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
       ),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      children: [
+        _buildFavoriteSection(
+          title: 'Food',
+          emptyText: query.isEmpty
+              ? 'No favorite foods yet'
+              : 'No matching foods',
+          entries: foods,
+        ),
+        const SizedBox(height: 20),
+        _buildFavoriteSection(
+          title: 'Meals',
+          emptyText: query.isEmpty
+              ? 'No favorite meals yet'
+              : 'No matching meals',
+          entries: meals,
+        ),
+        const SizedBox(height: 20),
+        _buildFavoriteSection(
+          title: 'Recipes',
+          emptyText: query.isEmpty
+              ? 'No favorite recipes yet'
+              : 'No matching recipes',
+          entries: recipes,
+        ),
+      ],
     );
   }
 
@@ -721,97 +814,192 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildTrackedContent() {
+  Widget _buildTrackedContent(BoxConstraints constraints) {
     if (_trackedLoading && _trackedEntries.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.white),
+      return _buildScrollableState(
+        constraints: constraints,
+        child: const CircularProgressIndicator(color: AppColors.white),
       );
     }
 
     if (_trackedError != null && _trackedEntries.isEmpty) {
-      return _buildErrorState(_trackedError!, _loadTracked);
+      return _buildScrollableState(
+        constraints: constraints,
+        child: _buildErrorState(_trackedError!, _loadTracked),
+      );
     }
 
-    final query = _searchController.text.trim();
-    final entries = _filterDiary(_trackedEntries, query);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'You have tracked',
-            style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${widget.meal.mealLabel} on ${_formatShortDate(widget.diaryDate)}',
-            style: AppText.smRegular_14_400.copyWith(color: Colors.white70),
-          ),
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      children: [
+        Text(
+          'My Meal',
+          style: AppText.lgMedium_18_500.copyWith(color: AppColors.white),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${widget.meal.mealLabel} on ${_formatShortDate(widget.diaryDate)}',
+          style: AppText.smRegular_14_400.copyWith(color: Colors.white70),
+        ),
+        if (_trackedEntries.isNotEmpty) ...[
           const SizedBox(height: 12),
-          SizedBox(
-            height: 40,
-            child: OutlinedButton.icon(
-              onPressed: (_trackedEntries.isEmpty || _savingCurrentMeal)
-                  ? null
-                  : _saveCurrentMealAsFavorite,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.white,
-                side: BorderSide(
-                  color: (_trackedEntries.isEmpty || _savingCurrentMeal)
-                      ? Colors.white24
-                      : AppColors.profileActiveTab,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 42,
+                  child: ElevatedButton.icon(
+                    onPressed: _openAddFoodSearch,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.profileActiveTab,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add Food'),
+                  ),
                 ),
               ),
-              icon: _savingCurrentMeal
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.white,
+              const SizedBox(width: 10),
+              Expanded(
+                child: SizedBox(
+                  height: 42,
+                  child: OutlinedButton.icon(
+                    onPressed: _savingCurrentMeal
+                        ? null
+                        : _saveCurrentMealAsFavorite,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.white,
+                      side: BorderSide(
+                        color: _savingCurrentMeal
+                            ? Colors.white24
+                            : AppColors.profileActiveTab,
                       ),
-                    )
-                  : const Icon(Icons.favorite_border, size: 18),
-              label: Text(
-                _savingCurrentMeal ? 'Saving...' : 'Save current meal',
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: _savingCurrentMeal
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.white,
+                            ),
+                          )
+                        : const Icon(Icons.favorite_border, size: 18),
+                    label: Text(_savingCurrentMeal ? 'Saving...' : 'Save Meal'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ] else
+          const SizedBox(height: 4),
+        if (_trackedEntries.isEmpty)
+          SizedBox(
+            height: constraints.maxHeight > 220
+                ? constraints.maxHeight - 220
+                : 220,
+            child: _buildMyMealEmptyState(),
+          )
+        else
+          ..._trackedEntries.map(
+            (entry) => _buildFoodCard(
+              title: entry.displayTitle,
+              kcal: '${entry.calories.toStringAsFixed(0)} kcal',
+              gram: entry.quantityLine,
+              trailing: Icons.close,
+              trailingBusy: _busyEntryIds.contains(entry.id ?? ''),
+              onTrailingTap: () => _deleteEntry(
+                entryId: entry.id ?? '',
+                foodName: entry.foodName,
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: entries.isEmpty
-                ? Center(
-                    child: Text(
-                      query.isEmpty
-                          ? 'Nothing logged for this meal yet'
-                          : 'No matching items',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: entries.length,
-                    itemBuilder: (context, index) {
-                      final entry = entries[index];
-                      return _buildFoodCard(
-                        title: entry.displayTitle,
-                        kcal: '${entry.calories.toStringAsFixed(0)} kcal',
-                        gram: entry.quantityLine,
-                        trailing: Icons.close,
-                        trailingBusy: _busyEntryIds.contains(entry.id ?? ''),
-                        onTrailingTap: () => _deleteEntry(
-                          entryId: entry.id ?? '',
-                          foodName: entry.foodName,
-                        ),
-                      );
-                    },
+      ],
+    );
+  }
+
+  Widget _buildScrollableState({
+    required BoxConstraints constraints,
+    required Widget child,
+    EdgeInsets padding = const EdgeInsets.all(24),
+  }) {
+    final minHeight = constraints.maxHeight > padding.vertical
+        ? constraints.maxHeight - padding.vertical
+        : 0.0;
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: padding,
+      children: [
+        ConstrainedBox(
+          constraints: BoxConstraints(minHeight: minHeight),
+          child: Center(child: child),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMyMealEmptyState() {
+    return Center(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.profileCardBackground,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.profileBorder),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.restaurant_menu_outlined,
+              color: AppColors.profileActiveTab,
+              size: 34,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Nothing logged for this meal yet.',
+              textAlign: TextAlign.center,
+              style: AppText.mdSemiBold_16_700.copyWith(color: AppColors.white),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Use Add Food to search the food database and log an item.',
+              textAlign: TextAlign.center,
+              style: AppText.smRegular_14_400.copyWith(color: Colors.white70),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _openAddFoodSearch,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.profileActiveTab,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-          ),
-        ],
+                ),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Add Food'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1036,31 +1224,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDoneButton() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Container(
-        width: double.infinity,
-        height: 55,
-        decoration: BoxDecoration(
-          gradient: AppColors.buttonGradient,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: ElevatedButton(
-          onPressed: () => Get.back(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-          ),
-          child: Text(
-            'Done',
-            style: AppText.mdSemiBold_16_700.copyWith(color: Colors.black),
-          ),
-        ),
       ),
     );
   }

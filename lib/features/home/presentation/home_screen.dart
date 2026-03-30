@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color _cardBlue = Color(0xFF1A233A);
   static const Color _accentLightBlue = Color(0xFF89C9E6);
   static const Color _seeAllBlue = Color(0xFF85C4E2);
+
   /// Selected tab background color (#4B7FA8); icon and text stay white
   static const Color _recipeTabSelectedBg = Color(0xFF4B7FA8);
   static const List<String> _recipeTabAssetPaths = [
@@ -92,26 +93,52 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _handleRefresh() async {
+    final futures = <Future<void>>[];
+
+    if (Get.isRegistered<ProfileController>()) {
+      futures.add(Get.find<ProfileController>().getProfile());
+    }
+    if (Get.isRegistered<ProgramController>()) {
+      futures.add(Get.find<ProgramController>().getPrograms());
+    }
+    if (Get.isRegistered<RecipeController>()) {
+      futures.add(Get.find<RecipeController>().getRecipes());
+    }
+
+    if (futures.isEmpty) {
+      return;
+    }
+
+    await Future.wait(futures);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BackgroundImage(
         child: SafeArea(
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildAppBar(),
-              SliverToBoxAdapter(child: _buildHeroCard()),
-              SliverToBoxAdapter(child: _buildSectionSpacer()),
-              _buildMyProgramsSection(),
-              SliverToBoxAdapter(child: _buildSectionSpacer()),
-              _buildMyRecipesSection(),
-              SliverToBoxAdapter(child: _buildSectionSpacer()),
-              _buildQuickActionSection(),
-              // Extra bottom space so content doesn't hide behind bottom nav
-              const SliverToBoxAdapter(child: SizedBox(height: 140)),
-            ],
+          child: RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: Colors.white,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                _buildAppBar(),
+                SliverToBoxAdapter(child: _buildHeroCard()),
+                SliverToBoxAdapter(child: _buildSectionSpacer()),
+                _buildMyProgramsSection(),
+                SliverToBoxAdapter(child: _buildSectionSpacer()),
+                _buildMyRecipesSection(),
+                SliverToBoxAdapter(child: _buildSectionSpacer()),
+                _buildQuickActionSection(),
+                // Extra bottom space so content doesn't hide behind bottom nav
+                const SliverToBoxAdapter(child: SizedBox(height: 140)),
+              ],
+            ),
           ),
         ),
       ),
@@ -126,8 +153,8 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Obx(() {
           final user = controller.user.value;
           final profileImageUrl = user?.profileImage;
-          final hasProfileImage = profileImageUrl != null &&
-              profileImageUrl.isNotEmpty;
+          final hasProfileImage =
+              profileImageUrl != null && profileImageUrl.isNotEmpty;
           final pickedPath = controller.pickedImagePath.value;
 
           ImageProvider<Object>? avatarImage;
@@ -152,7 +179,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: _cardBlue,
                   backgroundImage: avatarImage,
                   child: avatarImage == null
-                      ? const Icon(Icons.person, color: Colors.white70, size: 32)
+                      ? const Icon(
+                          Icons.person,
+                          color: Colors.white70,
+                          size: 32,
+                        )
                       : null,
                 ),
               ),
@@ -182,37 +213,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               GestureDetector(
-              onTap: () => Get.to(() => NotificationScreen()),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: _accentLightBlue.withValues( alpha: .25),
-                      shape: BoxShape.circle,
+                onTap: () => Get.to(() => NotificationScreen()),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: _accentLightBlue.withValues(alpha: .25),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ), // Uses Material icon only; do not use notification.png asset
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.notifications_outlined,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ), // Uses Material icon only; do not use notification.png asset
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            ),
+              ),
             ],
           );
         }),
@@ -224,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Card gradient: dark navy top-left to muted blue bottom-right (match design)
     const Color heroCardStart = Color(0xFF1A2B43);
     const Color heroCardEnd = Color(0xFF2B476F);
- 
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -238,7 +269,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0x66000000), // #000000 at 40% opacity (66 = 40% alpha)
+              color: const Color(
+                0x66000000,
+              ), // #000000 at 40% opacity (66 = 40% alpha)
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -260,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 1.3,
                     ),
                   ),
-                  
+
                   Text(
                     'Journey?',
                     style: TextStyle(
@@ -290,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               // buttonGradientStart,
                               // buttonGradientEnd,
                               Color(0xff4D7EA9),
-                              Color(0xff89C9E6)
+                              Color(0xff89C9E6),
                             ],
                           ),
                         ),
@@ -329,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 errorBuilder: (_, _, _) => Icon(
                   Icons.accessible_forward_rounded,
                   size: 72,
-                  color: _accentLightBlue.withValues(alpha:  0.9),
+                  color: _accentLightBlue.withValues(alpha: 0.9),
                 ),
               ),
             ),
@@ -345,7 +378,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMyProgramsSection() {
     if (!Get.isRegistered<ProgramController>()) {
-      Get.put(ProgramController(programInterface: Get.find<ProgramInterface>()));
+      Get.put(
+        ProgramController(programInterface: Get.find<ProgramInterface>()),
+      );
     }
     final programController = Get.find<ProgramController>();
 
@@ -387,9 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 return SizedBox(
                   height: 160,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      color: _seeAllBlue,
-                    ),
+                    child: CircularProgressIndicator(color: _seeAllBlue),
                   ),
                 );
               }
@@ -471,10 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
-          colors: [
-            const Color(0xFF1A204C),
-            const Color(0xFF2E3A7E),
-          ],
+          colors: [const Color(0xFF1A204C), const Color(0xFF2E3A7E)],
         ),
       ),
       child: Row(
@@ -487,7 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   '3 Days | 12 Weeks | 60 Min',
                   style: TextStyle(
-                    color: AppColors.primaryText.withValues(alpha:  0.85),
+                    color: AppColors.primaryText.withValues(alpha: 0.85),
                     fontSize: 12,
                   ),
                 ),
@@ -558,8 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () =>
-                            setState(() => _recipeTabIndex = index),
+                        onTap: () => setState(() => _recipeTabIndex = index),
                         borderRadius: BorderRadius.circular(14),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
@@ -568,14 +597,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: selected
-                                ? _recipeTabSelectedBg
-                                : _cardBlue,
+                            color: selected ? _recipeTabSelectedBg : _cardBlue,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: Colors.white24,
-                              width: 1,
-                            ),
+                            border: Border.all(color: Colors.white24, width: 1),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -717,27 +741,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.2),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
-                          
                         ],
-                        border: Border.all(color: Colors.white)
+                        border: Border.all(color: Colors.white),
                       ),
                       child: ClipOval(
-                        child: recipe.recipeImage != null &&
+                        child:
+                            recipe.recipeImage != null &&
                                 recipe.recipeImage!.isNotEmpty
                             ? Image.network(
                                 recipe.recipeImage!,
                                 width: 70,
                                 height: 70,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) =>
-                                    _recipePlaceholder(),
+                                errorBuilder: (_, _, _) => _recipePlaceholder(),
                               )
                             : _recipePlaceholder(),
                       ),
@@ -781,11 +804,7 @@ borderRadius: BorderRadius.circular(8),
         shape: BoxShape.circle,
         color: Colors.white12,
       ),
-      child: Icon(
-        Icons.restaurant,
-        color: Colors.white54,
-        size: 32,
-      ),
+      child: Icon(Icons.restaurant, color: Colors.white54, size: 32),
     );
   }
 
@@ -856,11 +875,12 @@ borderRadius: BorderRadius.circular(8),
               );
             },
             (info) {
-              
-              Get.to(() => ChatThreadScreen(
-                    threadId: info.threadId,
-                    counterpartName: info.counterpartName,
-                  ));
+              Get.to(
+                () => ChatThreadScreen(
+                  threadId: info.threadId,
+                  counterpartName: info.counterpartName,
+                ),
+              );
             },
           );
         },
@@ -922,7 +942,7 @@ borderRadius: BorderRadius.circular(8),
           decoration: BoxDecoration(
             color: _cardBlue,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color:Color(0xffFFFFFF)),
+            border: Border.all(color: Color(0xffFFFFFF)),
           ),
           child: Column(
             children: [
@@ -937,17 +957,17 @@ borderRadius: BorderRadius.circular(8),
                   child: Image.asset(
                     imagePath,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => Icon(
-                      fallbackIcon,
-                      color: Colors.white,
-                      size: 36,
-                    ),
+                    errorBuilder: (_, _, _) =>
+                        Icon(fallbackIcon, color: Colors.white, size: 36),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
               Text(
                 label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.primaryText,
                   fontSize: 16,

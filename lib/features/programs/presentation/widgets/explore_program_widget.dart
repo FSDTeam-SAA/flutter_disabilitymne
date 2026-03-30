@@ -16,39 +16,57 @@ class ExploreWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
-      if (controller.programList.isEmpty) {
-        return const Center(
-          child: Text(
-            "No Programs Found",
-            style: TextStyle(color: Colors.white),
-          ),
-        );
-      }
-
-      return ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: controller.programList.length,
-        itemBuilder: (context, index) {
-          final program = controller.programList[index];
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: ProgramCard(
-              title: program.programName,
-              image: program.programThumbnail,
-              onTap: () {
-                Get.to(() => ProgramDetailScreen(program: program));
-              },
-            ),
+    return RefreshIndicator(
+      onRefresh: () => controller.getPrograms(showLoader: false),
+      color: const Color(0xff6FA8DC),
+      backgroundColor: const Color(0xff0E1A2B),
+      child: Obx(() {
+        if (controller.isLoading.value && controller.programList.isEmpty) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              SizedBox(height: 180),
+              Center(child: CircularProgressIndicator()),
+            ],
           );
-        },
-      );
-    });
+        }
+
+        if (controller.programList.isEmpty) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              SizedBox(height: 180),
+              Center(
+                child: Text(
+                  "No Programs Found",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          );
+        }
+
+        return ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: controller.programList.length,
+          itemBuilder: (context, index) {
+            final program = controller.programList[index];
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: ProgramCard(
+                title: program.programName,
+                image: program.programThumbnail,
+                onTap: () {
+                  Get.to(() => ProgramDetailScreen(program: program));
+                },
+              ),
+            );
+          },
+        );
+      }),
+    );
   }
 }
 
@@ -76,17 +94,23 @@ class ProgramCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: image == null || image!.isEmpty
                     ? const Center(
-                        child: Icon(Icons.image_not_supported,
-                            color: Colors.white54, size: 50),
+                        child: Icon(
+                          Icons.image_not_supported,
+                          color: Colors.white54,
+                          size: 50,
+                        ),
                       )
                     : Image.network(
                         image!,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
                             const Center(
-                          child: Icon(Icons.image_not_supported,
-                              color: Colors.white54, size: 50),
-                        ),
+                              child: Icon(
+                                Icons.image_not_supported,
+                                color: Colors.white54,
+                                size: 50,
+                              ),
+                            ),
                       ),
               ),
             ),
@@ -95,8 +119,8 @@ class ProgramCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withOpacity(0.2),
-                    Colors.black.withOpacity(0.8),
+                    Colors.black.withValues(alpha:0.2),
+                    Colors.black.withValues(alpha:0.8),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,

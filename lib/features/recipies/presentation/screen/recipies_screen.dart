@@ -47,14 +47,47 @@ class RecipesScreen extends StatelessWidget {
               /// Exercise List
               Expanded(
                 child: Obx(
-                  () => ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: controller.recipeList.length,
-                    itemBuilder: (context, index) {
-                      RecipeModel recipe = controller.recipeList[index];
+                  () => RefreshIndicator(
+                    onRefresh: controller.getRecipes,
+                    color: Colors.white,
+                    child:
+                        controller.isLoading.value &&
+                            controller.recipeList.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: const [
+                              SizedBox(height: 180),
+                              Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          )
+                        : controller.recipeList.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(vertical: 180),
+                            children: const [
+                              Center(
+                                child: Text(
+                                  'No recipes found',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: controller.recipeList.length,
+                            itemBuilder: (context, index) {
+                              final RecipeModel recipe =
+                                  controller.recipeList[index];
 
-                      return RecipeCard(recipe: recipe);
-                    },
+                              return RecipeCard(recipe: recipe);
+                            },
+                          ),
                   ),
                 ),
               ),

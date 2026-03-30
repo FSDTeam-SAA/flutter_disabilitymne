@@ -85,12 +85,12 @@ class NotificationScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: item.read == true
               ? Colors.transparent
-              : Colors.white.withOpacity(0.1),
+              : Colors.white.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFF5B6475)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha:0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -106,7 +106,7 @@ class NotificationScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF152033),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF4B7FA8).withOpacity(0.5)),
+                border: Border.all(color: const Color(0xFF4B7FA8).withValues(alpha:0.5)),
               ),
               child: Image.asset(
                 _getNotificationIcon(item.type),

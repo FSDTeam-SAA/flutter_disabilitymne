@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
 
@@ -23,6 +24,38 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     });
   }
 
+  Future<void> _refreshRecipe() async {
+    await controller.getRecipeDetail(widget.id);
+  }
+
+  Widget _buildRefreshableState({required Widget child}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minHeight = constraints.maxHeight > 48
+            ? constraints.maxHeight - 48
+            : 0.0;
+
+        return RefreshIndicator(
+          onRefresh: _refreshRecipe,
+          color: const Color(0xff6FA8DC),
+          backgroundColor: const Color(0xff0E1A2B),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.all(24),
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(minHeight: minHeight),
+                child: Center(child: child),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,15 +63,15 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
       body: BackgroundImage(
         child: Obx(() {
           if (controller.isDetailLoading.value) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white),
+            return _buildRefreshableState(
+              child: const CircularProgressIndicator(color: Colors.white),
             );
           }
 
           final recipe = controller.recipeDetail.value;
           if (recipe == null) {
-            return const Center(
-              child: Text(
+            return _buildRefreshableState(
+              child: const Text(
                 "Recipe not found",
                 style: TextStyle(color: Colors.white),
               ),
@@ -147,117 +180,145 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
 
               /// CONTENT
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 18,
-                  ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF1C2A42), Color(0xFF121A2C)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
+                child: RefreshIndicator(
+                  onRefresh: _refreshRecipe,
+                  color: const Color(0xff6FA8DC),
+                  backgroundColor: const Color(0xff0E1A2B),
                   child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        /// Title
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 18,
+                      ),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF1C2A42), Color(0xFF121A2C)],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// Title
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        /// NUTRITION CARDS
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            NutritionCard(
-                              title: "${recipe.caloriesKcal ?? 0}",
-                              subtitle: "Kcal",
-                            ),
-                            NutritionCard(
-                              title: "${recipe.proteinG ?? 0}g",
-                              subtitle: "Protein",
-                            ),
-                            NutritionCard(
-                              title: "${recipe.carbsG ?? 0}g",
-                              subtitle: "Carbs",
-                            ),
-                            NutritionCard(
-                              title: "${recipe.fatG ?? 0}g",
-                              subtitle: "fat",
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 28),
-
-                        /// INGREDIENTS
-                        const Text(
-                          "Ingredients",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                          /// NUTRITION CARDS
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              NutritionCard(
+                                title: "${recipe.caloriesKcal ?? 0}",
+                                subtitle: "Kcal",
+                              ),
+                              NutritionCard(
+                                title: "${recipe.proteinG ?? 0}g",
+                                subtitle: "Protein",
+                              ),
+                              NutritionCard(
+                                title: "${recipe.carbsG ?? 0}g",
+                                subtitle: "Carbs",
+                              ),
+                              NutritionCard(
+                                title: "${recipe.fatG ?? 0}g",
+                                subtitle: "fat",
+                              ),
+                            ],
                           ),
-                        ),
 
-                        const SizedBox(height: 16),
-                        if (recipe.ingredients != null &&
-                            recipe.ingredients!.isNotEmpty)
-                          Column(
-                            children: recipe.ingredients!
-                                .asMap()
-                                .entries
-                                .map(
-                                  (entry) => IngredientItem(
-                                    number: entry.key + 1,
-                                    text: entry.value,
-                                    isLast:
-                                        entry.key ==
-                                        recipe.ingredients!.length - 1,
-                                  ),
-                                )
-                                .toList(),
-                          )
-                        else
+                          const SizedBox(height: 28),
+
+                          /// INGREDIENTS
                           const Text(
-                            "No ingredients listed",
-                            style: TextStyle(color: Colors.white70),
+                            "Ingredients",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
 
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 16),
+                          if (recipe.ingredients != null &&
+                              recipe.ingredients!.isNotEmpty)
+                            Column(
+                              children: recipe.ingredients!
+                                  .asMap()
+                                  .entries
+                                  .map(
+                                    (entry) => IngredientItem(
+                                      number: entry.key + 1,
+                                      text: entry.value,
+                                      isLast:
+                                          entry.key ==
+                                          recipe.ingredients!.length - 1,
+                                    ),
+                                  )
+                                  .toList(),
+                            )
+                          else
+                            const Text(
+                              "No ingredients listed",
+                              style: TextStyle(color: Colors.white70),
+                            ),
 
-                        /// HOW TO PREPARE
-                        const Text(
-                          "How to prepare a meal",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                          const SizedBox(height: 24),
+
+                          /// HOW TO PREPARE
+                          const Text(
+                            "How to prepare a meal",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
 
-                        Text(
-                          recipe.howToPrepare ??
-                              "No preparation instructions available",
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
+                          recipe.howToPrepare != null &&
+                                  recipe.howToPrepare!.isNotEmpty
+                              ? Html(
+                                  data: recipe.howToPrepare,
+                                  shrinkWrap: true,
+                                  style: {
+                                    "body": Style(
+                                      color: Colors.white70,
+                                      margin: Margins.zero,
+                                      padding: HtmlPaddings.zero,
+                                      lineHeight: LineHeight.number(1.5),
+                                      fontSize: FontSize(14.0),
+                                    ),
+                                    "p": Style(
+                                      color: Colors.white70,
+                                      margin: Margins.only(bottom: 8.0),
+                                      padding: HtmlPaddings.zero,
+                                      lineHeight: LineHeight.number(1.5),
+                                    ),
+                                  },
+                                )
+                              : const Text(
+                                  "No preparation instructions available",
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    height: 1.5,
+                                  ),
+                                ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -340,7 +401,7 @@ class IngredientItem extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 1,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha:0.3),
                   ),
                 ),
             ],

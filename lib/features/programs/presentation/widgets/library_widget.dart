@@ -19,7 +19,7 @@ class LibraryWidget extends StatelessWidget {
           child: Container(
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextField(
@@ -39,30 +39,49 @@ class LibraryWidget extends StatelessWidget {
 
         /// List
         Expanded(
-          child: Obx(() {
-            if (controller.isLoading.value) {
-              return const Center(child: CircularProgressIndicator());
-            }
+          child: RefreshIndicator(
+            onRefresh: controller.fetchExercises,
+            color: const Color(0xff6FA8DC),
+            backgroundColor: const Color(0xff0E1A2B),
+            child: Obx(() {
+              if (controller.isLoading.value &&
+                  controller.filteredList.isEmpty) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 180),
+                    Center(child: CircularProgressIndicator()),
+                  ],
+                );
+              }
 
-            if (controller.filteredList.isEmpty) {
-              return const Center(
-                child: Text(
-                  "No Exercise Found",
-                  style: TextStyle(color: Colors.white),
-                ),
+              if (controller.filteredList.isEmpty) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 180),
+                    Center(
+                      child: Text(
+                        "No Exercise Found",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: controller.filteredList.length,
+                itemBuilder: (context, index) {
+                  final exercise = controller.filteredList[index];
+
+                  return ExerciseCard(model: exercise);
+                },
               );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: controller.filteredList.length,
-              itemBuilder: (context, index) {
-                final exercise = controller.filteredList[index];
-
-                return ExerciseCard(model: exercise);
-              },
-            );
-          }),
+            }),
+          ),
         ),
       ],
     );
@@ -98,14 +117,18 @@ class ExerciseCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: model.exerciseImage == null ||
+                  child:
+                      model.exerciseImage == null ||
                           model.exerciseImage!.isEmpty
                       ? Container(
                           height: 70,
                           width: 70,
                           color: Colors.white12,
-                          child: const Icon(Icons.image_not_supported,
-                              color: Colors.white54, size: 30),
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            color: Colors.white54,
+                            size: 30,
+                          ),
                         )
                       : Image.network(
                           model.exerciseImage!,
@@ -114,12 +137,15 @@ class ExerciseCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               Container(
-                            height: 70,
-                            width: 70,
-                            color: Colors.white12,
-                            child: const Icon(Icons.image_not_supported,
-                                color: Colors.white54, size: 30),
-                          ),
+                                height: 70,
+                                width: 70,
+                                color: Colors.white12,
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.white54,
+                                  size: 30,
+                                ),
+                              ),
                         ),
                 ),
 

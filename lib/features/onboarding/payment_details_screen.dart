@@ -250,18 +250,18 @@ class _PaymentField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha:0.4),
               fontSize: 16,
             ),
             filled: true,
             fillColor: _fieldBg,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha:0.15)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha:0.15)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

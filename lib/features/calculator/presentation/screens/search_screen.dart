@@ -28,13 +28,13 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
 
   Timer? _debounce;
   bool _loading = false;
-  String _query = 'apple';
+  bool _didTrackFood = false;
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
     _searchController.text = _query;
-    _searchNow(_query);
   }
 
   @override
@@ -128,166 +128,285 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
     });
   }
 
+  void _closeScreen() {
+    Get.back(result: _didTrackFood);
+  }
+
+  Future<void> _handleRefresh() async {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) {
+      return;
+    }
+    await _searchNow(query);
+  }
+
   @override
   Widget build(BuildContext context) {
     final mealLabel = _titleCase(widget.mealType);
-    return Scaffold(
-      backgroundColor: const Color(0xFF151A24),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    mealLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  onChanged: _onSearchChanged,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  decoration: InputDecoration(
-                    hintText: 'Search foods',
-                    hintStyle: TextStyle(color: Colors.grey[500]),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: Colors.grey[400],
-                      size: 22,
-                    ),
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        _searchController.clear();
-                        _searchNow('');
-                      },
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 20,
+    return WillPopScope(
+      onWillPop: () async {
+        _closeScreen();
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF151A24),
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _closeScreen,
+                      child: const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 20,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-            ),
-            // if (_suggestions.isNotEmpty)
-            //   Padding(
-            //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            //     child: SingleChildScrollView(
-            //       scrollDirection: Axis.horizontal,
-            //       child: Row(
-            //         children: _suggestions
-            //             .take(6)
-            //             .map(
-            //               (s) => Padding(
-            //                 padding: const EdgeInsets.only(right: 8),
-            //                 child: ActionChip(
-            //                   backgroundColor: const Color(0xFF2A3040),
-            //                   label: Text(
-            //                     s,
-            //                     style: const TextStyle(color: Colors.white),
-            //                   ),
-            //                   onPressed: () {
-            //                     _searchController.text = s;
-            //                     _searchNow(s);
-            //                   },
-            //                 ),
-            //               ),
-            //             )
-            //             .toList(),
-            //       ),
-            //     ),
-            //   ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                'Results',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            if (_loading)
-              const Expanded(
-                child: Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-              )
-            else if (_foods.isEmpty)
-              const Expanded(
-                child: Center(
-                  child: Text(
-                    'No foods found',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ),
-              )
-            else
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _foods.length,
-                  itemBuilder: (context, index) {
-                    final food = _foods[index];
-                    return FoodTile(
-                      title: food.description,
-                      calories: '${food.caloriesKcal.toStringAsFixed(0)} kcal',
-                      subtitle: food.portionSubtitle,
-                      onAddTap: () async {
-                        final tracked = await Get.to<bool>(
-                          () => FoodDetailScreen(
-                            fdcId: food.fdcId,
-                            mealType: widget.mealType,
-                            entryDate: _toApiDate(
-                              widget.date ?? DateTime.now(),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Add Food to $mealLabel',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        );
-
-                        if (tracked == true &&
-                            Get.isRegistered<CalculatorController>()) {
-                          await Get.find<CalculatorController>().fetchDiary();
-                        }
-                      },
-                    );
-                  },
+                          const SizedBox(height: 4),
+                          Text(
+                            'Search foods from the database and add them to this meal.',
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha:0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    onChanged: _onSearchChanged,
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    decoration: InputDecoration(
+                      hintText: 'Search foods from database',
+                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey[400],
+                        size: 22,
+                      ),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          _searchController.clear();
+                          _searchNow('');
+                        },
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+              ),
+              // if (_suggestions.isNotEmpty)
+              //   Padding(
+              //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              //     child: SingleChildScrollView(
+              //       scrollDirection: Axis.horizontal,
+              //       child: Row(
+              //         children: _suggestions
+              //             .take(6)
+              //             .map(
+              //               (s) => Padding(
+              //                 padding: const EdgeInsets.only(right: 8),
+              //                 child: ActionChip(
+              //                   backgroundColor: const Color(0xFF2A3040),
+              //                   label: Text(
+              //                     s,
+              //                     style: const TextStyle(color: Colors.white),
+              //                   ),
+              //                   onPressed: () {
+              //                     _searchController.text = s;
+              //                     _searchNow(s);
+              //                   },
+              //                 ),
+              //               ),
+              //             )
+              //             .toList(),
+              //       ),
+              //     ),
+              //   ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  'Search Results',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Expanded(child: _buildResultsSection(mealLabel)),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildResultsSection(String mealLabel) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: const Color(0xff6FA8DC),
+          backgroundColor: const Color(0xff0E1A2B),
+          child: _buildResultsContent(
+            constraints: constraints,
+            mealLabel: mealLabel,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildResultsContent({
+    required BoxConstraints constraints,
+    required String mealLabel,
+  }) {
+    if (_loading) {
+      return _buildRefreshableState(
+        constraints: constraints,
+        child: const CircularProgressIndicator(color: Colors.white),
+      );
+    }
+
+    if (_query.trim().isEmpty) {
+      return _buildRefreshableState(
+        constraints: constraints,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.search, size: 40, color: Colors.grey[500]),
+              const SizedBox(height: 14),
+              const Text(
+                'Search foods from the database',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Type a food name to find items you can add to $mealLabel.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_foods.isEmpty) {
+      return _buildRefreshableState(
+        constraints: constraints,
+        child: const Text(
+          'No foods found',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: _foods.length,
+      itemBuilder: (context, index) {
+        final food = _foods[index];
+        return FoodTile(
+          title: food.description,
+          calories: '${food.caloriesKcal.toStringAsFixed(0)} kcal',
+          subtitle: food.portionSubtitle,
+          onAddTap: () async {
+            final tracked = await Get.to<bool>(
+              () => FoodDetailScreen(
+                fdcId: food.fdcId,
+                mealType: widget.mealType,
+                entryDate: _toApiDate(widget.date ?? DateTime.now()),
+              ),
+            );
+
+            if (tracked == true) {
+              _didTrackFood = true;
+            }
+
+            if (tracked == true && Get.isRegistered<CalculatorController>()) {
+              await Get.find<CalculatorController>().fetchDiary();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildRefreshableState({
+    required BoxConstraints constraints,
+    required Widget child,
+  }) {
+    final minHeight = constraints.maxHeight > 48
+        ? constraints.maxHeight - 48
+        : 0.0;
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: const EdgeInsets.all(24),
+      children: [
+        ConstrainedBox(
+          constraints: BoxConstraints(minHeight: minHeight),
+          child: Center(child: child),
+        ),
+      ],
     );
   }
 }

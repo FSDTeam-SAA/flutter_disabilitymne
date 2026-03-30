@@ -114,46 +114,46 @@ class _SignInScreenState extends State<SignInScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Obx(() {
-                        return GestureDetector(
-                          onTap: () => controller.toggleKeepSignedIn(
-                            !controller.keepSignedIn.value,
-                          ),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: Checkbox(
-                                  value: controller.keepSignedIn.value,
-                                  onChanged: (v) =>
-                                      controller.toggleKeepSignedIn(v ?? false),
-                                  fillColor: WidgetStateProperty.resolveWith(
-                                    (states) =>
-                                        states.contains(WidgetState.selected)
-                                        ? _linkBlue
-                                        : Colors.transparent,
-                                  ),
-                                  checkColor: Colors.white,
-                                  side: const BorderSide(color: Colors.white54),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Remember me',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-
+                      // Obx(() {
+                      //   return GestureDetector(
+                      //     onTap: () => controller.toggleKeepSignedIn(
+                      //       !controller.keepSignedIn.value,
+                      //     ),
+                      //     child: Row(
+                      //       children: [
+                      //         SizedBox(
+                      //           width: 22,
+                      //           height: 22,
+                      //           child: Checkbox(
+                      //             value: controller.keepSignedIn.value,
+                      //             onChanged: (v) =>
+                      //                 controller.toggleKeepSignedIn(v ?? false),
+                      //             fillColor: WidgetStateProperty.resolveWith(
+                      //               (states) =>
+                      //                   states.contains(WidgetState.selected)
+                      //                   ? _linkBlue
+                      //                   : Colors.transparent,
+                      //             ),
+                      //             checkColor: Colors.white,
+                      //             side: const BorderSide(color: Colors.white54),
+                      //             shape: RoundedRectangleBorder(
+                      //               borderRadius: BorderRadius.circular(4),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         const SizedBox(width: 8),
+                      //         const Text(
+                      //           'Remember me',
+                      //           style: TextStyle(
+                      //             fontSize: 14,
+                      //             color: Colors.white,
+                      //           ),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   );
+                      // }),
+SizedBox(),
                       GestureDetector(
                         onTap: () => Get.to(() => ForgotPasswordScreen()),
 

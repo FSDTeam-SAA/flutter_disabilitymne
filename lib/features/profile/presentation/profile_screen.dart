@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
+import 'package:disabilitymne/features/progress/controller/progress_controller.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/daily_notes_screen.dart';
@@ -23,7 +24,28 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late ProfileController controller;
+  late final ProfileController controller;
+  late final ProgressController progressController;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<ProfileController>();
+    final hasProgressController = Get.isRegistered<ProgressController>();
+    progressController = hasProgressController
+        ? Get.find<ProgressController>()
+        : Get.put(ProgressController(Get.find()), permanent: false);
+    if (hasProgressController && !progressController.isLoading.value) {
+      progressController.fetchProgress();
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    await Future.wait([
+      controller.getProfile(),
+      progressController.fetchProgress(),
+    ]);
+  }
 
   void showLogoutDialog({required VoidCallback onConfirm}) {
     Get.defaultDialog(
@@ -67,7 +89,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    controller = Get.find<ProfileController>();
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BackgroundImage(
@@ -84,8 +105,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Obx(() {
                     final user = controller.user.value;
                     final profileImageUrl = user?.profileImage;
-                    final hasProfileImage = profileImageUrl != null &&
-                        profileImageUrl.isNotEmpty;
+                    final hasProfileImage =
+                        profileImageUrl != null && profileImageUrl.isNotEmpty;
                     final pickedPath = controller.pickedImagePath.value;
 
                     ImageProvider<Object> avatarImage;
@@ -94,22 +115,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     } else if (hasProfileImage) {
                       avatarImage = NetworkImage(profileImageUrl);
                     } else {
-                      avatarImage = const AssetImage("assets/image/app_logo.png");
+                      avatarImage = const AssetImage(
+                        "assets/image/app_logo.png",
+                      );
                     }
 
                     final name = [
                       user?.firstName,
                       user?.lastName,
                     ].whereType<String>().join(' ').trim();
-                    final displayName =
-                        name.isNotEmpty ? name : 'User';
+                    final displayName = name.isNotEmpty ? name : 'User';
 
                     return Row(
                       children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundImage: avatarImage,
-                        ),
+                        CircleAvatar(radius: 24, backgroundImage: avatarImage),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -143,159 +162,175 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 16),
 
                   /// Progress Cards
-                  Row(
-                    children: const [
-                      Expanded(
-                        child: _StatCard(
-                          title: "Streak",
-                          value: "7",
-                          icon: Icons.local_fire_department_outlined,
+                  Obx(() {
+                    final progressData = progressController.progressData.value;
+                    final hasProgressData = progressData != null;
+                    final stats = progressController.stats;
+
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _StatCard(
+                            title: "Streak",
+                            value: hasProgressData
+                                ? '${stats.streakDays}'
+                                : '--',
+                            icon: Icons.local_fire_department_outlined,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: _StatCard(
-                          title: "Workouts",
-                          value: "9",
-                          icon: Icons.fitness_center,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _StatCard(
+                            title: "Workouts",
+                            value: hasProgressData
+                                ? '${stats.totalWorkouts}'
+                                : '--',
+                            icon: Icons.fitness_center,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: _StatCard(
-                          title: "Calories",
-                          value: "0%",
-                          icon: Icons.local_fire_department,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _StatCard(
+                            title: "Calories",
+                            value: hasProgressData
+                                ? '${stats.caloriesPercent.toStringAsFixed(0)}%'
+                                : '--',
+                            icon: Icons.local_fire_department,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    );
+                  }),
 
                   const SizedBox(height: 20),
 
                   /// Settings List
                   Expanded(
-                    child: ListView(
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.person_outline,
-                          title: "My Profile",
-                          subtitle: "View personal details",
-                          onTap: () {
-                            Get.to(() => MyProfileScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.lock_outline,
-                          title: "Change Password",
-                          subtitle: "Update your password",
-                          onTap: () {
-                            Get.to(() => ChangePasswordScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.note_outlined,
-                          title: "Daily Notes",
-                          subtitle: "View Notes you have added daily",
-                          onTap: () {
-                            Get.to(() => const DailyNotesScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.workspace_premium_outlined,
-                          title: "Subscription & Billing",
-                          subtitle: "Manage your plan",
-                          onTap: () {
-                            Get.to(() => ChoosePlanScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.language,
-                          title: "Language & Accessibility",
-                          subtitle: "English/Serbian",
-                          onTap: () {
-                            Get.to(() => const LanguageAccessibilityScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.notifications_none,
-                          title: "Notification Settings",
-                          subtitle: "Manage alerts",
-                          onTap: () {
-                            Get.to(() => NotificationScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.support_agent_outlined,
-                          title: "Help & Support",
-                          subtitle: "FAQs and contact",
-                          onTap: () {
-                            Get.to(() => HelpSupportScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.chat_bubble_outline,
-                          title: "Chat with Admin",
-                          subtitle: "Message support",
-                          onTap: () {
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.privacy_tip_outlined,
-                          title: "Privacy & Legal",
-                          subtitle: "Privacy policy & data",
-                          onTap: () {
-                            Get.to(() => const PrivacyLegalScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.description_outlined,
-                          title: "Terms of Service",
-                          subtitle: "App usage terms and conditions",
-                          onTap: () {
-                            Get.to(() => const TermsConditionScreen());
-                          },
-                        ),
-                        _SettingsTile(
-                          icon: Icons.lock_outline,
-                          title: "Privacy & Security",
-                          subtitle: "View personal details",
-                          onTap: () {
-                            // This seems to be a placeholder or test route
-                            // Get.to(() => ExerciseWorkoutScreen(program: ProgramModel(), initialIndex: 0));
-                          },
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        /// Sign Out
-                        Center(
-                          child: TextButton.icon(
-                            onPressed: () {
-                              showLogoutDialog(
-                                onConfirm: () {
-                                  Get.find<AuthInterface>().logout();
-                                },
-                              );
+                    child: RefreshIndicator(
+                      onRefresh: _handleRefresh,
+                      color: Colors.white,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          _SettingsTile(
+                            icon: Icons.person_outline,
+                            title: "My Profile",
+                            subtitle: "View personal details",
+                            onTap: () {
+                              Get.to(() => MyProfileScreen());
                             },
-                            icon: const Icon(
-                              Icons.logout,
-                              size: 24,
-                              color: Colors.red,
-                            ),
-                            label: const Text(
-                              "Sign Out",
-                              style: TextStyle(
+                          ),
+                          _SettingsTile(
+                            icon: Icons.lock_outline,
+                            title: "Change Password",
+                            subtitle: "Update your password",
+                            onTap: () {
+                              Get.to(() => ChangePasswordScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.note_outlined,
+                            title: "Daily Notes",
+                            subtitle: "View Notes you have added daily",
+                            onTap: () {
+                              Get.to(() => const DailyNotesScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.workspace_premium_outlined,
+                            title: "Subscription & Billing",
+                            subtitle: "Manage your plan",
+                            onTap: () {
+                              Get.to(() => ChoosePlanScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.language,
+                            title: "Language & Accessibility",
+                            subtitle: "English/Serbian",
+                            onTap: () {
+                              Get.to(() => const LanguageAccessibilityScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.notifications_none,
+                            title: "Notification Settings",
+                            subtitle: "Manage alerts",
+                            onTap: () {
+                              Get.to(() => NotificationScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.support_agent_outlined,
+                            title: "Help & Support",
+                            subtitle: "FAQs and contact",
+                            onTap: () {
+                              Get.to(() => HelpSupportScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.chat_bubble_outline,
+                            title: "Chat with Admin",
+                            subtitle: "Message support",
+                            onTap: () {},
+                          ),
+                          _SettingsTile(
+                            icon: Icons.privacy_tip_outlined,
+                            title: "Privacy & Legal",
+                            subtitle: "Privacy policy & data",
+                            onTap: () {
+                              Get.to(() => const PrivacyLegalScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.description_outlined,
+                            title: "Terms of Service",
+                            subtitle: "App usage terms and conditions",
+                            onTap: () {
+                              Get.to(() => const TermsConditionScreen());
+                            },
+                          ),
+                          _SettingsTile(
+                            icon: Icons.lock_outline,
+                            title: "Privacy & Security",
+                            subtitle: "View personal details",
+                            onTap: () {
+                              // This seems to be a placeholder or test route
+                              // Get.to(() => ExerciseWorkoutScreen(program: ProgramModel(), initialIndex: 0));
+                            },
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          /// Sign Out
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: () {
+                                showLogoutDialog(
+                                  onConfirm: () {
+                                    Get.find<AuthInterface>().logout();
+                                  },
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.logout,
+                                size: 24,
                                 color: Colors.red,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
+                              ),
+                              label: const Text(
+                                "Sign Out",
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 20),
-                      ],
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
                   ),
                 ],
