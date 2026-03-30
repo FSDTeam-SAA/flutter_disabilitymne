@@ -401,7 +401,7 @@ class IngredientItem extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 1,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha:0.3),
                   ),
                 ),
             ],

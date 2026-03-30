@@ -382,9 +382,9 @@ class MyProfileScreen extends GetView<ProfileController> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.blue.withOpacity(0.5)),
+              border: Border.all(color: Colors.blue.withValues(alpha:0.5)),
             ),
             child: Icon(icon, color: Colors.blue, size: 30),
           ),

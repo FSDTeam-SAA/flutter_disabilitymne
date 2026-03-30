@@ -195,7 +195,7 @@ class ProfileController extends GetxController {
             "Success",
             success.message,
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green.withOpacity(0.7),
+            backgroundColor: Colors.green.withValues(alpha:0.7),
             colorText: Colors.white,
           );
 
@@ -245,7 +245,7 @@ class ProfileController extends GetxController {
               "Success",
               success.message,
               snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green.withOpacity(0.7),
+              backgroundColor: Colors.green.withValues(alpha:0.7),
               colorText: Colors.white,
             );
           },

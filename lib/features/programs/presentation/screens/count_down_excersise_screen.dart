@@ -329,7 +329,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                                   height: 60,
                                   width: 60,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(.9),
+                                    color: Colors.white.withValues(alpha:.9),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(

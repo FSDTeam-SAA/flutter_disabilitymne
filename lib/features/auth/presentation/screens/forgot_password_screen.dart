@@ -70,7 +70,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha:  0.8),
                     ),
                   ),
                   const SizedBox(height: 32),

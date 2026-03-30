@@ -43,7 +43,7 @@ class LanguageScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.85),
+                  color: Colors.white.withValues(alpha:0.85),
                 ),
               ),
               const SizedBox(height: 40),
@@ -107,7 +107,7 @@ class _LanguageCard extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? AppColors.gradientButtonStart
-                : Colors.white.withOpacity(0.3),
+                : Colors.white.withValues(alpha:  0.3),
             width: 1,
           ),
         ),
@@ -132,7 +132,7 @@ class _LanguageCard extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha:0.7),
                     ),
                   ),
                 ],
@@ -146,7 +146,7 @@ class _LanguageCard extends StatelessWidget {
                 border: Border.all(
                   color: isSelected
                       ? AppColors.gradientButtonStart
-                      : Colors.white.withOpacity(0.5),
+                      : Colors.white.withValues(alpha:0.5),
                   width: 2,
                 ),
                 color: isSelected ? const Color(0xFF89C9E6) : Colors.transparent,

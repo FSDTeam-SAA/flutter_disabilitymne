@@ -27,7 +27,10 @@ void externalServiceDI() {
   Get.put<AppPigeon>(appPigeon);
 
   // Auth Interface Implementation
-  Get.lazyPut<AuthInterface>(() => AuthInterfaceImpl(Get.find()));
+  Get.lazyPut<AuthInterface>(
+    () => AuthInterfaceImpl(Get.find()),
+    fenix: true,
+  );
 
   // Daily Tracker Repository (put so it's available before first use)
   Get.put<DailyTrackerRepository>(
@@ -38,16 +41,19 @@ void externalServiceDI() {
   // Progress Repository
   Get.lazyPut<ProgressRepository>(
     () => ProgressRepository(Get.find<AuthorizedPigeon>()),
+    fenix: true,
   );
 
   // Payment Plans
   Get.lazyPut<PaymentPlansInterface>(
     () => PaymentPlansRepository(Get.find<AuthorizedPigeon>()),
+    fenix: true,
   );
 
   // Chat
   Get.lazyPut<ChatRepository>(
     () => ChatRepository(Get.find<AuthorizedPigeon>()),
+    fenix: true,
   );
   Get.lazyPut<ChatSocketService>(
     () => ChatSocketService(socketUrl: ApiEndpoints.socketUrl),
@@ -57,6 +63,7 @@ void externalServiceDI() {
   // Calculator
   Get.lazyPut<CalculatorInterface>(
     () => CalculatorInterfaceImpl(appPigeon: Get.find<AuthorizedPigeon>()),
+    fenix: true,
   );
 }
 
@@ -66,7 +73,6 @@ class MyRefreshTokenManager implements RefreshTokenManagerInterface {
     required String refreshToken,
     required Dio dio,
   }) {
-    // TODO: implement refreshToken
     throw UnimplementedError();
   }
 
@@ -75,11 +81,9 @@ class MyRefreshTokenManager implements RefreshTokenManagerInterface {
     DioException err,
     ErrorInterceptorHandler handler,
   ) {
-    // TODO: implement shouldRefresh
     throw UnimplementedError();
   }
 
   @override
-  // TODO: implement url
   String get url => ApiEndpoints.refreshToken;
 }

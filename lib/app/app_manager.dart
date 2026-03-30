@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:app_pigeon/app_pigeon.dart';
+import 'package:disabilitymne/app/splash_view.dart';
 import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
-import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:disabilitymne/features/language/language_screen.dart';
 import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +44,7 @@ class AppManager extends GetxController {
   void _decideRoute(AuthStatus? authStatus) async {
     if (authStatus is UnAuthenticated) {
       _authStatus = authStatus;
-      Get.offAll(() => SignInScreen());
+      Get.offAll(() => SplashView());
       // navigatorKey.currentState?.pushNamedAndRemoveUntil(
       //   RouteNames.login,
       //   (route) => false,

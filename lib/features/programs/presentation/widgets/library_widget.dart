@@ -19,7 +19,7 @@ class LibraryWidget extends StatelessWidget {
           child: Container(
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextField(

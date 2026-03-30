@@ -251,7 +251,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           children: [
             _circleButton(
               onPressed: () {
-                // TODO: attachments
               },
               child: const Icon(Icons.add, color: Colors.black87, size: 26),
             ),
