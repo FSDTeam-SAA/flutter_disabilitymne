@@ -187,7 +187,7 @@ class CongratulationsScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: (14 * scaleW).clamp(13, 16),
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha:0.9),
                         height: 1.4,
                       ),
                     ),
@@ -206,7 +206,7 @@ class CongratulationsScreen extends StatelessWidget {
                       color: _cardBg,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.12),
+                        color: Colors.white.withValues(alpha:0.12),
                         width: 1,
                       ),
                     ),

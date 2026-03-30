@@ -7,7 +7,6 @@ class ErrorDebugger {
   void debug() {
     ErrorNode? currentNode = firstNode;
     while(currentNode != null) {
-      print(currentNode.message);
       currentNode = currentNode.child;
     }
   }

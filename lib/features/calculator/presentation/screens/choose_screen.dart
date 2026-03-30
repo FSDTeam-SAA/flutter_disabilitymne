@@ -258,7 +258,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                   labelText: 'Quantity',
                                   labelStyle: const TextStyle(color: Colors.white70),
                                   filled: true,
-                                  fillColor: Colors.white.withOpacity(0.05),
+                                  fillColor: Colors.white.withValues(alpha:  0.05),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: const BorderSide(color: Colors.white12),
@@ -302,7 +302,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                   labelText: 'How much',
                                   labelStyle: const TextStyle(color: Colors.white70),
                                   filled: true,
-                                  fillColor: Colors.white.withOpacity(0.05),
+                                  fillColor: Colors.white.withValues(alpha:  0.05),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: const BorderSide(color: Colors.white12),
@@ -342,7 +342,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                             labelText: 'Meal type',
                             labelStyle: const TextStyle(color: Colors.white70),
                             filled: true,
-                            fillColor: Colors.white.withOpacity(0.05),
+                            fillColor: Colors.white.withValues(alpha:  0.05),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: const BorderSide(color: Colors.white12),
@@ -523,7 +523,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             ),
           ),
           progressColor: color,
-          backgroundColor: Colors.white.withOpacity(0.08),
+          backgroundColor: Colors.white.withValues(alpha:0.08),
           circularStrokeCap: CircularStrokeCap.round,
           animation: true,
           animateFromLastPercent: true,

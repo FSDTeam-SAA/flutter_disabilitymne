@@ -115,7 +115,7 @@
 //                     decoration: BoxDecoration(
 //                       color: const Color(0xff1C2533),
 //                       borderRadius: BorderRadius.circular(12),
-//                       border: Border.all(color: Colors.orange.withOpacity(0.5)),
+//                       border: Border.all(color: Colors.orange.withValues(alpha:0.5)),
 //                     ),
 //                     child: Column(
 //                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +221,7 @@
 //       margin: const EdgeInsets.only(right: 8),
 //       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
 //       decoration: BoxDecoration(
-//         color: Colors.white.withOpacity(0.05),
+//         color: Colors.white.withValues(alpha:0.05),
 //         borderRadius: BorderRadius.circular(8),
 //         border: Border.all(color: Colors.white12),
 //       ),
@@ -416,11 +416,11 @@ class ProgramDetailScreen extends StatelessWidget {
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(10),
-                                      color: isSelected ? const Color(0xff6FA8DC) : Colors.white.withOpacity(0.06),
+                                      color: isSelected ? const Color(0xff6FA8DC) : Colors.white.withValues(alpha:0.06),
                                       border: Border.all(
                                         color: isSelected
                                             ? const Color(0xff9bd8ff)
-                                            : const Color(0xFF70A9D2).withOpacity(0.5),
+                                            : const Color(0xFF70A9D2).withValues(alpha:0.5),
                                       ),
                                     ),
                                     child: Text(
@@ -476,7 +476,7 @@ class ProgramDetailScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xff1C2533),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                      border: Border.all(color: Colors.orange.withValues(alpha:0.5)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -611,7 +611,7 @@ class ProgramDetailScreen extends StatelessWidget {
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha:0.05),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Color(0xFF70A9D2)),
       ),
@@ -642,7 +642,7 @@ class ProgramDetailScreen extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 1,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha:0.3),
                   ),
                 ),
             ],

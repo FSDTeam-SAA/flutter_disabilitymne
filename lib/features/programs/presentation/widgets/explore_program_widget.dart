@@ -119,8 +119,8 @@ class ProgramCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withOpacity(0.2),
-                    Colors.black.withOpacity(0.8),
+                    Colors.black.withValues(alpha:0.2),
+                    Colors.black.withValues(alpha:0.8),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
