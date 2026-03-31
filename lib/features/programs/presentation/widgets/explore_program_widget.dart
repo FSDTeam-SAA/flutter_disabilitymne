@@ -114,29 +114,29 @@ class ProgramCard extends StatelessWidget {
                       ),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withValues(alpha:0.2),
-                    Colors.black.withValues(alpha:0.8),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              padding: const EdgeInsets.all(20),
-              alignment: Alignment.bottomLeft,
-              child: Text(
-                title ?? "",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            // Container(
+            //   decoration: BoxDecoration(
+            //     borderRadius: BorderRadius.circular(16),
+            //     gradient: LinearGradient(
+            //       colors: [
+            //         Colors.black.withValues(alpha:0.2),
+            //         Colors.black.withValues(alpha:0.8),
+            //       ],
+            //       begin: Alignment.topCenter,
+            //       end: Alignment.bottomCenter,
+            //     ),
+            //   ),
+            //   // padding: const EdgeInsets.all(20),
+            //   // alignment: Alignment.bottomLeft,
+            //   // child: Text(
+            //   //   title ?? "",
+            //   //   style: const TextStyle(
+            //   //     color: Colors.white,
+            //   //     fontSize: 14,
+            //   //     fontWeight: FontWeight.bold,
+            //   //   ),
+            //   // ),
+            // ),
           ],
         ),
       ),

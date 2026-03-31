@@ -17,7 +17,6 @@ class RecipeDetailsScreen extends StatefulWidget {
 
 class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   final RecipeController controller = Get.find<RecipeController>();
-  bool _favoriteBusy = false;
   bool _quickAddBusy = false;
 
   @override
@@ -94,7 +93,15 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                             selectedMealType = value;
                           });
                         },
-                        activeColor: const Color(0xff6FA8DC),
+
+                        fillColor: MaterialStateProperty.resolveWith<Color>((
+                          states,
+                        ) {
+                          if (states.contains(MaterialState.selected)) {
+                            return const Color(0xff6FA8DC); // selected color
+                          }
+                          return Colors.white; // inactive color ✅
+                        }),
                         title: Text(
                           _titleCase(mealType),
                           style: const TextStyle(color: Colors.white),
@@ -114,7 +121,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () => Navigator.of(bottomSheetContext).pop(selectedMealType),
+                        onPressed: () => Navigator.of(
+                          bottomSheetContext,
+                        ).pop(selectedMealType),
                         child: const Text('Add to Meal'),
                       ),
                     ),
@@ -247,7 +256,6 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
           final String image =
               recipe.recipeImage ??
               "https://images.unsplash.com/photo-1517673132405-a56a62b18caf";
-          final bool isFavorite = recipe.isFavorite == true;
 
           return Column(
             children: [
@@ -298,45 +306,45 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                           ],
                         ),
 
-                        GestureDetector(
-                          onTap: _favoriteBusy
-                              ? null
-                              : () async {
-                                  setState(() {
-                                    _favoriteBusy = true;
-                                  });
-                                  await controller.toggleFavorite(
-                                    recipeId: widget.id,
-                                    isFavorite: !isFavorite,
-                                  );
-                                  if (!mounted) return;
-                                  setState(() {
-                                    _favoriteBusy = false;
-                                  });
-                                },
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Colors.white,
-                            child: _favoriteBusy
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.black87,
-                                    ),
-                                  )
-                                : Icon(
-                                    isFavorite
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    color: isFavorite
-                                        ? Colors.red
-                                        : Colors.black87,
-                                    size: 18,
-                                  ),
-                          ),
-                        ),
+                        // GestureDetector(
+                        //   onTap: _favoriteBusy
+                        //       ? null
+                        //       : () async {
+                        //           setState(() {
+                        //             _favoriteBusy = true;
+                        //           });
+                        //           await controller.toggleFavorite(
+                        //             recipeId: widget.id,
+                        //             isFavorite: !isFavorite,
+                        //           );
+                        //           if (!mounted) return;
+                        //           setState(() {
+                        //             _favoriteBusy = false;
+                        //           });
+                        //         },
+                        //   child: CircleAvatar(
+                        //     radius: 16,
+                        //     backgroundColor: Colors.white,
+                        //     child: _favoriteBusy
+                        //         ? const SizedBox(
+                        //             width: 14,
+                        //             height: 14,
+                        //             child: CircularProgressIndicator(
+                        //               strokeWidth: 2,
+                        //               color: Colors.black87,
+                        //             ),
+                        //           )
+                        //         : Icon(
+                        //             isFavorite
+                        //                 ? Icons.favorite
+                        //                 : Icons.favorite_border,
+                        //             color: isFavorite
+                        //                 ? Colors.red
+                        //                 : Colors.black87,
+                        //             size: 18,
+                        //           ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -411,12 +419,16 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xff6FA8DC),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              onPressed: _quickAddBusy ? null : _quickAddRecipeToDiary,
+                              onPressed: _quickAddBusy
+                                  ? null
+                                  : _quickAddRecipeToDiary,
                               child: _quickAddBusy
                                   ? const SizedBox(
                                       width: 18,
@@ -598,7 +610,7 @@ class IngredientItem extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 1,
-                    color: Colors.white.withValues(alpha:0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
             ],
