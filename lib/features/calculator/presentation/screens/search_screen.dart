@@ -239,34 +239,40 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
                   ),
                 ),
               ),
-              // if (_suggestions.isNotEmpty)
-              //   Padding(
-              //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              //     child: SingleChildScrollView(
-              //       scrollDirection: Axis.horizontal,
-              //       child: Row(
-              //         children: _suggestions
-              //             .take(6)
-              //             .map(
-              //               (s) => Padding(
-              //                 padding: const EdgeInsets.only(right: 8),
-              //                 child: ActionChip(
-              //                   backgroundColor: const Color(0xFF2A3040),
-              //                   label: Text(
-              //                     s,
-              //                     style: const TextStyle(color: Colors.white),
-              //                   ),
-              //                   onPressed: () {
-              //                     _searchController.text = s;
-              //                     _searchNow(s);
-              //                   },
-              //                 ),
-              //               ),
-              //             )
-              //             .toList(),
-              //       ),
-              //     ),
-              //   ),
+              if (_suggestions.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _suggestions
+                          .take(6)
+                          .map(
+                            (suggestion) => Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ActionChip(
+                                backgroundColor: const Color(0xFF2A3040),
+                                side: BorderSide(color: Colors.white.withOpacity(0.12)),
+                                label: Text(
+                                  suggestion,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                onPressed: () {
+                                  _searchController.value = TextEditingValue(
+                                    text: suggestion,
+                                    selection: TextSelection.collapsed(
+                                      offset: suggestion.length,
+                                    ),
+                                  );
+                                  _searchNow(suggestion);
+                                },
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ),
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Text(
