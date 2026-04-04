@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:disabilitymne/features/onboarding/congratulations_screen.dart';
 import 'package:disabilitymne/features/onboarding/stripe_checkout_webview_screen.dart';
 
-/// Payment package selection: Free Trial, Monthly, Six Month, Premium.
+/// Payment package selection: Monthly, Quarterly, Annual, Premium.
 /// Shown when user taps Continue on Fitness experience screen.
 class ChoosePlanScreen extends StatefulWidget {
   const ChoosePlanScreen({super.key});
@@ -28,9 +28,9 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   static const Color _monthlyBlue = Color(0xFF0088FF);
   static const Color _monthlyBlueFill = Color(0xFF163D67);
 
-  /// Six month plan: #FFCC00
-  static const Color _sixMonthYellow = Color(0xFFFFCC00);
-  static const Color _sixMonthYellowFill = Color(0xFF484731);
+  /// Quarterly plan: #FFCC00
+  static const Color _quarterlyYellow = Color(0xFFFFCC00);
+  static const Color _quarterlyYellowFill = Color(0xFF484731);
 
   /// Premium: #FF8D28
   static const Color _premiumOrange = Color(0xFFFF8D28);
@@ -52,11 +52,9 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   Future<void> _handleContinue(
     PaymentPlan selectedPlan,
     PlanItem selectedUiPlan,
-    bool isTrial,
-    String buttonText,
   ) async {
     if (_checkoutLoading) return;
-    if (isTrial) {
+    if (selectedPlan.price <= 0) {
       Get.to(
         () => CongratulationsScreen(planName: selectedUiPlan.title),
       );
@@ -114,13 +112,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
   static ({Color accent, Color fill}) _colorsForKey(String key) {
     switch (key) {
-      case 'free_trial':
+      case 'annual':
         return (accent: _green, fill: _greenFill);
-      case 'monthly_plan':
+      case 'monthly':
         return (accent: _monthlyBlue, fill: _monthlyBlueFill);
-      case 'six_month_plan':
-        return (accent: _sixMonthYellow, fill: _sixMonthYellowFill);
-      case 'premium_plan':
+      case 'quarterly':
+        return (accent: _quarterlyYellow, fill: _quarterlyYellowFill);
+      case 'premium':
         return (accent: _premiumOrange, fill: _premiumOrangeFill);
       default:
         return (accent: Colors.white, fill: Colors.white);
@@ -133,9 +131,8 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   }
 
   static String _formatDescription(PaymentPlan plan) {
-    if (plan.trialDays > 0) return '${plan.trialDays} days free';
     if (plan.durationLabel.trim().isNotEmpty) return plan.durationLabel;
-    if (plan.durationMonths > 0) return '${plan.durationMonths} month';
+    if (plan.durationMonths > 0) return '${plan.durationMonths} months';
     return '';
   }
 
@@ -148,7 +145,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       price: _formatPrice(p),
       accentColor: colors.accent,
       accentFill: colors.fill,
-      isPremium: p.key == 'premium_plan',
+      isPremium: p.key == 'premium',
       mostPopular: p.isPopular,
       features: p.features,
     );
@@ -217,12 +214,8 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                     final selected = _selectedIndex.clamp(0, uiPlans.length - 1);
                     final selectedPlan = plans[selected];
                     final selectedUiPlan = uiPlans[selected];
-                    final isTrial = selectedPlan.trialDays > 0 || selectedPlan.price <= 0;
-                    final buttonText = isTrial
-                        ? (selectedPlan.trialDays > 0
-                            ? 'Continue ${selectedPlan.trialDays} days free Trial'
-                            : 'Continue free Trial')
-                        : 'Continue to payment';
+                    final isFreePlan = selectedPlan.price <= 0;
+                    final buttonText = isFreePlan ? 'Continue' : 'Continue to payment';
 
                     return Column(
                       children: [
@@ -303,8 +296,6 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                             onPressed: () => _handleContinue(
                               selectedPlan,
                               selectedUiPlan,
-                              isTrial,
-                              buttonText,
                             ),
                             text: _checkoutLoading ? 'Loading...' : buttonText,
                           ),

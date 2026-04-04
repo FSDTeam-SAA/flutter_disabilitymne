@@ -33,9 +33,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const Color _cardBlue = Color(0xFF1A233A);
-  static const Color _accentLightBlue = Color(0xFF89C9E6);
   static const Color _seeAllBlue = Color(0xFF85C4E2);
-
   /// Selected tab background color (#4B7FA8); icon and text stay white
   static const Color _recipeTabSelectedBg = Color(0xFF4B7FA8);
   static const List<String> _recipeTabAssetPaths = [
@@ -68,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _listenProfileAndShowUpgradePopup();
   }
 
-  /// When profile user is loaded, show upgrade popup once for free_trial (within 6 days) or for six_month_plan/premium_plan when subscriptionEndsAt within 6 days.
+  /// When profile user is loaded, show upgrade popup when subscription ends within 6 days.
   void _listenProfileAndShowUpgradePopup() {
     if (!Get.isRegistered<ProfileController>()) return;
     final profileController = Get.find<ProfileController>();
@@ -128,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               slivers: [
                 _buildAppBar(),
-                SliverToBoxAdapter(child: _buildHeroCard()),
+                // SliverToBoxAdapter(child: _buildHeroCard()),
                 SliverToBoxAdapter(child: _buildSectionSpacer()),
                 _buildMyProgramsSection(),
                 SliverToBoxAdapter(child: _buildSectionSpacer()),
@@ -217,30 +215,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: _accentLightBlue.withValues(alpha: .25),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                    const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                      size: 24,
                     ), // Uses Material icon only; do not use notification.png asset
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
+                    // Positioned(
+                    //   top: 4,
+                    //   right: 4,
+                    //   child: Container(
+                    //     width: 8,
+                    //     height: 8,
+                    //     decoration: const BoxDecoration(
+                    //       color: Colors.red,
+                    //       shape: BoxShape.circle,
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -251,126 +242,126 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeroCard() {
-    // Card gradient: dark navy top-left to muted blue bottom-right (match design)
-    const Color heroCardStart = Color(0xFF1A2B43);
-    const Color heroCardEnd = Color(0xFF2B476F);
+  // Widget _buildHeroCard() {
+  //   // Card gradient: dark navy top-left to muted blue bottom-right (match design)
+  //   const Color heroCardStart = Color(0xFF1A2B43);
+  //   const Color heroCardEnd = Color(0xFF2B476F);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 20, 16, 20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [heroCardStart, heroCardEnd],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(
-                0x66000000,
-              ), // #000000 at 40% opacity (66 = 40% alpha)
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Ready for your Fitness',
-                    style: TextStyle(
-                      color: AppColors.primaryText,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      height: 1.3,
-                    ),
-                  ),
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 20),
+  //     child: Container(
+  //       padding: const EdgeInsets.fromLTRB(20, 20, 16, 20),
+  //       decoration: BoxDecoration(
+  //         borderRadius: BorderRadius.circular(24),
+  //         gradient: const LinearGradient(
+  //           begin: Alignment.topLeft,
+  //           end: Alignment.bottomRight,
+  //           colors: [heroCardStart, heroCardEnd],
+  //         ),
+  //         boxShadow: [
+  //           BoxShadow(
+  //             color: const Color(
+  //               0x66000000,
+  //             ), // #000000 at 40% opacity (66 = 40% alpha)
+  //             blurRadius: 12,
+  //             offset: const Offset(0, 4),
+  //           ),
+  //         ],
+  //       ),
+  //       child: Row(
+  //         children: [
+  //           Expanded(
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 Text(
+  //                   'Ready for your Fitness',
+  //                   style: TextStyle(
+  //                     color: AppColors.primaryText,
+  //                     fontSize: 16,
+  //                     fontWeight: FontWeight.w600,
+  //                     height: 1.3,
+  //                   ),
+  //                 ),
 
-                  Text(
-                    'Journey?',
-                    style: TextStyle(
-                      color: AppColors.primaryText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      height: 1.25,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {},
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              // buttonGradientStart,
-                              // buttonGradientEnd,
-                              Color(0xff4D7EA9),
-                              Color(0xff89C9E6),
-                            ],
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Get Started',
-                              style: TextStyle(
-                                color: AppColors.primaryText,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 22,
-                              color: AppColors.primaryText,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            SizedBox(
-              width: 100,
-              height: 100,
-              child: Image.asset(
-                'assets/image/fitness_journey_icon.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => Icon(
-                  Icons.accessible_forward_rounded,
-                  size: 72,
-                  color: _accentLightBlue.withValues(alpha: 0.9),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //                 Text(
+  //                   'Journey?',
+  //                   style: TextStyle(
+  //                     color: AppColors.primaryText,
+  //                     fontSize: 18,
+  //                     fontWeight: FontWeight.bold,
+  //                     height: 1.25,
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 16),
+  //                 Material(
+  //                   color: Colors.transparent,
+  //                   child: InkWell(
+  //                     onTap: () {},
+  //                     borderRadius: BorderRadius.circular(12),
+  //                     child: Container(
+  //                       padding: const EdgeInsets.symmetric(
+  //                         horizontal: 40,
+  //                         vertical: 12,
+  //                       ),
+  //                       decoration: BoxDecoration(
+  //                         borderRadius: BorderRadius.circular(12),
+  //                         gradient: const LinearGradient(
+  //                           begin: Alignment.topCenter,
+  //                           end: Alignment.bottomCenter,
+  //                           colors: [
+  //                             // buttonGradientStart,
+  //                             // buttonGradientEnd,
+  //                             Color(0xff4D7EA9),
+  //                             Color(0xff89C9E6),
+  //                           ],
+  //                         ),
+  //                       ),
+  //                       child: Row(
+  //                         mainAxisSize: MainAxisSize.min,
+  //                         children: [
+  //                           Text(
+  //                             'Get Started',
+  //                             style: TextStyle(
+  //                               color: AppColors.primaryText,
+  //                               fontWeight: FontWeight.w600,
+  //                               fontSize: 14,
+  //                             ),
+  //                           ),
+  //                           const SizedBox(width: 8),
+  //                           Icon(
+  //                             Icons.chevron_right,
+  //                             size: 22,
+  //                             color: AppColors.primaryText,
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           const SizedBox(width: 12),
+  //           SizedBox(
+  //             width: 100,
+  //             height: 100,
+  //             child: Image.asset(
+  //               'assets/image/fitness_journey_icon.png',
+  //               fit: BoxFit.contain,
+  //               errorBuilder: (_, _, _) => Icon(
+  //                 Icons.accessible_forward_rounded,
+  //                 size: 72,
+  //                 color: _accentLightBlue.withValues(alpha: 0.9),
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildSectionSpacer() {
     return const SizedBox(height: 24);
@@ -440,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, index) {
                     final program = showList[index];
                     return SizedBox(
-                      width: 220,
+                      width: 280,
                       child: ProgramCard(
                         title: program.programName,
                         image: program.programThumbnail,
@@ -814,7 +805,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Obx(() {
           final user = Get.find<ProfileController>().user.value;
-          final showChat = user?.selectedPlan == 'premium_plan';
+          final showChat = user?.selectedPlan == 'premium';
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

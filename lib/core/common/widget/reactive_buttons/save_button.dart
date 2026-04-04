@@ -46,7 +46,6 @@ class _RSaveButtonState extends State<RSaveButton> {
 
   @override
   void initState() {
-    // TODO: implement initState
     buttonStatusNotifier = widget.buttonStatusNotifier;
     super.initState();
   }
@@ -76,7 +75,6 @@ class _RSaveButtonState extends State<RSaveButton> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        print(constraints);
         return AnimatedContainer(
           duration: const Duration(milliseconds: 100),
           height: widget.height ?? 52,
@@ -160,7 +158,7 @@ class _RSaveButtonState extends State<RSaveButton> {
               ],
             );
 
-          case (ErrorStatus):
+          case (_):
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -183,37 +181,6 @@ class _RSaveButtonState extends State<RSaveButton> {
               ],
             );
 
-          case const (SuccessStatus):
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.done,
-                  size: AppSizes.iconSizeMedium,
-                  color: AppColors.primaryText,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  widget.doneText,
-                  style:
-                      widget.style ??
-                      TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryText,
-                      ),
-                ),
-              ],
-            );
-          default:
-            return Text(
-              "Save",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.buttonInactiveTextColor,
-              ),
-            );
         }
       },
     );

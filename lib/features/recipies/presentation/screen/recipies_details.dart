@@ -1,4 +1,7 @@
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:app_pigeon/app_pigeon.dart';
+import 'package:disabilitymne/core/constants/api_endpoints.dart';
+import 'package:disabilitymne/features/calculator/controller/calculator_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
@@ -14,7 +17,7 @@ class RecipeDetailsScreen extends StatefulWidget {
 
 class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   final RecipeController controller = Get.find<RecipeController>();
-  bool _favoriteBusy = false;
+  bool _quickAddBusy = false;
 
   @override
   void initState() {
@@ -26,6 +29,177 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
 
   Future<void> _refreshRecipe() async {
     await controller.getRecipeDetail(widget.id);
+  }
+
+  String _normalizeMealType(String? value) {
+    final normalized = (value ?? '').trim().toLowerCase();
+    if (normalized == 'breakfast' ||
+        normalized == 'lunch' ||
+        normalized == 'dinner' ||
+        normalized == 'snack') {
+      return normalized;
+    }
+    return 'other';
+  }
+
+  String _titleCase(String value) {
+    if (value.isEmpty) return value;
+    return value[0].toUpperCase() + value.substring(1).toLowerCase();
+  }
+
+  String _todayApiDate() {
+    final now = DateTime.now();
+    final month = now.month.toString().padLeft(2, '0');
+    final day = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$month-$day';
+  }
+
+  Future<String?> _selectMealType(String defaultMealType) async {
+    const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack', 'other'];
+    String selectedMealType = defaultMealType;
+
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF1F2B42),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bottomSheetContext) {
+        return StatefulBuilder(
+          builder: (sheetContext, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Add to meal',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...mealTypes.map(
+                      (mealType) => RadioListTile<String>(
+                        value: mealType,
+                        groupValue: selectedMealType,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setSheetState(() {
+                            selectedMealType = value;
+                          });
+                        },
+
+                        fillColor: MaterialStateProperty.resolveWith<Color>((
+                          states,
+                        ) {
+                          if (states.contains(MaterialState.selected)) {
+                            return const Color(0xff6FA8DC); // selected color
+                          }
+                          return Colors.white; // inactive color ✅
+                        }),
+                        title: Text(
+                          _titleCase(mealType),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff6FA8DC),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(
+                          bottomSheetContext,
+                        ).pop(selectedMealType),
+                        child: const Text('Add to Meal'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _quickAddRecipeToDiary() async {
+    final recipe = controller.recipeDetail.value;
+    if (recipe == null || _quickAddBusy) return;
+
+    final defaultMealType = _normalizeMealType(recipe.recipeType);
+    final selectedMealType = await _selectMealType(defaultMealType);
+    if (selectedMealType == null || !mounted) return;
+
+    setState(() {
+      _quickAddBusy = true;
+    });
+
+    try {
+      final imageUrl =
+          recipe.recipeImage ??
+          ((recipe.recipeImages != null && recipe.recipeImages!.isNotEmpty)
+              ? recipe.recipeImages!.first
+              : '');
+
+      await Get.find<AuthorizedPigeon>().post(
+        ApiEndpoints.nutritionDiaryEntries,
+        data: {
+          'date': _todayApiDate(),
+          'mealType': selectedMealType,
+          'foodName': recipe.recipeName ?? 'Recipe',
+          'source': 'manual',
+          'quantity': 1,
+          'servingLabel': 'recipe',
+          'caloriesKcal': recipe.caloriesKcal ?? 0,
+          'proteinG': recipe.proteinG ?? 0,
+          'carbsG': recipe.carbsG ?? 0,
+          'fatG': recipe.fatG ?? 0,
+          'fiberG': 0,
+          'sugarG': 0,
+          'imageUrl': imageUrl,
+          'notes': '',
+        },
+      );
+
+      if (Get.isRegistered<CalculatorController>()) {
+        await Get.find<CalculatorController>().fetchDiary();
+      }
+
+      if (!mounted) return;
+      Get.snackbar(
+        'Added',
+        'Recipe added to ${_titleCase(selectedMealType)}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      Get.snackbar(
+        'Error',
+        'Failed to add recipe to meal',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _quickAddBusy = false;
+        });
+      }
+    }
   }
 
   Widget _buildRefreshableState({required Widget child}) {
@@ -82,7 +256,6 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
           final String image =
               recipe.recipeImage ??
               "https://images.unsplash.com/photo-1517673132405-a56a62b18caf";
-          final bool isFavorite = recipe.isFavorite == true;
 
           return Column(
             children: [
@@ -133,45 +306,45 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                           ],
                         ),
 
-                        GestureDetector(
-                          onTap: _favoriteBusy
-                              ? null
-                              : () async {
-                                  setState(() {
-                                    _favoriteBusy = true;
-                                  });
-                                  await controller.toggleFavorite(
-                                    recipeId: widget.id,
-                                    isFavorite: !isFavorite,
-                                  );
-                                  if (!mounted) return;
-                                  setState(() {
-                                    _favoriteBusy = false;
-                                  });
-                                },
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Colors.white,
-                            child: _favoriteBusy
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.black87,
-                                    ),
-                                  )
-                                : Icon(
-                                    isFavorite
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    color: isFavorite
-                                        ? Colors.red
-                                        : Colors.black87,
-                                    size: 18,
-                                  ),
-                          ),
-                        ),
+                        // GestureDetector(
+                        //   onTap: _favoriteBusy
+                        //       ? null
+                        //       : () async {
+                        //           setState(() {
+                        //             _favoriteBusy = true;
+                        //           });
+                        //           await controller.toggleFavorite(
+                        //             recipeId: widget.id,
+                        //             isFavorite: !isFavorite,
+                        //           );
+                        //           if (!mounted) return;
+                        //           setState(() {
+                        //             _favoriteBusy = false;
+                        //           });
+                        //         },
+                        //   child: CircleAvatar(
+                        //     radius: 16,
+                        //     backgroundColor: Colors.white,
+                        //     child: _favoriteBusy
+                        //         ? const SizedBox(
+                        //             width: 14,
+                        //             height: 14,
+                        //             child: CircularProgressIndicator(
+                        //               strokeWidth: 2,
+                        //               color: Colors.black87,
+                        //             ),
+                        //           )
+                        //         : Icon(
+                        //             isFavorite
+                        //                 ? Icons.favorite
+                        //                 : Icons.favorite_border,
+                        //             color: isFavorite
+                        //                 ? Colors.red
+                        //                 : Colors.black87,
+                        //             size: 18,
+                        //           ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -237,6 +410,42 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                                 subtitle: "fat",
                               ),
                             ],
+                          ),
+
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xff6FA8DC),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: _quickAddBusy
+                                  ? null
+                                  : _quickAddRecipeToDiary,
+                              child: _quickAddBusy
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Add to Meal',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                            ),
                           ),
 
                           const SizedBox(height: 28),
@@ -401,7 +610,7 @@ class IngredientItem extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 1,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
             ],

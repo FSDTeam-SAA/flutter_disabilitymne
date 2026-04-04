@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../services/debug/debug_service.dart';
 import '../../../services/image_cache/image_service.dart';
 
-enum _Shape{
+enum Shape{
   circle,
   none,
 }
@@ -19,7 +19,7 @@ class SmartNetworkImage extends StatefulWidget {
   final Widget? placeholder;
   final Widget? errorWidget;
   final bool keepAlive;
-  final _Shape shape;
+  final Shape shape;
   final Color? backgroundColor;
   final Color? borderColor;
   final double? borderWidth;
@@ -35,7 +35,7 @@ class SmartNetworkImage extends StatefulWidget {
     this.errorWidget,
     this.keepAlive = false,
     super.key,
-    this.shape = _Shape.none,
+    this.shape = Shape.none,
     this.backgroundColor,
     this.borderColor,
     this.borderWidth
@@ -51,7 +51,7 @@ class SmartNetworkImage extends StatefulWidget {
     this.errorWidget,
     this.keepAlive = false,
     super.key,
-  }): shape = _Shape.none,
+  }): shape = Shape.none,
       backgroundColor = null,
       borderColor = null,
       borderWidth = null;
@@ -78,7 +78,7 @@ class SmartNetworkImage extends StatefulWidget {
     placeholder: placeholder,
     errorWidget: errorWidget,
     keepAlive: keepAlive,
-    shape: _Shape.circle,
+    shape: Shape.circle,
     backgroundColor: backgroundColor,
     borderColor: borderColor,
     borderWidth: borderWidth
@@ -95,7 +95,7 @@ class _SmartNetworkImageState extends State<SmartNetworkImage> with AutomaticKee
 
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
+   
     _loadImage();
     super.didChangeDependencies();
   }
@@ -133,7 +133,7 @@ class _SmartNetworkImageState extends State<SmartNetworkImage> with AutomaticKee
     super.build(context);
     if (_imageBytes != null) {
       // For Circle
-      if(widget.shape == _Shape.circle) {
+      if(widget.shape == Shape.circle) {
         return Container(
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
@@ -172,6 +172,5 @@ class _SmartNetworkImageState extends State<SmartNetworkImage> with AutomaticKee
   }
   
   @override
-  // TODO: implement wantKeepAlive
   bool get wantKeepAlive => widget.keepAlive;
 }

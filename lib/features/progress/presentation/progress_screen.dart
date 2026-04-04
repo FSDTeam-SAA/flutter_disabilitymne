@@ -125,7 +125,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   Text(
                     'Your fitness journey at a glance',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha:0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -326,7 +326,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             border: Border.all(color: Colors.grey.shade300, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withValues(alpha:0.08),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -451,7 +451,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             border: Border.all(color: Colors.grey.shade300, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha:0.06),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),

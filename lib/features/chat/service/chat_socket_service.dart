@@ -73,7 +73,6 @@ class ChatSocketService {
     debugPrint('state=$state');
   }
 
-  /// Normalize socket payload to Map<String, dynamic> (Socket.IO may send Map<dynamic, dynamic>).
   static Map<String, dynamic>? _toMap(dynamic data) {
     if (data == null) return null;
     if (data is Map<String, dynamic>) return data;

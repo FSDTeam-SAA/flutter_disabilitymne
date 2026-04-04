@@ -120,12 +120,12 @@ final class AuthInterfaceImpl extends AuthInterface {
     ResetPasswordModel params,
   ) async {
     return await asyncTryCatch(tryFunc: () async {
-      final Response = await appPigeon.post(
+      final response = await appPigeon.post(
         ApiEndpoints.createNewPassword,
         data: params.toJson(),
       );
-      debugPrint('RESET PASSWORD RESPONSE => ${Response.data}');
-      return Success(message: extractSuccessMessage(Response));
+      debugPrint('RESET PASSWORD RESPONSE => ${response.data}');
+      return Success(message: extractSuccessMessage(response));
     });
   }
 

@@ -134,7 +134,7 @@ class MealDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.white30),
                     borderRadius: BorderRadius.circular(12),
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha:0.05),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,7 +191,7 @@ class MealDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.white30),
                     borderRadius: BorderRadius.circular(12),
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha:0.05),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

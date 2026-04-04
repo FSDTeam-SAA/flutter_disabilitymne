@@ -162,7 +162,7 @@ class ExerciseDetailScreen extends StatelessWidget {
                               height: 56,
                               width: 56,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha:0.8),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -199,10 +199,10 @@ class ExerciseDetailScreen extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha:0.1),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: Colors.blue.withOpacity(0.3),
+                              color: Colors.blue.withValues(alpha:0.3),
                             ),
                           ),
                           child: Text(
@@ -270,7 +270,7 @@ class ExerciseDetailScreen extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.05),
+                                color: Colors.white.withValues(alpha:0.05),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(color: Colors.white10),
                               ),

@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/onboarding/payment_details_screen.dart';
 
-/// Select Payment Method — shown after user selects Monthly, Six Month, or Premium plan.
+/// Select Payment Method — shown after user selects Monthly, Quarterly, Annual, or Premium plan.
 /// Displays "Bank account" option and "Continue to Pay $X.XX" button.
 class SelectPaymentMethodScreen extends StatefulWidget {
-  /// Amount to pay (e.g. 29.99 for monthly, 149.99 for six month, 199.99 for premium).
+  /// Amount to pay (e.g. 29.99 monthly, 149.99 quarterly, 144 annual, 150 premium).
   final double amount;
-  /// Plan name for Payment Details screen (e.g. "Monthly", "Six Month", "Premium").
+  /// Plan name for Payment Details screen (e.g. "Monthly", "Quarterly", "Annual", "Premium").
   final String planName;
 
   const SelectPaymentMethodScreen({
@@ -160,8 +160,8 @@ class _PaymentMethodCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF5B9BD5).withOpacity(0.5)
-                : Colors.white.withOpacity(0.06),
+                ? const Color(0xFF5B9BD5).withValues(alpha:0.5)
+                : Colors.white.withValues(alpha:0.06),
             width: isSelected ? 1.5 : 1,
           ),
         ),
