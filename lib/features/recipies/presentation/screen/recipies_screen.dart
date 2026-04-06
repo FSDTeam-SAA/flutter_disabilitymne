@@ -5,12 +5,31 @@ import 'package:disabilitymne/features/recipies/presentation/screen/recipies_det
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class RecipesScreen extends StatelessWidget {
-  RecipesScreen({super.key});
+class RecipesScreen extends StatefulWidget {
+  const RecipesScreen({super.key});
+
+  @override
+  State<RecipesScreen> createState() => _RecipesScreenState();
+}
+
+class _RecipesScreenState extends State<RecipesScreen> {
+  static const List<String> _mealTypes = [
+    'breakfast',
+    'lunch',
+    'dinner',
+    'snack',
+  ];
 
   final RecipeController controller = Get.isRegistered<RecipeController>()
       ? Get.find<RecipeController>()
       : Get.put(RecipeController());
+
+  String _selectedMealType = _mealTypes.first;
+
+  String _tabLabel(String value) {
+    if (value.isEmpty) return value;
+    return value[0].toUpperCase() + value.substring(1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +60,70 @@ class RecipesScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 44,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: _mealTypes.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final mealType = _mealTypes[index];
+                    final selected = mealType == _selectedMealType;
 
-              const SizedBox(height: 20),
-
-              /// Exercise List
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedMealType = mealType;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? const Color(0xFF6FA8DC)
+                              : Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: selected
+                                ? const Color(0xFF8EC4F1)
+                                : Colors.white24,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _tabLabel(mealType),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
               Expanded(
-                child: Obx(
-                  () => RefreshIndicator(
+                child: Obx(() {
+                  final filteredRecipes = controller.recipeList
+                      .where(
+                        (recipe) =>
+                            (recipe.recipeType ?? '').trim().toLowerCase() ==
+                            _selectedMealType,
+                      )
+                      .toList(growable: false);
+
+                  return RefreshIndicator(
                     onRefresh: controller.getRecipes,
                     color: Colors.white,
                     child:
@@ -64,15 +140,19 @@ class RecipesScreen extends StatelessWidget {
                               ),
                             ],
                           )
-                        : controller.recipeList.isEmpty
+                        : filteredRecipes.isEmpty
                         ? ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(vertical: 180),
-                            children: const [
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 180,
+                              horizontal: 24,
+                            ),
+                            children: [
                               Center(
                                 child: Text(
-                                  'No recipes found',
-                                  style: TextStyle(color: Colors.white70),
+                                  'No ${_selectedMealType.toLowerCase()} recipes found',
+                                  style: const TextStyle(color: Colors.white70),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ],
@@ -80,16 +160,14 @@ class RecipesScreen extends StatelessWidget {
                         : ListView.builder(
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: controller.recipeList.length,
+                            itemCount: filteredRecipes.length,
                             itemBuilder: (context, index) {
-                              final RecipeModel recipe =
-                                  controller.recipeList[index];
-
+                              final recipe = filteredRecipes[index];
                               return RecipeCard(recipe: recipe);
                             },
                           ),
-                  ),
-                ),
+                  );
+                }),
               ),
             ],
           ),
@@ -106,6 +184,8 @@ class RecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = recipe.recipeImage ?? '';
+
     return InkWell(
       onTap: () {
         Get.to(() => RecipeDetailsScreen(id: recipe.id ?? ""));
@@ -122,11 +202,19 @@ class RecipeCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 35,
-              backgroundImage: NetworkImage(recipe.recipeImage ?? ""),
+              backgroundColor: const Color(0xFFD5E2EF),
+              backgroundImage: imageUrl.isNotEmpty
+                  ? NetworkImage(imageUrl)
+                  : null,
+              child: imageUrl.isEmpty
+                  ? const Icon(
+                      Icons.restaurant,
+                      color: Color(0xFF59748F),
+                      size: 28,
+                    )
+                  : null,
             ),
-
             const SizedBox(width: 14),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,23 +227,21 @@ class RecipeCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        recipe.caloriesKcal?.toString() ?? "",
+                        formatRecipeNutritionValue(recipe.caloriesKcal),
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 14,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(6.0, 0, 6.0, 0),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
                         child: Text(
                           "|",
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.black, fontSize: 14),
                         ),
                       ),
                       Text(
@@ -165,14 +251,11 @@ class RecipeCard extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(6.0, 0, 6.0, 0),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
                         child: Text(
                           "|",
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.black, fontSize: 14),
                         ),
                       ),
                       Text(
@@ -187,12 +270,6 @@ class RecipeCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // const CircleAvatar(
-            //   radius: 14,
-            //   backgroundColor: Colors.white,
-            //   child: Icon(Icons.favorite, color: Colors.red, size: 16),
-            // ),
           ],
         ),
       ),

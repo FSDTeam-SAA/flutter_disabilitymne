@@ -34,6 +34,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const Color _cardBlue = Color(0xFF1A233A);
   static const Color _seeAllBlue = Color(0xFF85C4E2);
+
   /// Selected tab background color (#4B7FA8); icon and text stay white
   static const Color _recipeTabSelectedBg = Color(0xFF4B7FA8);
   static const List<String> _recipeTabAssetPaths = [
@@ -569,35 +570,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(3, (index) {
-                  final selected = _recipeTabIndex == index;
-                  return Padding(
-                    padding: EdgeInsets.only(right: index < 2 ? 10 : 0),
+            Row(
+              children: List.generate(3, (index) {
+                final selected = _recipeTabIndex == index;
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: index == 0 ? 0 : 8),
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () => setState(() => _recipeTabIndex = index),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(12),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 12,
+                            horizontal: 10,
+                            vertical: 10,
                           ),
                           decoration: BoxDecoration(
                             color: selected ? _recipeTabSelectedBg : _cardBlue,
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.white24, width: 1),
                           ),
                           child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SizedBox(
-                                width: 20,
-                                height: 20,
+                                width: 18,
+                                height: 18,
                                 child: ColorFiltered(
                                   colorFilter: const ColorFilter.mode(
                                     Colors.white,
@@ -613,18 +613,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Icons.dinner_dining_outlined,
                                       ][index],
                                       color: Colors.white,
-                                      size: 20,
+                                      size: 18,
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                tabs[index],
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  tabs[index],
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ],
@@ -632,9 +636,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                  );
-                }),
-              ),
+                  ),
+                );
+              }),
             ),
             const SizedBox(height: 16),
             Obx(() {
@@ -685,7 +689,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRecipeCard(RecipeModel recipe, int index) {
     final title = recipe.recipeName ?? 'Recipe';
-    final kcal = '${recipe.caloriesKcal ?? 0} Kcal';
+    final kcal = '${formatRecipeNutritionValue(recipe.caloriesKcal)} Kcal';
     final gradients = [
       [const Color(0xFF1A233A), const Color(0xFF2A4A3A)],
       [const Color(0xFF1A233A), const Color(0xFF4A3A2A)],
@@ -704,7 +708,7 @@ class _HomeScreenState extends State<HomeScreen> {
             clipBehavior: Clip.antiAlias,
             margin: EdgeInsets.zero,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -727,38 +731,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.max,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                        border: Border.all(color: Colors.white),
-                      ),
-                      child: ClipOval(
-                        child:
-                            recipe.recipeImage != null &&
-                                recipe.recipeImage!.isNotEmpty
-                            ? Image.network(
-                                recipe.recipeImage!,
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => _recipePlaceholder(),
-                              )
-                            : _recipePlaceholder(),
-                      ),
-                    ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child:
+                        recipe.recipeImage != null &&
+                            recipe.recipeImage!.isNotEmpty
+                        ? Image.network(
+                            recipe.recipeImage!,
+                            width: double.infinity,
+                            height: 78,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _recipePlaceholder(),
+                          )
+                        : _recipePlaceholder(),
                   ),
                   const SizedBox(height: 8),
-                  Flexible(
+                  Expanded(
                     child: Text(
                       title,
                       style: TextStyle(
@@ -789,13 +777,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _recipePlaceholder() {
     return Container(
-      width: 70,
-      height: 70,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white12,
+      width: double.infinity,
+      height: 78,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Colors.white.withValues(alpha: 0.12),
       ),
-      child: Icon(Icons.restaurant, color: Colors.white54, size: 32),
+      child: const Icon(Icons.restaurant, color: Colors.white54, size: 32),
     );
   }
 

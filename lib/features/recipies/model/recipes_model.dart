@@ -6,10 +6,10 @@ class RecipeModel {
   String? recipeType;
   String? userType;
   dynamic assignedUser;
-  int? caloriesKcal;
-  int? proteinG;
-  int? carbsG;
-  int? fatG;
+  double? caloriesKcal;
+  double? proteinG;
+  double? carbsG;
+  double? fatG;
   String? nutritionSummary;
   String? recipeImage;
   List<String>? recipeImages;
@@ -54,10 +54,10 @@ class RecipeModel {
       recipeType: json['recipeType'],
       userType: json['userType'],
       assignedUser: json['assignedUser'],
-      caloriesKcal: json['caloriesKcal'],
-      proteinG: json['proteinG'],
-      carbsG: json['carbsG'],
-      fatG: json['fatG'],
+      caloriesKcal: _doubleValue(json['caloriesKcal']),
+      proteinG: _doubleValue(json['proteinG']),
+      carbsG: _doubleValue(json['carbsG']),
+      fatG: _doubleValue(json['fatG']),
       nutritionSummary: json['nutritionSummary'],
       recipeImage: json['recipeImage'],
       recipeImages: json['recipeImages'] != null
@@ -113,10 +113,10 @@ class RecipeModel {
     String? recipeType,
     String? userType,
     dynamic assignedUser,
-    int? caloriesKcal,
-    int? proteinG,
-    int? carbsG,
-    int? fatG,
+    double? caloriesKcal,
+    double? proteinG,
+    double? carbsG,
+    double? fatG,
     String? nutritionSummary,
     String? recipeImage,
     List<String>? recipeImages,
@@ -157,4 +157,27 @@ class RecipeModel {
   static List<RecipeModel> fromJsonList(List<dynamic> jsonList) {
     return jsonList.map((json) => RecipeModel.fromJson(json)).toList();
   }
+}
+
+double? _doubleValue(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) {
+    final normalized = value.trim().replaceAll(',', '.');
+    if (normalized.isEmpty) return null;
+    return double.tryParse(normalized);
+  }
+  return null;
+}
+
+String formatRecipeNutritionValue(num? value, {int maxFractionDigits = 2}) {
+  final numeric = (value ?? 0).toDouble();
+  if (numeric == numeric.roundToDouble()) {
+    return numeric.toInt().toString();
+  }
+
+  return numeric
+      .toStringAsFixed(maxFractionDigits)
+      .replaceFirst(RegExp(r'0+$'), '')
+      .replaceFirst(RegExp(r'\.$'), '');
 }

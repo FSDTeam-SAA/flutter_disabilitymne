@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
+import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
 
 class RecipeDetailsScreen extends StatefulWidget {
   final String id;
@@ -394,19 +395,24 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               NutritionCard(
-                                title: "${recipe.caloriesKcal ?? 0}",
+                                title: formatRecipeNutritionValue(
+                                  recipe.caloriesKcal,
+                                ),
                                 subtitle: "Kcal",
                               ),
                               NutritionCard(
-                                title: "${recipe.proteinG ?? 0}g",
+                                title:
+                                    "${formatRecipeNutritionValue(recipe.proteinG)}g",
                                 subtitle: "Protein",
                               ),
                               NutritionCard(
-                                title: "${recipe.carbsG ?? 0}g",
+                                title:
+                                    "${formatRecipeNutritionValue(recipe.carbsG)}g",
                                 subtitle: "Carbs",
                               ),
                               NutritionCard(
-                                title: "${recipe.fatG ?? 0}g",
+                                title:
+                                    "${formatRecipeNutritionValue(recipe.fatG)}g",
                                 subtitle: "fat",
                               ),
                             ],
@@ -465,16 +471,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                               recipe.ingredients!.isNotEmpty)
                             Column(
                               children: recipe.ingredients!
-                                  .asMap()
-                                  .entries
                                   .map(
-                                    (entry) => IngredientItem(
-                                      number: entry.key + 1,
-                                      text: entry.value,
-                                      isLast:
-                                          entry.key ==
-                                          recipe.ingredients!.length - 1,
-                                    ),
+                                    (ingredient) =>
+                                        IngredientItem(text: ingredient),
                                   )
                                   .toList(),
                             )
@@ -578,51 +577,31 @@ class NutritionCard extends StatelessWidget {
 }
 
 class IngredientItem extends StatelessWidget {
-  final int number;
   final String text;
-  final bool isLast;
 
-  const IngredientItem({
-    super.key,
-    required this.number,
-    required this.text,
-    this.isLast = false,
-  });
+  const IngredientItem({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Number Circle and Line
-          Column(
-            children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: const Color(0xff2C5A87),
-                child: Text(
-                  number.toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-              if (!isLast)
-                Expanded(
-                  child: Container(
-                    width: 1,
-                    color: Colors.white.withValues(alpha: 0.3),
-                  ),
-                ),
-            ],
+          Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(top: 6),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFF6FA8DC),
+            ),
           ),
-
           const SizedBox(width: 12),
-
-          /// Ingredient text
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Text(text, style: const TextStyle(color: Colors.white)),
+            child: Text(
+              text,
+              style: const TextStyle(color: Colors.white, height: 1.45),
             ),
           ),
         ],
