@@ -131,10 +131,10 @@ base class ApiEndpoints {
 //arrow360degree@gmail.com
 
 class _RemoteServer {
-  static const String socketUrl = 'https://disabilitymne-backend.onrender.com';
+  static const String socketUrl = 'http://72.60.29.234:5001';
 
-  static const String baseUrl =
-      'https://disabilitymne-backend.onrender.com/api/v1';
+  static const String baseUrl = 'http://72.60.29.234:5001/api/v1';
+      // 'https://disabilitymne-backend.onrender.com/api/v1';
 }
 
 class _Auth {

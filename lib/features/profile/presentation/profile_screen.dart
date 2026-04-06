@@ -15,6 +15,7 @@ import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen
 import 'package:disabilitymne/features/profile/presentation/terms_condition_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -113,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (pickedPath != null && File(pickedPath).existsSync()) {
                       avatarImage = FileImage(File(pickedPath));
                     } else if (hasProfileImage) {
-                      avatarImage = NetworkImage(profileImageUrl);
+                      avatarImage = CachedNetworkImageProvider(profileImageUrl);
                     } else {
                       avatarImage = const AssetImage(
                         "assets/image/app_logo.png",
