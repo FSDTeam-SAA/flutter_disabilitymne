@@ -281,6 +281,7 @@ import 'package:disabilitymne/features/programs/model/explore_program_model.dart
 import 'package:disabilitymne/features/programs/presentation/screens/ready_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/text_style.dart';
 
 class ProgramDetailScreen extends StatelessWidget {
@@ -337,8 +338,8 @@ class ProgramDetailScreen extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: controller.image.isNotEmpty
-                          ? Image.network(
-                              controller.image,
+                          ? CachedNetworkImage(
+                              imageUrl: controller.image,
                               height: 200,
                               width: double.infinity,
                               fit: BoxFit.cover,

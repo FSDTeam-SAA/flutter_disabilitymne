@@ -21,6 +21,7 @@ import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
 import 'package:disabilitymne/features/recipies/presentation/screen/recipies_details.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 /// Home screen matching the design: header, hero card, My Programs, My Recipes, Quick Action.
 class HomeScreen extends StatefulWidget {
@@ -160,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (pickedPath != null && File(pickedPath).existsSync()) {
             avatarImage = FileImage(File(pickedPath));
           } else if (hasProfileImage) {
-            avatarImage = NetworkImage(profileImageUrl);
+            avatarImage = CachedNetworkImageProvider(profileImageUrl);
           }
 
           final name = [
@@ -667,14 +668,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }
               return SizedBox(
-                height: 168,
+                height: 240,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: filtered.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     return SizedBox(
-                      width: 140,
+                      width: 200,
                       child: _buildRecipeCard(filtered[index], index),
                     );
                   },
@@ -702,72 +703,77 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         onTap: () => Get.to(() => RecipeDetailsScreen(id: recipe.id ?? '')),
         borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          height: 168,
-          child: Card(
-            clipBehavior: Clip.antiAlias,
-            margin: EdgeInsets.zero,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    _cardBlue,
-                    _cardBlue,
-                    colors[1].withValues(alpha: 0.6),
-                  ],
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          margin: EdgeInsets.zero,
+          child: Container(
+            // padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  _cardBlue,
+                  _cardBlue,
+                  colors[1].withValues(alpha: 0.6),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child:
-                        recipe.recipeImage != null &&
-                            recipe.recipeImage!.isNotEmpty
-                        ? Image.network(
-                            recipe.recipeImage!,
-                            width: double.infinity,
-                            height: 78,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => _recipePlaceholder(),
-                          )
-                        : _recipePlaceholder(),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        color: AppColors.primaryText,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child:
+                      recipe.recipeImage != null &&
+                          recipe.recipeImage!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: recipe.recipeImage!,
+                          width: double.infinity,
+                          height: 140,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) => _recipePlaceholder(),
+                        )
+                      : _recipePlaceholder()
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0, bottom: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: AppColors.primaryText,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          kcal,
+                          style: TextStyle(
+                            color: AppColors.primaryText.withValues(alpha: 0.7),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    kcal,
-                    style: TextStyle(
-                      color: AppColors.primaryText.withValues(alpha: 0.7),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+                )
+              ],
             ),
           ),
         ),
@@ -778,7 +784,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _recipePlaceholder() {
     return Container(
       width: double.infinity,
-      height: 78,
+      height: 140,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         color: Colors.white.withValues(alpha: 0.12),

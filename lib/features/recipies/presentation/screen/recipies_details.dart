@@ -5,6 +5,7 @@ import 'package:disabilitymne/features/calculator/controller/calculator_controll
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
 import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
 
@@ -269,7 +270,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                     bottom: Radius.circular(30),
                   ),
                   image: DecorationImage(
-                    image: NetworkImage(image),
+                    image: CachedNetworkImageProvider(image),
                     fit: BoxFit.cover,
                   ),
                 ),

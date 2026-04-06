@@ -4,6 +4,7 @@ import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
 import 'package:disabilitymne/features/recipies/presentation/screen/recipies_details.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class RecipesScreen extends StatefulWidget {
   const RecipesScreen({super.key});
@@ -204,7 +205,7 @@ class RecipeCard extends StatelessWidget {
               radius: 35,
               backgroundColor: const Color(0xFFD5E2EF),
               backgroundImage: imageUrl.isNotEmpty
-                  ? NetworkImage(imageUrl)
+                  ? CachedNetworkImageProvider(imageUrl)
                   : null,
               child: imageUrl.isEmpty
                   ? const Icon(
@@ -231,7 +232,7 @@ class RecipeCard extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        formatRecipeNutritionValue(recipe.caloriesKcal),
+                        "${formatRecipeNutritionValue(recipe.caloriesKcal)} kcal",
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 14,
