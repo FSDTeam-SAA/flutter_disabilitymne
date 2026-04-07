@@ -1,5 +1,6 @@
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/api_handler/success.dart';
+import 'package:disabilitymne/core/componenet/pagination/paginated_models.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
@@ -9,19 +10,55 @@ import 'package:flutter/material.dart';
 final class RecipesInterfaceImpl extends RecipesInterface {
   RecipesInterfaceImpl({required this.appPigeon});
   final AppPigeon appPigeon;
+
+  Uri _buildRecipesUri({
+    required int page,
+    required int limit,
+    String? recipeType,
+  }) {
+    final queryParameters = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+
+    final normalizedRecipeType = recipeType?.trim();
+    if (normalizedRecipeType != null && normalizedRecipeType.isNotEmpty) {
+      queryParameters['recipeType'] = normalizedRecipeType;
+    }
+
+    return Uri.parse(
+      ApiEndpoints.getAllRecipies,
+    ).replace(queryParameters: queryParameters);
+  }
+
   @override
-  FutureRequest<Success<List<RecipeModel>>> getRecipies(
-    RecipeModel params,
-  ) async {
+  FutureRequest<Success<PaginatedResponse<RecipeModel>>> getRecipies({
+    required int page,
+    int limit = 20,
+    String? recipeType,
+  }) async {
     return await asyncTryCatch(
       tryFunc: () async {
         final response = await appPigeon.get(
-          ApiEndpoints.getAllRecipies,
-          data: params.toJson(),
+          _buildRecipesUri(
+            page: page,
+            limit: limit,
+            recipeType: recipeType,
+          ).toString(),
         );
-        debugPrint('GET RECIPES RESPONSE => ${response.data}');
-        final recipes = RecipeModel.fromJsonList(response.data['data']);
-        return Success(data: recipes, message: extractSuccessMessage(response));
+        debugPrint('GET RECIPES PAGE $page RESPONSE => ${response.data}');
+
+        final paginatedResponse = parsePaginatedResponseEnvelope<RecipeModel>(
+          response.data,
+          itemFromJson: RecipeModel.fromJson,
+          fallbackPage: page,
+          fallbackLimit: limit,
+        );
+
+        return Success(
+          data: paginatedResponse,
+          message: extractSuccessMessage(response),
+        );
       },
     );
   }

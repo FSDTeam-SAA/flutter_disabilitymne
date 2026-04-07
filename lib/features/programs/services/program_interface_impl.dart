@@ -1,5 +1,6 @@
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/api_handler/success.dart';
+import 'package:disabilitymne/core/componenet/pagination/paginated_models.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
@@ -11,37 +12,50 @@ import 'package:flutter/foundation.dart';
 final class ProgramInterfaceImpl extends ProgramInterface {
   ProgramInterfaceImpl({required this.appPigeon});
   final AppPigeon appPigeon;
-  @override
-  FutureRequest<Success<List<LibraryModel>>> getLibrary(
-    LibraryModel params,
-  ) async {
-    return await asyncTryCatch(
-      tryFunc: () async {
-        final response = await appPigeon.get(
-          ApiEndpoints.getAllLibrary,
-          data: params.toJson(),
-        );
-        debugPrint('GET LIBRARY RESPONSE => ${response.data}');
-        final library = LibraryModel.fromJsonList(response.data['data']);
-        return Success(data: library, message: extractSuccessMessage(response));
-      },
-    );
+
+  Uri _buildPagedUri(
+    String baseUrl, {
+    required int page,
+    required int limit,
+    String? search,
+  }) {
+    final queryParameters = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+
+    final normalizedSearch = search?.trim();
+    if (normalizedSearch != null && normalizedSearch.isNotEmpty) {
+      queryParameters['search'] = normalizedSearch;
+    }
+
+    return Uri.parse(baseUrl).replace(queryParameters: queryParameters);
   }
 
   @override
-  FutureRequest<Success<List<ProgramModel>>> getExploreProgram(
-    ProgramModel params,
-  ) async {
+  FutureRequest<Success<PaginatedResponse<LibraryModel>>> getLibrary({
+    required int page,
+    int limit = 20,
+    String? search,
+  }) async {
     return await asyncTryCatch(
       tryFunc: () async {
         final response = await appPigeon.get(
-          ApiEndpoints.getExplorePrograms,
-          data: params.toJson(),
+          _buildPagedUri(
+            ApiEndpoints.getAllLibrary,
+            page: page,
+            limit: limit,
+            search: search,
+          ).toString(),
         );
-        debugPrint('GET EXPLORE PROGRAM RESPONSE => ${response.data}');
-        final programs = ProgramModel.fromJsonList(response.data['data']);
+        debugPrint('GET LIBRARY RESPONSE => ${response.data}');
         return Success(
-          data: programs,
+          data: parsePaginatedResponseEnvelope<LibraryModel>(
+            response.data,
+            itemFromJson: LibraryModel.fromJson,
+            fallbackPage: page,
+            fallbackLimit: limit,
+          ),
           message: extractSuccessMessage(response),
         );
       },
@@ -49,19 +63,55 @@ final class ProgramInterfaceImpl extends ProgramInterface {
   }
 
   @override
-  FutureRequest<Success<List<ProgramModel>>> getMyPrograms(
-    ProgramModel params,
-  ) async {
+  FutureRequest<Success<PaginatedResponse<ProgramModel>>> getExploreProgram({
+    required int page,
+    int limit = 20,
+  }) async {
     return await asyncTryCatch(
       tryFunc: () async {
         final response = await appPigeon.get(
-          ApiEndpoints.getMyPrograms,
-          data: params.toJson(),
+          _buildPagedUri(
+            ApiEndpoints.getExplorePrograms,
+            page: page,
+            limit: limit,
+          ).toString(),
+        );
+        debugPrint('GET EXPLORE PROGRAM RESPONSE => ${response.data}');
+        return Success(
+          data: parsePaginatedResponseEnvelope<ProgramModel>(
+            response.data,
+            itemFromJson: ProgramModel.fromJson,
+            fallbackPage: page,
+            fallbackLimit: limit,
+          ),
+          message: extractSuccessMessage(response),
+        );
+      },
+    );
+  }
+
+  @override
+  FutureRequest<Success<PaginatedResponse<ProgramModel>>> getMyPrograms({
+    required int page,
+    int limit = 20,
+  }) async {
+    return await asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.get(
+          _buildPagedUri(
+            ApiEndpoints.getMyPrograms,
+            page: page,
+            limit: limit,
+          ).toString(),
         );
         debugPrint('GET MY PROGRAM RESPONSE => ${response.data}');
-        final programs = ProgramModel.fromJsonList(response.data['data']);
         return Success(
-          data: programs,
+          data: parsePaginatedResponseEnvelope<ProgramModel>(
+            response.data,
+            itemFromJson: ProgramModel.fromJson,
+            fallbackPage: page,
+            fallbackLimit: limit,
+          ),
           message: extractSuccessMessage(response),
         );
       },

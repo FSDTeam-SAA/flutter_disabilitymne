@@ -19,7 +19,7 @@ class LibraryWidget extends StatelessWidget {
           child: Container(
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextField(
@@ -70,15 +70,33 @@ class LibraryWidget extends StatelessWidget {
                 );
               }
 
-              return ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: controller.filteredList.length,
-                itemBuilder: (context, index) {
-                  final exercise = controller.filteredList[index];
-
-                  return ExerciseCard(model: exercise);
+              return NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification.metrics.pixels >=
+                      notification.metrics.maxScrollExtent - 200) {
+                    controller.loadMoreExercises();
+                  }
+                  return false;
                 },
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount:
+                      controller.filteredList.length +
+                      (controller.isLoadingMore.value ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= controller.filteredList.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    final exercise = controller.filteredList[index];
+
+                    return ExerciseCard(model: exercise);
+                  },
+                ),
               );
             }),
           ),

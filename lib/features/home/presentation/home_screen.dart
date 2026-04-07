@@ -62,10 +62,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!Get.isRegistered<RecipeController>()) {
       Get.put(RecipeController());
     }
+    Get.find<RecipeController>().ensureMealLoaded(_selectedHomeRecipeType);
     _greetingTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
     });
     _listenProfileAndShowUpgradePopup();
+  }
+
+  String get _selectedHomeRecipeType {
+    const tabs = ['Breakfast', 'Lunch', 'Dinner'];
+    return tabs[_recipeTabIndex].trim().toLowerCase();
   }
 
   /// When profile user is loaded, show upgrade popup when subscription ends within 6 days.
@@ -100,10 +106,12 @@ class _HomeScreenState extends State<HomeScreen> {
       futures.add(Get.find<ProfileController>().getProfile());
     }
     if (Get.isRegistered<ProgramController>()) {
-      futures.add(Get.find<ProgramController>().getPrograms());
+      futures.add(Get.find<ProgramController>().getPrograms(showLoader: false));
     }
     if (Get.isRegistered<RecipeController>()) {
-      futures.add(Get.find<RecipeController>().getRecipes());
+      futures.add(
+        Get.find<RecipeController>().refreshMealType(_selectedHomeRecipeType),
+      );
     }
 
     if (futures.isEmpty) {
@@ -580,7 +588,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () => setState(() => _recipeTabIndex = index),
+                        onTap: () {
+                          setState(() => _recipeTabIndex = index);
+                          recipeController.ensureMealLoaded(
+                            tabs[index].trim().toLowerCase(),
+                          );
+                        },
                         borderRadius: BorderRadius.circular(12),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
@@ -643,15 +656,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             Obx(() {
-              final all = recipeController.recipeList;
               final selectedType = tabs[_recipeTabIndex].trim().toLowerCase();
-              final filtered = all
-                  .where(
-                    (r) =>
-                        (r.recipeType ?? '').trim().toLowerCase() ==
-                        selectedType,
-                  )
-                  .toList(growable: false);
+              final mealState = recipeController.stateForMealType(selectedType);
+              final filtered = mealState.items;
+
+              if ((mealState.isInitialLoading || !mealState.hasLoaded) &&
+                  filtered.isEmpty) {
+                return SizedBox(
+                  height: 160,
+                  child: Center(
+                    child: CircularProgressIndicator(color: _seeAllBlue),
+                  ),
+                );
+              }
 
               if (filtered.isEmpty) {
                 return SizedBox(
@@ -742,12 +759,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           fit: BoxFit.cover,
                           errorWidget: (_, _, _) => _recipePlaceholder(),
                         )
-                      : _recipePlaceholder()
+                      : _recipePlaceholder(),
                 ),
                 const SizedBox(height: 8),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0, bottom: 8.0),
+                    padding: const EdgeInsets.only(
+                      left: 8.0,
+                      right: 8.0,
+                      top: 8.0,
+                      bottom: 8.0,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -772,7 +794,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

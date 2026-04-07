@@ -3,12 +3,18 @@ import 'package:disabilitymne/features/programs/services/program_interface.dart'
 import 'package:get/get.dart';
 
 class MyProgramController extends GetxController {
+  static const int _pageSize = 20;
+
   MyProgramController({required this.programInterface});
 
   final ProgramInterface programInterface;
 
-  RxBool isLoading = false.obs;
-  RxList<ProgramModel> programList = <ProgramModel>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxBool hasMore = true.obs;
+  final RxList<ProgramModel> programList = <ProgramModel>[].obs;
+
+  int _currentPage = 0;
 
   @override
   void onInit() {
@@ -17,22 +23,58 @@ class MyProgramController extends GetxController {
   }
 
   Future<void> getPrograms({bool showLoader = true}) async {
-    if (showLoader) {
+    if (isLoadingMore.value || (isLoading.value && programList.isEmpty)) {
+      return;
+    }
+
+    if (showLoader || programList.isEmpty) {
       isLoading.value = true;
     }
 
-    final response = await programInterface.getMyPrograms(ProgramModel());
+    final response = await programInterface.getMyPrograms(
+      page: 1,
+      limit: _pageSize,
+    );
 
     response.fold(
       (error) {
-        if (showLoader) {
-          isLoading.value = false;
-        }
+        isLoading.value = false;
         Get.snackbar("Error", error.uiMessage);
       },
       (success) {
-        programList.value = success.data ?? [];
+        final pageData = success.data;
+        programList.assignAll(pageData?.items ?? const <ProgramModel>[]);
+        _currentPage = pageData?.meta.page ?? 1;
+        hasMore.value = pageData?.meta.hasMore ?? false;
         isLoading.value = false;
+        isLoadingMore.value = false;
+      },
+    );
+  }
+
+  Future<void> loadMorePrograms() async {
+    if (isLoading.value || isLoadingMore.value || !hasMore.value) {
+      return;
+    }
+
+    isLoadingMore.value = true;
+
+    final response = await programInterface.getMyPrograms(
+      page: _currentPage + 1,
+      limit: _pageSize,
+    );
+
+    response.fold(
+      (error) {
+        isLoadingMore.value = false;
+        Get.snackbar("Error", error.uiMessage);
+      },
+      (success) {
+        final pageData = success.data;
+        programList.addAll(pageData?.items ?? const <ProgramModel>[]);
+        _currentPage = pageData?.meta.page ?? _currentPage;
+        hasMore.value = pageData?.meta.hasMore ?? false;
+        isLoadingMore.value = false;
       },
     );
   }

@@ -46,24 +46,42 @@ class MyProgramWidget extends StatelessWidget {
           );
         }
 
-        return ListView.builder(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: controller.programList.length,
-          itemBuilder: (context, index) {
-            final program = controller.programList[index];
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: ProgramCard(
-                title: program.programName,
-                image: program.programThumbnail,
-                onTap: () {
-                  Get.to(() => ProgramDetailScreen(program: program));
-                },
-              ),
-            );
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification.metrics.pixels >=
+                notification.metrics.maxScrollExtent - 200) {
+              controller.loadMorePrograms();
+            }
+            return false;
           },
+          child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount:
+                controller.programList.length +
+                (controller.isLoadingMore.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index >= controller.programList.length) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              final program = controller.programList[index];
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: ProgramCard(
+                  title: program.programName,
+                  image: program.programThumbnail,
+                  onTap: () {
+                    Get.to(() => ProgramDetailScreen(program: program));
+                  },
+                ),
+              );
+            },
+          ),
         );
       }),
     );

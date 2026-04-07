@@ -27,6 +27,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   String _selectedMealType = _mealTypes.first;
 
+  @override
+  void initState() {
+    super.initState();
+    controller.ensureMealLoaded(_selectedMealType);
+  }
+
   String _tabLabel(String value) {
     if (value.isEmpty) return value;
     return value[0].toUpperCase() + value.substring(1);
@@ -78,6 +84,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         setState(() {
                           _selectedMealType = mealType;
                         });
+                        controller.ensureMealLoaded(mealType);
                       },
                       borderRadius: BorderRadius.circular(14),
                       child: AnimatedContainer(
@@ -116,20 +123,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
               const SizedBox(height: 16),
               Expanded(
                 child: Obx(() {
-                  final filteredRecipes = controller.recipeList
-                      .where(
-                        (recipe) =>
-                            (recipe.recipeType ?? '').trim().toLowerCase() ==
-                            _selectedMealType,
-                      )
-                      .toList(growable: false);
+                  final mealState = controller.stateForMealType(
+                    _selectedMealType,
+                  );
+                  final recipes = mealState.items;
 
                   return RefreshIndicator(
-                    onRefresh: controller.getRecipes,
+                    onRefresh: () =>
+                        controller.refreshMealType(_selectedMealType),
                     color: Colors.white,
                     child:
-                        controller.isLoading.value &&
-                            controller.recipeList.isEmpty
+                        ((mealState.isInitialLoading || !mealState.hasLoaded) &&
+                            recipes.isEmpty)
                         ? ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: const [
@@ -141,7 +146,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                               ),
                             ],
                           )
-                        : filteredRecipes.isEmpty
+                        : recipes.isEmpty
                         ? ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.symmetric(
@@ -158,14 +163,41 @@ class _RecipesScreenState extends State<RecipesScreen> {
                               ),
                             ],
                           )
-                        : ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: filteredRecipes.length,
-                            itemBuilder: (context, index) {
-                              final recipe = filteredRecipes[index];
-                              return RecipeCard(recipe: recipe);
+                        : NotificationListener<ScrollNotification>(
+                            onNotification: (notification) {
+                              if (notification.metrics.pixels >=
+                                  notification.metrics.maxScrollExtent - 200) {
+                                controller.loadMoreMealType(_selectedMealType);
+                              }
+                              return false;
                             },
+                            child: ListView.builder(
+                              key: PageStorageKey<String>(
+                                'recipes-$_selectedMealType',
+                              ),
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemCount:
+                                  recipes.length +
+                                  (mealState.isLoadingMore ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index >= recipes.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                final recipe = recipes[index];
+                                return RecipeCard(recipe: recipe);
+                              },
+                            ),
                           ),
                   );
                 }),
