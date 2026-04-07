@@ -740,7 +740,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: double.infinity,
                           height: 140,
                           fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => _recipePlaceholder(),
+                          errorWidget: (_, _, _) => _recipePlaceholder(),
                         )
                       : _recipePlaceholder()
                 ),
