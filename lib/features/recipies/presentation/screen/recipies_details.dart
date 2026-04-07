@@ -96,10 +96,10 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                           });
                         },
 
-                        fillColor: MaterialStateProperty.resolveWith<Color>((
+                        fillColor: WidgetStateProperty.resolveWith<Color>((
                           states,
                         ) {
-                          if (states.contains(MaterialState.selected)) {
+                          if (states.contains(WidgetState.selected)) {
                             return const Color(0xff6FA8DC); // selected color
                           }
                           return Colors.white; // inactive color ✅
