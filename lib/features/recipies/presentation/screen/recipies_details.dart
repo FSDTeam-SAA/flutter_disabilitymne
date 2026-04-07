@@ -259,280 +259,240 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
               recipe.recipeImage ??
               "https://images.unsplash.com/photo-1517673132405-a56a62b18caf";
 
-          return Column(
-            children: [
-              /// TOP IMAGE SECTION
-              Container(
-                height: 280,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(30),
-                  ),
-                  image: DecorationImage(
-                    image: CachedNetworkImageProvider(image),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.arrow_back_ios,
-                                    color: Colors.white,
-                                    size: 24,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    "Back",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // GestureDetector(
-                        //   onTap: _favoriteBusy
-                        //       ? null
-                        //       : () async {
-                        //           setState(() {
-                        //             _favoriteBusy = true;
-                        //           });
-                        //           await controller.toggleFavorite(
-                        //             recipeId: widget.id,
-                        //             isFavorite: !isFavorite,
-                        //           );
-                        //           if (!mounted) return;
-                        //           setState(() {
-                        //             _favoriteBusy = false;
-                        //           });
-                        //         },
-                        //   child: CircleAvatar(
-                        //     radius: 16,
-                        //     backgroundColor: Colors.white,
-                        //     child: _favoriteBusy
-                        //         ? const SizedBox(
-                        //             width: 14,
-                        //             height: 14,
-                        //             child: CircularProgressIndicator(
-                        //               strokeWidth: 2,
-                        //               color: Colors.black87,
-                        //             ),
-                        //           )
-                        //         : Icon(
-                        //             isFavorite
-                        //                 ? Icons.favorite
-                        //                 : Icons.favorite_border,
-                        //             color: isFavorite
-                        //                 ? Colors.red
-                        //                 : Colors.black87,
-                        //             size: 18,
-                        //           ),
-                        //   ),
-                        // ),
-                      ],
-                    ),
-                  ),
-                ),
+          return RefreshIndicator(
+            onRefresh: _refreshRecipe,
+            color: const Color(0xff6FA8DC),
+            backgroundColor: const Color(0xff0E1A2B),
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
               ),
-
-              /// CONTENT
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _refreshRecipe,
-                  color: const Color(0xff6FA8DC),
-                  backgroundColor: const Color(0xff0E1A2B),
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 18,
-                      ),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF1C2A42), Color(0xFF121A2C)],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 280,
+                  pinned: false,
+                  stretch: true,
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
+                  automaticallyImplyLeading: false,
+                  leadingWidth: 100,
+                  leading: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      behavior: HitTestBehavior.opaque,
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          /// Title
+                          Icon(
+                            Icons.arrow_back_ios,
+                            color: Colors.white,
+                            size: 24,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          SizedBox(width: 6),
                           Text(
-                            title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          /// NUTRITION CARDS
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              NutritionCard(
-                                title: formatRecipeNutritionValue(
-                                  recipe.caloriesKcal,
-                                ),
-                                subtitle: "Kcal",
-                              ),
-                              NutritionCard(
-                                title:
-                                    "${formatRecipeNutritionValue(recipe.proteinG)}g",
-                                subtitle: "Protein",
-                              ),
-                              NutritionCard(
-                                title:
-                                    "${formatRecipeNutritionValue(recipe.carbsG)}g",
-                                subtitle: "Carbs",
-                              ),
-                              NutritionCard(
-                                title:
-                                    "${formatRecipeNutritionValue(recipe.fatG)}g",
-                                subtitle: "fat",
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 18),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xff6FA8DC),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              onPressed: _quickAddBusy
-                                  ? null
-                                  : _quickAddRecipeToDiary,
-                              child: _quickAddBusy
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Add to Meal',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 28),
-
-                          /// INGREDIENTS
-                          const Text(
-                            "Ingredients",
+                            "Back",
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-
-                          const SizedBox(height: 16),
-                          if (recipe.ingredients != null &&
-                              recipe.ingredients!.isNotEmpty)
-                            Column(
-                              children: recipe.ingredients!
-                                  .map(
-                                    (ingredient) =>
-                                        IngredientItem(text: ingredient),
-                                  )
-                                  .toList(),
-                            )
-                          else
-                            const Text(
-                              "No ingredients listed",
-                              style: TextStyle(color: Colors.white70),
-                            ),
-
-                          const SizedBox(height: 24),
-
-                          /// HOW TO PREPARE
-                          const Text(
-                            "How to prepare a meal",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          recipe.howToPrepare != null &&
-                                  recipe.howToPrepare!.isNotEmpty
-                              ? Html(
-                                  data: recipe.howToPrepare,
-                                  shrinkWrap: true,
-                                  style: {
-                                    "body": Style(
-                                      color: Colors.white70,
-                                      margin: Margins.zero,
-                                      padding: HtmlPaddings.zero,
-                                      lineHeight: LineHeight.number(1.5),
-                                      fontSize: FontSize(14.0),
-                                    ),
-                                    "p": Style(
-                                      color: Colors.white70,
-                                      margin: Margins.only(bottom: 8.0),
-                                      padding: HtmlPaddings.zero,
-                                      lineHeight: LineHeight.number(1.5),
-                                    ),
-                                  },
-                                )
-                              : const Text(
-                                  "No preparation instructions available",
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    height: 1.5,
-                                  ),
-                                ),
                         ],
                       ),
                     ),
                   ),
+                  flexibleSpace: FlexibleSpaceBar(
+                    stretchModes: const [
+                      StretchMode.zoomBackground,
+                      StretchMode.blurBackground,
+                    ],
+                    collapseMode: CollapseMode.parallax,
+                    background: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(30),
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: image,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: const Color(0xFF253A55),
+                          alignment: Alignment.center,
+                          child: const CircularProgressIndicator(
+                            color: Color(0xff6FA8DC),
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: const Color(0xFF253A55),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.restaurant,
+                            color: Colors.white54,
+                            size: 48,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                SliverToBoxAdapter(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1C2A42), Color(0xFF121A2C)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            NutritionCard(
+                              title: formatRecipeNutritionValue(
+                                recipe.caloriesKcal,
+                              ),
+                              subtitle: "Kcal",
+                            ),
+                            NutritionCard(
+                              title:
+                                  "${formatRecipeNutritionValue(recipe.proteinG)}g",
+                              subtitle: "Protein",
+                            ),
+                            NutritionCard(
+                              title:
+                                  "${formatRecipeNutritionValue(recipe.carbsG)}g",
+                              subtitle: "Carbs",
+                            ),
+                            NutritionCard(
+                              title:
+                                  "${formatRecipeNutritionValue(recipe.fatG)}g",
+                              subtitle: "fat",
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff6FA8DC),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: _quickAddBusy
+                                ? null
+                                : _quickAddRecipeToDiary,
+                            child: _quickAddBusy
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Add to Meal',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        const Text(
+                          "Ingredients",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (recipe.ingredients != null &&
+                            recipe.ingredients!.isNotEmpty)
+                          Column(
+                            children: recipe.ingredients!
+                                .map(
+                                  (ingredient) =>
+                                      IngredientItem(text: ingredient),
+                                )
+                                .toList(),
+                          )
+                        else
+                          const Text(
+                            "No ingredients listed",
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          "How to prepare a meal",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        if (recipe.howToPrepare != null &&
+                            recipe.howToPrepare!.isNotEmpty)
+                          Html(
+                            data: recipe.howToPrepare,
+                            shrinkWrap: true,
+                            style: {
+                              "body": Style(
+                                color: Colors.white70,
+                                margin: Margins.zero,
+                                padding: HtmlPaddings.zero,
+                                lineHeight: LineHeight.number(1.5),
+                                fontSize: FontSize(14.0),
+                              ),
+                              "p": Style(
+                                color: Colors.white70,
+                                margin: Margins.only(bottom: 8.0),
+                                padding: HtmlPaddings.zero,
+                                lineHeight: LineHeight.number(1.5),
+                              ),
+                            },
+                          )
+                        else
+                          const Text(
+                            "No preparation instructions available",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              height: 1.5,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         }),
       ),
