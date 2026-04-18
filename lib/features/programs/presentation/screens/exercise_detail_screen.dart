@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:chewie/chewie.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
 import '../../../../core/theme/text_style.dart';
 import '../../controller/exercise_detail_controller.dart';
 
@@ -124,11 +125,10 @@ class ExerciseDetailScreen extends StatelessWidget {
                     }
 
                     // Show Image with Play Button
-                    final videoUrl =
-                        model.demoVideo ??
-                        (model.demoVideos?.isNotEmpty == true
-                            ? model.demoVideos!.first
-                            : '');
+                    final videoUrl = selectPreferredVideoUrl(
+                      demoVideo: model.demoVideo,
+                      demoVideos: model.demoVideos,
+                    );
 
                     return Stack(
                       alignment: Alignment.center,
@@ -162,7 +162,7 @@ class ExerciseDetailScreen extends StatelessWidget {
                               height: 56,
                               width: 56,
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha:0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -199,10 +199,10 @@ class ExerciseDetailScreen extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha:0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: Colors.blue.withValues(alpha:0.3),
+                              color: Colors.blue.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
@@ -270,7 +270,7 @@ class ExerciseDetailScreen extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha:0.05),
+                                color: Colors.white.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(color: Colors.white10),
                               ),

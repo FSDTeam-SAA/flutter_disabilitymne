@@ -156,7 +156,9 @@ class ProgramWorkoutDay {
       totalExercises: _toInt(json['totalExercises']) ?? 0,
       exercises: exercisesJson
           .whereType<Map>()
-          .map((e) => ProgramExerciseModel.fromJson(Map<String, dynamic>.from(e)))
+          .map(
+            (e) => ProgramExerciseModel.fromJson(Map<String, dynamic>.from(e)),
+          )
           .toList(),
     );
   }
@@ -300,6 +302,7 @@ List<String> _toStringList(dynamic value) {
 
   return value
       .where((item) => item != null)
-      .map((item) => item.toString())
+      .map((item) => item.toString().trim())
+      .where((item) => item.isNotEmpty)
       .toList();
 }

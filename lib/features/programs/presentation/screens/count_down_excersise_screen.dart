@@ -5,6 +5,7 @@ import 'package:disabilitymne/features/programs/model/explore_program_model.dart
 import 'package:disabilitymne/features/programs/model/model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_screen.dart';
+import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -67,11 +68,10 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
     if (exercises.isEmpty || currentExerciseIndex >= exercises.length) return;
 
     final currentExercise = exercises[currentExerciseIndex];
-    final videoUrl = currentExercise.demoVideo.isNotEmpty
-        ? currentExercise.demoVideo
-        : (currentExercise.demoVideos.isNotEmpty
-              ? currentExercise.demoVideos.first
-              : '');
+    final videoUrl = selectPreferredVideoUrl(
+      demoVideo: currentExercise.demoVideo,
+      demoVideos: currentExercise.demoVideos,
+    );
 
     if (videoUrl.isEmpty) return;
 
@@ -161,7 +161,8 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
   void nextExercise() {
     final exercises = widget.dayExercises;
     final totalExercises = exercises.length;
-    final currentExercise = exercises.isNotEmpty &&
+    final currentExercise =
+        exercises.isNotEmpty &&
             currentExerciseIndex >= 0 &&
             currentExerciseIndex < exercises.length
         ? exercises[currentExerciseIndex]
@@ -169,8 +170,9 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
 
     if (currentExercise != null &&
         Get.isRegistered<WorkoutSessionController>(tag: widget.sessionTag)) {
-      final sessionController =
-          Get.find<WorkoutSessionController>(tag: widget.sessionTag);
+      final sessionController = Get.find<WorkoutSessionController>(
+        tag: widget.sessionTag,
+      );
       sessionController.markExerciseCompleted(
         exercise: currentExercise,
         sets: _defaultSetsFromExercise(currentExercise),
@@ -329,7 +331,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                                   height: 60,
                                   width: 60,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha:.9),
+                                    color: Colors.white.withValues(alpha: .9),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -393,7 +395,9 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                                 height: 180,
                                 width: 180,
                                 child: CircularProgressIndicator(
-                                  value: seconds > 0 ? _remainingSeconds / seconds : 0,
+                                  value: seconds > 0
+                                      ? _remainingSeconds / seconds
+                                      : 0,
                                   strokeWidth: 20,
                                   backgroundColor: Colors.white24,
                                   valueColor:

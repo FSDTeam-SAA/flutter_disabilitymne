@@ -4,6 +4,7 @@ import 'package:disabilitymne/features/programs/model/explore_program_model.dart
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -76,11 +77,10 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     if (exercises.isEmpty || currentExerciseIndex >= exercises.length) return;
 
     final currentExercise = exercises[currentExerciseIndex];
-    final videoUrl = currentExercise.demoVideo.isNotEmpty
-        ? currentExercise.demoVideo
-        : (currentExercise.demoVideos.isNotEmpty
-              ? currentExercise.demoVideos.first
-              : '');
+    final videoUrl = selectPreferredVideoUrl(
+      demoVideo: currentExercise.demoVideo,
+      demoVideos: currentExercise.demoVideos,
+    );
 
     if (videoUrl.isEmpty) return;
 
@@ -126,7 +126,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   void nextExercise() {
     final exercises = widget.dayExercises;
     final totalExercises = exercises.length;
-    final currentExercise = exercises.isNotEmpty &&
+    final currentExercise =
+        exercises.isNotEmpty &&
             currentExerciseIndex >= 0 &&
             currentExerciseIndex < exercises.length
         ? exercises[currentExerciseIndex]
@@ -134,8 +135,9 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
     if (currentExercise != null &&
         Get.isRegistered<WorkoutSessionController>(tag: widget.sessionTag)) {
-      final sessionController =
-          Get.find<WorkoutSessionController>(tag: widget.sessionTag);
+      final sessionController = Get.find<WorkoutSessionController>(
+        tag: widget.sessionTag,
+      );
       sessionController.markExerciseCompleted(
         exercise: currentExercise,
         sets: controller.getCurrentSets(),

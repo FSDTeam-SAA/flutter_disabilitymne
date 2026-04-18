@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:disabilitymne/features/programs/model/library_model.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
@@ -77,11 +78,10 @@ class ExerciseDetailController extends GetxController {
   }
 
   void playVideo() {
-    final videoUrl =
-        exercise.value?.demoVideo ??
-        (exercise.value?.demoVideos?.isNotEmpty == true
-            ? exercise.value!.demoVideos!.first
-            : '');
+    final videoUrl = selectPreferredVideoUrl(
+      demoVideo: exercise.value?.demoVideo,
+      demoVideos: exercise.value?.demoVideos,
+    );
     if (videoUrl.isNotEmpty) {
       initializeVideoPlayer(videoUrl);
     } else {

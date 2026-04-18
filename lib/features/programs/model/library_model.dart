@@ -130,6 +130,7 @@ List<String> _toStringList(dynamic value) {
 
   return value
       .where((item) => item != null)
-      .map((item) => item.toString())
+      .map((item) => item.toString().trim())
+      .where((item) => item.isNotEmpty)
       .toList();
 }

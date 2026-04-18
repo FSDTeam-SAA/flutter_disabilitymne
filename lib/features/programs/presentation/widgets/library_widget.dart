@@ -113,6 +113,15 @@ class ExerciseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryMuscleGroup = (model.muscleGroups?.isNotEmpty ?? false)
+        ? model.muscleGroups!.first
+        : '';
+    final plan = (model.plan ?? '').trim();
+    final subtitleParts = <String>[
+      if (primaryMuscleGroup.isNotEmpty) primaryMuscleGroup,
+      if (plan.isNotEmpty) plan,
+    ];
+
     return GestureDetector(
       onTap: () {
         Get.to(() => ExerciseDetailScreen(id: model.id ?? ''));
@@ -200,7 +209,7 @@ class ExerciseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "${model.muscleGroups?.first ?? ""} • ${model.plan ?? ""}",
+                    subtitleParts.join(' • '),
                     style: const TextStyle(color: Colors.white60, fontSize: 13),
                   ),
                 ],
