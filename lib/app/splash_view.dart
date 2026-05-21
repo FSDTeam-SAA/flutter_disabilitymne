@@ -32,6 +32,12 @@ class _SplashViewState extends State<SplashView> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    // app_logo.png is very wide (~4:1); need both max width and height so
+    // BoxFit.contain scales it inside the "box" instead of overflowing / looking wrong.
+    final logoMaxW = size.width * 0.88;
+    final logoMaxH = size.height * 0.22;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
@@ -40,10 +46,17 @@ class _SplashViewState extends State<SplashView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(flex: 2),
-              Image.asset(
-                ImagePath.appLogo,
-                height: 140,
-                fit: BoxFit.contain,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: logoMaxW,
+                  height: logoMaxH,
+                  child: Image.asset(
+                    ImagePath.appLogo,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.center,
+                  ),
+                ),
               ),
               const Spacer(flex: 2),
               const SizedBox(
