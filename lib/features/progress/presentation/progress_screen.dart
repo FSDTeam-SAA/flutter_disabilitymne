@@ -18,6 +18,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   static const Color _screenBg = Color(0xFF0B1A2A);
   static const Color _summaryCardBg = Color(0xFF223650);
+  static const Color _chartCardBg = Color(0xFF14263B);
+  static const Color _chartGridColor = Color(0x334B7FA8);
+  static const Color _chartLabelColor = Color(0xCCFFFFFF);
   static const Color _borderColor = Color(0xFF4B7FA8);
   static const Color _green = Color(0xFF27BE69);
   static const Color _orange = Color(0xFFE67E22);
@@ -110,7 +113,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
             color: Colors.white,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                0,
+                20,
+                MediaQuery.viewPaddingOf(context).bottom + 96,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -125,7 +133,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   Text(
                     'Your fitness journey at a glance',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha:0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -321,12 +329,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _chartCardBg,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade300, width: 1),
+            border: Border.all(color: _borderColor, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:0.08),
+                color: Colors.black.withValues(alpha: 0.18),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -345,7 +353,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       Positioned.fill(
                         child: CustomPaint(
                           painter: _ProgressGridPainter(
-                            gridColor: Colors.grey.shade300,
+                            gridColor: _chartGridColor,
                           ),
                         ),
                       ),
@@ -366,7 +374,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                 height: barMaxHeight * h,
                                 margin: const EdgeInsets.only(bottom: 4),
                                 decoration: BoxDecoration(
-                                  color: barColors[i],
+                                  color: barColors[i % barColors.length],
                                   borderRadius: const BorderRadius.vertical(
                                     top: Radius.circular(4),
                                   ),
@@ -376,7 +384,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                 days[i],
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.grey.shade700,
+                                  color: _chartLabelColor,
                                 ),
                               ),
                             ],
@@ -402,7 +410,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           .map(
             (v) => Text(
               _formatAxisLabel(v),
-              style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
+              style: const TextStyle(fontSize: 10, color: _chartLabelColor),
             ),
           )
           .toList(),
@@ -446,12 +454,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(12, 16, 16, 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _chartCardBg,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade300, width: 1),
+            border: Border.all(color: _borderColor, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:0.06),
+                color: Colors.black.withValues(alpha: 0.18),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -478,7 +486,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                 _formatAxisLabel(v),
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.grey.shade700,
+                                  color: _chartLabelColor,
                                 ),
                               ),
                             )
@@ -496,7 +504,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           maxValue: yAxisMax,
                           lineColor: const Color(0xFF9B8AFE),
                           fillColor: const Color(0x409B8AFE),
-                          gridColor: Colors.grey.shade300,
+                          gridColor: _chartGridColor,
                         ),
                       ),
                     ),
@@ -512,7 +520,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                 d,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey.shade700,
+                                  color: _chartLabelColor,
                                 ),
                               ),
                             )
@@ -787,7 +795,13 @@ class _WeeklyCaloriePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _WeeklyCaloriePainter oldDelegate) {
+    return oldDelegate.values != values ||
+        oldDelegate.maxValue != maxValue ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.fillColor != fillColor ||
+        oldDelegate.gridColor != gridColor;
+  }
 }
 
 class _ProgressGridPainter extends CustomPainter {
