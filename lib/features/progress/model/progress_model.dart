@@ -14,11 +14,16 @@ class ProgressData {
   });
 
   factory ProgressData.fromJson(Map<String, dynamic> json) {
+    final chartsJson = _readMap(json, const ['charts']) ?? json;
+
     return ProgressData(
-      stats: ProgressStats.fromJson(json['stats'] as Map<String, dynamic>? ?? const {}),
-      charts: ProgressCharts.fromJson(json['charts'] as Map<String, dynamic>? ?? const {}),
-      bodyMetrics:
-          BodyMetrics.fromJson(json['bodyMetrics'] as Map<String, dynamic>? ?? const {}),
+      stats: ProgressStats.fromJson(
+        _readMap(json, const ['stats']) ?? const {},
+      ),
+      charts: ProgressCharts.fromJson(chartsJson),
+      bodyMetrics: BodyMetrics.fromJson(
+        _readMap(json, const ['bodyMetrics', 'body_metrics']) ?? const {},
+      ),
     );
   }
 }
@@ -58,22 +63,46 @@ class ProgressCharts {
   final List<ChartPoint> weeklyProgress;
   final List<ChartPoint> weeklyCalories;
 
-  ProgressCharts({
-    required this.weeklyProgress,
-    required this.weeklyCalories,
-  });
+  ProgressCharts({required this.weeklyProgress, required this.weeklyCalories});
 
   factory ProgressCharts.fromJson(Map<String, dynamic> json) {
-    final wpList = json['weeklyProgress'] as List<dynamic>? ?? const [];
-    final wcList = json['weeklyCalories'] as List<dynamic>? ?? const [];
-
     return ProgressCharts(
-      weeklyProgress: wpList
-          .map((e) => ChartPoint.fromJson(e as Map<String, dynamic>? ?? const {}))
-          .toList(),
-      weeklyCalories: wcList
-          .map((e) => ChartPoint.fromJson(e as Map<String, dynamic>? ?? const {}))
-          .toList(),
+      weeklyProgress: _readChartPoints(
+        json,
+        chartKeys: const [
+          'weeklyProgress',
+          'weekly_progress',
+          'progress',
+          'workouts',
+        ],
+        valueKeys: const [
+          'value',
+          'count',
+          'workouts',
+          'totalWorkouts',
+          'completedWorkouts',
+          'progress',
+          'percentage',
+        ],
+      ),
+      weeklyCalories: _readChartPoints(
+        json,
+        chartKeys: const [
+          'weeklyCalories',
+          'weekly_calories',
+          'calories',
+          'caloriesBurned',
+        ],
+        valueKeys: const [
+          'value',
+          'calories',
+          'caloriesBurned',
+          'caloriesBurnedKcal',
+          'burnedKcal',
+          'kcal',
+          'totalCalories',
+        ],
+      ),
     );
   }
 }
@@ -82,17 +111,108 @@ class ChartPoint {
   final String label;
   final double value;
 
-  ChartPoint({
-    required this.label,
-    required this.value,
-  });
+  ChartPoint({required this.label, required this.value});
 
-  factory ChartPoint.fromJson(Map<String, dynamic> json) {
+  factory ChartPoint.fromJson(
+    Map<String, dynamic> json, {
+    List<String> labelKeys = const ['label', 'day', 'date', 'name'],
+    List<String> valueKeys = const ['value'],
+  }) {
     return ChartPoint(
-      label: json['label']?.toString() ?? '',
-      value: (json['value'] as num?)?.toDouble() ?? 0,
+      label: _readString(json, labelKeys),
+      value: _readDouble(json, valueKeys),
     );
   }
+}
+
+Map<String, dynamic>? _readMap(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+  }
+  return null;
+}
+
+List<ChartPoint> _readChartPoints(
+  Map<String, dynamic> json, {
+  required List<String> chartKeys,
+  required List<String> valueKeys,
+}) {
+  dynamic raw;
+  for (final key in chartKeys) {
+    raw = json[key];
+    if (raw != null) {
+      break;
+    }
+  }
+
+  if (raw is List) {
+    return raw.asMap().entries.map((entry) {
+      final value = entry.value;
+      if (value is Map<String, dynamic>) {
+        final point = ChartPoint.fromJson(value, valueKeys: valueKeys);
+        return point.label.isEmpty
+            ? ChartPoint(
+                label: _fallbackDayLabel(entry.key),
+                value: point.value,
+              )
+            : point;
+      }
+      if (value is num) {
+        return ChartPoint(
+          label: _fallbackDayLabel(entry.key),
+          value: value.toDouble(),
+        );
+      }
+      return ChartPoint(label: _fallbackDayLabel(entry.key), value: 0);
+    }).toList();
+  }
+
+  if (raw is Map) {
+    return raw.entries
+        .map(
+          (entry) => ChartPoint(
+            label: entry.key.toString(),
+            value: entry.value is num ? (entry.value as num).toDouble() : 0,
+          ),
+        )
+        .toList();
+  }
+
+  return const [];
+}
+
+String _readString(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value != null && value.toString().trim().isNotEmpty) {
+      return value.toString();
+    }
+  }
+  return '';
+}
+
+double _readDouble(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value is num) {
+      return value.toDouble();
+    }
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      if (parsed != null) {
+        return parsed;
+      }
+    }
+  }
+  return 0;
+}
+
+String _fallbackDayLabel(int index) {
+  const days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  return days[index % days.length];
 }
 
 class BodyMetrics {
@@ -127,4 +247,3 @@ class BodyMetrics {
     );
   }
 }
-
