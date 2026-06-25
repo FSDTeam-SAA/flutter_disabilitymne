@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_pigeon/app_pigeon.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:disabilitymne/app/app_manager.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
@@ -397,7 +398,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.only(bottom: 10),
         itemCount: _pendingFiles.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final file = _pendingFiles[index];
           final path = file.path.toLowerCase();
@@ -647,13 +648,13 @@ class _AttachmentPreview extends StatelessWidget {
           imageUrl: attachment.url,
           width: 230,
           fit: BoxFit.cover,
-          placeholder: (_, __) => Container(
+          placeholder: (_, _) => Container(
             width: 230,
             height: 150,
             color: const Color(0xFFE4E7EC),
             child: const Center(child: CircularProgressIndicator()),
           ),
-          errorWidget: (_, __, ___) => const _FileAttachmentTile(),
+          errorWidget: (_, _, _) => const _FileAttachmentTile(),
         ),
       );
     }

@@ -19,8 +19,9 @@ class ChatUserLite {
     String? profileImage;
     final p = json['profileImage'];
     if (p is String && p.isNotEmpty) profileImage = p;
-    if (profileImage == null && p is Map)
+    if (profileImage == null && p is Map) {
       profileImage = p['url']?.toString().trim();
+    }
     return ChatUserLite(
       id: _str(json['id'] ?? json['_id']),
       firstName: json['firstName'] as String?,
