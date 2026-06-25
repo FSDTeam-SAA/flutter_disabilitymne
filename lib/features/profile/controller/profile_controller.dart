@@ -143,6 +143,8 @@ class ProfileController extends GetxController {
   }
 
   Future<void> updateProfile() async {
+    debugPrint("[ProfileController] updateProfile started");
+
     try {
       isLoading.value = true;
 
@@ -151,6 +153,19 @@ class ProfileController extends GetxController {
 
       final firstName = names.isNotEmpty ? names.first : "";
       final lastName = names.length > 1 ? names.sublist(1).join(" ") : "";
+
+      debugPrint(
+        "[ProfileController] form values => "
+        "name: '${nameController.text}', "
+        "firstName: '$firstName', lastName: '$lastName', "
+        "gender: '${genderController.text}', "
+        "age: '${ageController.text}', "
+        "height: '${heightController.text} ${heightUnit.value}', "
+        "weight: '${weightController.text} ${weightUnit.value}', "
+        "fitnessGoal: '${selectedFitnessGoal.value}', "
+        "mobilityType: '${selectedMobilityType.value}', "
+        "fitnessExperience: '${selectedFitnessExperience.value}'",
+      );
 
       /// create model
       final params = UserProfileUpdateModel(
@@ -184,13 +199,27 @@ class ProfileController extends GetxController {
         onboardingStep: 8,
       );
 
+      debugPrint(
+        "[ProfileController] updateProfile payload => ${params.toJson()}",
+      );
+
       final response = await profileInterface.updateProfile(params);
 
       response.fold(
         (failure) {
+          debugPrint(
+            "[ProfileController] updateProfile failed => "
+            "uiMessage: ${failure.uiMessage}, "
+            "fullError: ${failure.fullError}, "
+            "failure: ${failure.failure}",
+          );
           Get.snackbar("Error", failure.uiMessage);
         },
         (success) {
+          debugPrint(
+            "[ProfileController] updateProfile success => "
+            "message: ${success.message}, data: ${success.data?.toJson()}",
+          );
           Get.snackbar(
             "Success",
             success.message,
@@ -204,10 +233,13 @@ class ProfileController extends GetxController {
           toggleEdit();
         },
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint("[ProfileController] updateProfile exception => $e");
+      debugPrint("[ProfileController] updateProfile stackTrace => $stackTrace");
       Get.snackbar("Error", e.toString());
     } finally {
       isLoading.value = false;
+      debugPrint("[ProfileController] updateProfile finished");
     }
   }
 
