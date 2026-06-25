@@ -278,6 +278,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                             Expanded(
                               flex: 4,
                               child: DropdownButtonFormField<_PortionOption>(
+                                isExpanded: true,
                                 initialValue: _selectedPortion,
                                 dropdownColor: const Color(0xFF1D222F),
                                 icon: const Icon(
@@ -293,6 +294,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                           u.estimated
                                               ? '${u.label} (estimated)'
                                               : u.label,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     )
