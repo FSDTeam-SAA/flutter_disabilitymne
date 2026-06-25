@@ -22,6 +22,8 @@ class BreakfastSearchScreen extends StatefulWidget {
 }
 
 class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
+  static const int _minSearchLength = 2;
+
   final TextEditingController _searchController = TextEditingController();
   final List<_FoodSearchItem> _foods = [];
   final List<String> _suggestions = [];
@@ -30,6 +32,7 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
   bool _loading = false;
   bool _didTrackFood = false;
   String _query = '';
+  String? _searchError;
 
   @override
   void initState() {
@@ -45,13 +48,24 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
   }
 
   Future<void> _searchNow(String query) async {
+    final trimmed = query.trim();
     setState(() {
       _loading = true;
       _query = query;
+      _searchError = null;
+      if (trimmed.length < _minSearchLength) {
+        _foods.clear();
+      }
     });
 
     try {
-      await Future.wait([_fetchSuggestions(query), _fetchFoods(query)]);
+      await Future.wait([
+        if (trimmed.isNotEmpty) _fetchSuggestions(trimmed) else _clearSuggestions(),
+        if (trimmed.length >= _minSearchLength)
+          _fetchFoods(trimmed)
+        else
+          _clearFoods(),
+      ]);
     } finally {
       if (mounted) {
         setState(() {
@@ -61,64 +75,86 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
     }
   }
 
-  Future<void> _fetchSuggestions(String query) async {
-    if (query.trim().isEmpty) {
-      if (mounted) {
-        setState(() {
-          _suggestions.clear();
-        });
-      }
-      return;
-    }
-
-    final uri = Uri.parse(
-      ApiEndpoints.nutritionFoodSuggestions,
-    ).replace(queryParameters: {'q': query.trim(), 'limit': '10'});
-    final response = await Get.find<AuthorizedPigeon>().get(uri.toString());
-    final root = response.data;
-    final data = root is Map<String, dynamic> ? root['data'] : null;
-    final list = data is List
-        ? data.whereType<Map<String, dynamic>>().toList()
-        : <Map<String, dynamic>>[];
-    final labels = list
-        .map((e) => (e['label'] as String?) ?? '')
-        .where((e) => e.isNotEmpty)
-        .toList();
+  Future<void> _clearSuggestions() async {
     if (!mounted) return;
     setState(() {
-      _suggestions
-        ..clear()
-        ..addAll(labels);
+      _suggestions.clear();
     });
   }
 
-  Future<void> _fetchFoods(String query) async {
+  Future<void> _clearFoods() async {
+    if (!mounted) return;
+    setState(() {
+      _foods.clear();
+    });
+  }
+
+  Future<void> _fetchSuggestions(String query) async {
     if (query.trim().isEmpty) {
-      if (mounted) {
-        setState(() {
-          _foods.clear();
-        });
-      }
+      await _clearSuggestions();
       return;
     }
 
-    final uri = Uri.parse(ApiEndpoints.nutritionFoodSearch).replace(
-      queryParameters: {'query': query.trim(), 'page': '1', 'pageSize': '20'},
-    );
-    final response = await Get.find<AuthorizedPigeon>().get(uri.toString());
-    final root = response.data;
-    final data = root is Map<String, dynamic> ? root['data'] : null;
-    final foods = data is Map<String, dynamic> ? data['foods'] : null;
-    final list = foods is List
-        ? foods.whereType<Map<String, dynamic>>().toList()
-        : const <Map<String, dynamic>>[];
+    try {
+      final uri = Uri.parse(
+        ApiEndpoints.nutritionFoodSuggestions,
+      ).replace(queryParameters: {'q': query.trim(), 'limit': '10'});
+      final response = await Get.find<AuthorizedPigeon>().get(uri.toString());
+      final root = response.data;
+      final data = root is Map<String, dynamic> ? root['data'] : null;
+      final list = data is List
+          ? data.whereType<Map<String, dynamic>>().toList()
+          : <Map<String, dynamic>>[];
+      final labels = list
+          .map((e) => (e['label'] as String?) ?? '')
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        _suggestions
+          ..clear()
+          ..addAll(labels);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _suggestions.clear();
+      });
+    }
+  }
 
-    if (!mounted) return;
-    setState(() {
-      _foods
-        ..clear()
-        ..addAll(list.map(_FoodSearchItem.fromJson));
-    });
+  Future<void> _fetchFoods(String query) async {
+    if (query.trim().length < _minSearchLength) {
+      await _clearFoods();
+      return;
+    }
+
+    try {
+      final uri = Uri.parse(ApiEndpoints.nutritionFoodSearch).replace(
+        queryParameters: {'query': query.trim(), 'page': '1', 'pageSize': '20'},
+      );
+      final response = await Get.find<AuthorizedPigeon>().get(uri.toString());
+      final root = response.data;
+      final data = root is Map<String, dynamic> ? root['data'] : null;
+      final foods = data is Map<String, dynamic> ? data['foods'] : null;
+      final list = foods is List
+          ? foods.whereType<Map<String, dynamic>>().toList()
+          : const <Map<String, dynamic>>[];
+
+      if (!mounted) return;
+      setState(() {
+        _searchError = null;
+        _foods
+          ..clear()
+          ..addAll(list.map(_FoodSearchItem.fromJson));
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _searchError = _messageFromSearchError(e);
+        _foods.clear();
+      });
+    }
   }
 
   void _onSearchChanged(String value) {
@@ -252,7 +288,7 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
                               padding: const EdgeInsets.only(right: 8),
                               child: ActionChip(
                                 backgroundColor: const Color(0xFF2A3040),
-                                side: BorderSide(color: Colors.white.withOpacity(0.12)),
+                                side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
                                 label: Text(
                                   suggestion,
                                   style: const TextStyle(color: Colors.white),
@@ -343,6 +379,38 @@ class _BreakfastSearchScreenState extends State<BreakfastSearchScreen> {
                 'Type a food name to find items you can add to $mealLabel.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_query.trim().length < _minSearchLength) {
+      return _buildRefreshableState(
+        constraints: constraints,
+        child: Text(
+          'Type at least $_minSearchLength characters to search.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey[400], fontSize: 14),
+        ),
+      );
+    }
+
+    if (_searchError != null) {
+      return _buildRefreshableState(
+        constraints: constraints,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline, size: 40, color: Colors.grey[500]),
+              const SizedBox(height: 14),
+              Text(
+                _searchError!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[400], fontSize: 14),
               ),
             ],
           ),
@@ -525,6 +593,17 @@ String _toApiDate(DateTime date) {
 String _titleCase(String value) {
   if (value.isEmpty) return value;
   return value[0].toUpperCase() + value.substring(1).toLowerCase();
+}
+
+String _messageFromSearchError(Object error) {
+  if (error is DioException) {
+    final data = error.response?.data;
+    if (data is Map && data['message'] is String) {
+      final message = (data['message'] as String).trim();
+      if (message.isNotEmpty) return message;
+    }
+  }
+  return 'Unable to search foods. Please try again.';
 }
 
 class _FoodSearchItem {

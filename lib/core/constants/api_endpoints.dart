@@ -94,6 +94,8 @@ base class ApiEndpoints {
       _Messaging.chatThreadSendMessage(threadId);
   static String chatThreadMarkRead(String threadId) =>
       _Messaging.chatThreadMarkRead(threadId);
+  static const String uploadImage = _Uploads.image;
+  static const String uploadVideo = _Uploads.video;
 
   //------------------------- Daily Tracker --------------------------
   /// ### get, patch
@@ -131,10 +133,12 @@ base class ApiEndpoints {
 //arrow360degree@gmail.com
 
 class _RemoteServer {
-  static const String socketUrl = 'http://72.60.29.234:5001';
+  // static const String socketUrl = 'http://72.60.29.234:5001';
 
-  static const String baseUrl = 'http://72.60.29.234:5001/api/v1';
-      // 'https://disabilitymne-backend.onrender.com/api/v1';
+  // static const String baseUrl = 'http://72.60.29.234:5001/api/v1';
+  // 'https://disabilitymne-backend.onrender.com/api/v1';
+  static const String socketUrl = 'http://187.124.21.65';
+  static const String baseUrl = 'http://187.124.21.65/api/v1';
 }
 
 class _Auth {
@@ -296,6 +300,12 @@ class _Payments {
   static const String plans = '$_route/plans';
   static const String checkout = '$_route/checkout';
   static const String confirmCheckout = '$_route/checkout/confirm';
+}
+
+class _Uploads {
+  static const String _route = '${ApiEndpoints.baseUrl}/uploads';
+  static const String image = '$_route/image';
+  static const String video = '$_route/video';
 }
 
 //----------------------Message -----------------------------

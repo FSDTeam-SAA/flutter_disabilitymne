@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/api_handler/base_repository.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
@@ -47,8 +49,12 @@ final class ChatRepository extends BaseRepository {
         final data = response.data;
         final list = data is Map && data['data'] is List
             ? (data['data'] as List)
-                .map((e) => ChatMessage.fromJson(Map<String, dynamic>.from(e as Map)))
-                .toList()
+                  .map(
+                    (e) => ChatMessage.fromJson(
+                      Map<String, dynamic>.from(e as Map),
+                    ),
+                  )
+                  .toList()
             : <ChatMessage>[];
         final meta = data is Map && data['meta'] is Map
             ? data['meta'] as Map<String, dynamic>
@@ -67,16 +73,25 @@ final class ChatRepository extends BaseRepository {
   FutureRequest<ChatMessage> sendMessage({
     required String threadId,
     required String text,
+    List<ChatAttachment> attachments = const [],
   }) async {
     return asyncTryCatch(
       tryFunc: () async {
         final response = await _pigeon.post(
           ApiEndpoints.chatThreadSendMessage(threadId),
-          data: {'message': text},
+          data: {
+            'message': text,
+            if (attachments.isNotEmpty)
+              'attachments': attachments
+                  .map((attachment) => attachment.toJson())
+                  .toList(),
+          },
         );
         final data = response.data;
         final msg = data is Map && data['data'] is Map
-            ? ChatMessage.fromJson(Map<String, dynamic>.from(data['data'] as Map))
+            ? ChatMessage.fromJson(
+                Map<String, dynamic>.from(data['data'] as Map),
+              )
             : null;
         if (msg == null) throw Exception('Invalid send message response');
         return msg;
@@ -89,6 +104,43 @@ final class ChatRepository extends BaseRepository {
     return asyncTryCatch(
       tryFunc: () async {
         await _pigeon.patch(ApiEndpoints.chatThreadMarkRead(threadId));
+      },
+    );
+  }
+
+  FutureRequest<ChatAttachment> uploadAttachment(
+    File file, {
+    required bool isVideo,
+  }) async {
+    return asyncTryCatch(
+      tryFunc: () async {
+        final fileName = file.path.split(RegExp(r'[/\\]')).last;
+        final formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(
+            file.path,
+            filename: fileName.isEmpty
+                ? (isVideo ? 'video.mp4' : 'image.jpg')
+                : fileName,
+          ),
+          'folder': 'chat/attachments',
+        });
+
+        final response = await _pigeon.post(
+          isVideo ? ApiEndpoints.uploadVideo : ApiEndpoints.uploadImage,
+          data: formData,
+        );
+
+        final data = response.data;
+        final url = data is Map && data['data'] is Map
+            ? (data['data']['url']?.toString().trim() ?? '')
+            : '';
+        if (url.isEmpty) throw Exception('Invalid upload response');
+
+        return ChatAttachment(
+          url: url,
+          mimetype: isVideo ? 'video/mp4' : 'image/jpeg',
+          size: await file.length(),
+        );
       },
     );
   }
@@ -112,8 +164,5 @@ class ChatThreadInfo {
   final String threadId;
   final String counterpartName;
 
-  const ChatThreadInfo({
-    required this.threadId,
-    required this.counterpartName,
-  });
+  const ChatThreadInfo({required this.threadId, required this.counterpartName});
 }

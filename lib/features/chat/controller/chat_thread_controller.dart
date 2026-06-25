@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+
 import 'package:disabilitymne/core/auth/access_token_holder.dart';
 import 'package:disabilitymne/features/chat/model/chat_models.dart';
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
@@ -6,7 +8,7 @@ import 'package:disabilitymne/features/chat/service/chat_socket_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
-/// Controller for a single chat thread: loads messages, sends via REST API,
+/// Controller for a single chat thread: loads messages, sends via Socket.IO,
 /// keeps message list updated from socket chat:message:new, joins/leaves thread,
 /// and reflects socket connection state.
 ///
@@ -21,9 +23,9 @@ class ChatThreadController extends GetxController {
     required ChatRepository repo,
     required ChatSocketService socketService,
     AccessTokenHolder? tokenHolder,
-  })  : _repo = repo,
-        _socketService = socketService,
-        _tokenHolder = tokenHolder {
+  }) : _repo = repo,
+       _socketService = socketService,
+       _tokenHolder = tokenHolder {
     _tokenHolder ??= Get.isRegistered<AccessTokenHolder>()
         ? Get.find<AccessTokenHolder>()
         : null;
@@ -45,7 +47,8 @@ class ChatThreadController extends GetxController {
       StreamController<List<ChatMessage>>.broadcast();
 
   /// Live stream of messages for StreamBuilder. Emits when messages load or socket sends new message.
-  Stream<List<ChatMessage>> get messagesStream => _messagesStreamController.stream;
+  Stream<List<ChatMessage>> get messagesStream =>
+      _messagesStreamController.stream;
 
   StreamSubscription<ChatMessage>? _newMessageSub;
   StreamSubscription<SocketConnectionState>? _stateSub;
@@ -81,41 +84,25 @@ class ChatThreadController extends GetxController {
     socketConnected.value = state == SocketConnectionState.connected;
   }
 
-//   void connectSocketAndJoin() {
-//   try {
-//     // Get access token saved at login (AuthInterfaceImpl -> AccessTokenHolder)
-//     final token = _tokenHolder?.token?.trim();
-
-//     debugPrint("Socket Connect ->>> $token");
-
-//     if (token == null || token.isEmpty) return;
-
-//     if (!_socketService.isConnected) {
-//       _socketService.connect(token);
-//     }
-
-//     _socketService.joinThread(threadId);
-//   } catch (e) {
-//     debugPrint("Socket Connect Problem : $e");
-//   }
-// }
-
   void connectSocketAndJoin() {
     try {
- final token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YjRlZmI4NzU2NWU3NTQ5OWQxMGI4NCIsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NzM2NDI0ODAsImV4cCI6MTc3NDI0NzI4MH0.ZfdDpCpI_9qmDgfytrb2DElJtRa0taqMkWjV8qA9k6Y";
-      debugPrint("Socket Connect ->>> $token");
-    if ( token.isEmpty) return;
-    if (!_socketService.isConnected) {
-      _socketService.connect(token);
-    }
-    _socketService.joinThread(threadId);
+      final token = _tokenHolder?.token?.trim();
+      if (token == null || token.isEmpty) {
+        debugPrint('Socket Connect Problem : missing access token');
+        return;
+      }
+
+      if (!_socketService.isConnected) {
+        _socketService.connect(token);
+      }
+
+      _socketService.joinThread(threadId);
     } catch (e) {
       debugPrint("Socket Connect Problem : $e");
     }
-   
   }
 
-// 0..................................
+  // 0..................................
 
   void _onNewMessage(ChatMessage msg) {
     final msgThreadId = msg.threadId?.trim() ?? '';
@@ -130,13 +117,10 @@ class ChatThreadController extends GetxController {
     isLoading.value = true;
     errorMessage.value = null;
     final result = await _repo.getThreadMessages(threadId: threadId);
-    result.fold(
-      (f) => errorMessage.value = f.uiMessage,
-      (res) {
-        messages.value = List<ChatMessage>.from(res.messages);
-        _emitMessages();
-      },
-    );
+    result.fold((f) => errorMessage.value = f.uiMessage, (res) {
+      messages.value = List<ChatMessage>.from(res.messages);
+      _emitMessages();
+    });
     isLoading.value = false;
   }
 
@@ -145,21 +129,59 @@ class ChatThreadController extends GetxController {
     await _repo.markThreadAsRead(threadId);
   }
 
-  Future<void> sendMessage(String text) async {
+  Future<void> sendMessage(String text, {List<File> files = const []}) async {
     final trimmed = text.trim();
-    if (trimmed.isEmpty) return;
+    if (trimmed.isEmpty && files.isEmpty) return;
     isSending.value = true;
     errorMessage.value = null;
-    final result = await _repo.sendMessage(threadId: threadId, text: trimmed);
-    result.fold(
-      (f) => errorMessage.value = f.uiMessage,
-      (msg) {
-        if (!messages.any((m) => m.id == msg.id)) {
-          messages.add(msg);
-          _emitMessages();
-        }
-      },
-    );
-    isSending.value = false;
+
+    final attachments = <ChatAttachment>[];
+    for (final file in files) {
+      final lowerPath = file.path.toLowerCase();
+      final isVideo =
+          lowerPath.endsWith('.mp4') ||
+          lowerPath.endsWith('.mov') ||
+          lowerPath.endsWith('.m4v') ||
+          lowerPath.endsWith('.webm');
+
+      final uploadResult = await _repo.uploadAttachment(file, isVideo: isVideo);
+      final failed = uploadResult.fold(
+        (f) {
+          errorMessage.value = f.uiMessage;
+          return true;
+        },
+        (attachment) {
+          attachments.add(attachment);
+          return false;
+        },
+      );
+
+      if (failed) {
+        isSending.value = false;
+        return;
+      }
+    }
+
+    try {
+      if (!_socketService.isConnected) {
+        connectSocketAndJoin();
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      }
+
+      final msg = await _socketService.sendMessage(
+        threadId: threadId,
+        message: trimmed,
+        attachments: attachments,
+      );
+
+      if (!messages.any((m) => m.id == msg.id)) {
+        messages.add(msg);
+        _emitMessages();
+      }
+    } catch (e) {
+      errorMessage.value = e.toString().replaceFirst('Exception: ', '');
+    } finally {
+      isSending.value = false;
+    }
   }
 }

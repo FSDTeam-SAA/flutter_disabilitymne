@@ -56,8 +56,7 @@ class ChatSocketService {
       _threadUpdatedController.stream;
 
   /// Stream of read receipts (from chat:thread:read).
-  Stream<ChatThreadReadEvent> get onThreadRead =>
-      _threadReadController.stream;
+  Stream<ChatThreadReadEvent> get onThreadRead => _threadReadController.stream;
 
   bool get isConnected => _socket?.connected ?? false;
 
@@ -89,9 +88,6 @@ class ChatSocketService {
   /// Reconnection is enabled; on reconnect the client will re-join all previously joined threads.
   /// If already connected with the same token, skips reconnecting.
   void connect(String accessToken) {
-    // final token = accessToken.trim();
-      debugPrint('connect without access token $accessToken');
-
     if (accessToken.isEmpty) {
       debugPrint('cannot connect without access token');
       return;
@@ -172,7 +168,8 @@ class ChatSocketService {
       final payloadThreadId = _str(map['threadId']);
       if (payloadThreadId.isNotEmpty &&
           (msgMap['threadId'] == null || _str(msgMap['threadId']).isEmpty)) {
-        msgMap = Map<String, dynamic>.from(msgMap)..['threadId'] = payloadThreadId;
+        msgMap = Map<String, dynamic>.from(msgMap)
+          ..['threadId'] = payloadThreadId;
       }
       try {
         debugPrint("New Message Data : $msgMap");
@@ -202,14 +199,18 @@ class ChatSocketService {
       if (map == null) return;
       try {
         final readAt = map['readAt'];
-        _threadReadController.add(ChatThreadReadEvent(
-          threadId: _str(map['threadId']),
-          readerId: _str(map['readerId']),
-          markedCount: (map['markedCount'] is int)
-              ? map['markedCount'] as int
-              : 0,
-          readAt: readAt != null ? DateTime.tryParse(readAt.toString()) : null,
-        ));
+        _threadReadController.add(
+          ChatThreadReadEvent(
+            threadId: _str(map['threadId']),
+            readerId: _str(map['readerId']),
+            markedCount: (map['markedCount'] is int)
+                ? map['markedCount'] as int
+                : 0,
+            readAt: readAt != null
+                ? DateTime.tryParse(readAt.toString())
+                : null,
+          ),
+        );
       } catch (e, st) {
         debugPrint('parse chat:thread:read error $e $st');
       }
@@ -254,6 +255,64 @@ class ChatSocketService {
       _socket?.emit(event);
     }
     debugPrint('emit $event');
+  }
+
+  Future<ChatMessage> sendMessage({
+    required String threadId,
+    String message = '',
+    List<ChatAttachment> attachments = const [],
+  }) {
+    final completer = Completer<ChatMessage>();
+    final socket = _socket;
+
+    if (socket == null || !socket.connected) {
+      completer.completeError(Exception('Socket is not connected.'));
+      return completer.future;
+    }
+
+    final payload = {
+      'threadId': threadId,
+      'message': message,
+      'attachments': attachments
+          .map((attachment) => attachment.toJson())
+          .toList(),
+    };
+
+    Timer(const Duration(seconds: 15), () {
+      if (!completer.isCompleted) {
+        completer.completeError(Exception('Message send timed out.'));
+      }
+    });
+
+    socket.emitWithAck(
+      'chat:message:send',
+      payload,
+      ack: (data) {
+        if (completer.isCompleted) return;
+
+        final map = _toMap(data);
+        if (map == null || map['success'] != true) {
+          completer.completeError(
+            Exception(
+              _str(map?['message']).isEmpty
+                  ? 'Failed to send message.'
+                  : _str(map?['message']),
+            ),
+          );
+          return;
+        }
+
+        final messageMap = _toMap(map['data']);
+        if (messageMap == null) {
+          completer.completeError(Exception('Invalid send message response.'));
+          return;
+        }
+
+        completer.complete(ChatMessage.fromJson(messageMap));
+      },
+    );
+
+    return completer.future;
   }
 
   /// Disconnect and clear state. Call on logout or when pausing app if desired.

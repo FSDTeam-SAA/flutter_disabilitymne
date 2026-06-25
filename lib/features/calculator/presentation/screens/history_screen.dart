@@ -1173,13 +1173,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
               top: 0,
               left: 0,
               right: 0,
-              child: Container(
-                height: 50,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color.fromARGB(120, 0, 0, 0), Colors.transparent],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+              child: IgnorePointer(
+                child: Container(
+                  height: 50,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color.fromARGB(120, 0, 0, 0),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
                 ),
               ),
@@ -1188,13 +1193,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: Container(
-                height: 50,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.transparent, Color.fromARGB(120, 0, 0, 0)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+              child: IgnorePointer(
+                child: Container(
+                  height: 50,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Color.fromARGB(120, 0, 0, 0),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
                 ),
               ),
