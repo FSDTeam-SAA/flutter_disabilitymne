@@ -36,13 +36,22 @@ final class AuthInterfaceImpl extends AuthInterface {
           throw Exception("Login failed");
         }
         final loginData = loginResponse.data!;
+        final userId = loginData.user?.id?.trim();
+
+        if (Get.isRegistered<OnboardingStateHolder>() && loginData.user != null) {
+          Get.find<OnboardingStateHolder>().saveFromLogin(loginData.user);
+        }
+        if (Get.isRegistered<AccessTokenHolder>() && loginData.accessToken != null) {
+          Get.find<AccessTokenHolder>().setToken(loginData.accessToken);
+        }
+
         await appPigeon.saveNewAuth(
           saveAuthParams: SaveNewAuthParams(
-            uid: loginData.user?.id,
+            uid: userId,
             accessToken: loginData.accessToken,
             refreshToken: loginData.refreshToken,
             data: {
-              "userId": loginData.user?.id,
+              "userId": userId,
               "name":
                   "${loginData.user?.firstName ?? ""} ${loginData.user?.lastName ?? ""}",
               "email": loginData.user?.email,
@@ -50,12 +59,6 @@ final class AuthInterfaceImpl extends AuthInterface {
             },
           ),
         );
-        if (Get.isRegistered<AccessTokenHolder>() && loginData.accessToken != null) {
-          Get.find<AccessTokenHolder>().setToken(loginData.accessToken);
-        }
-        if (Get.isRegistered<OnboardingStateHolder>() && loginData.user != null) {
-          Get.find<OnboardingStateHolder>().saveFromLogin(loginData.user);
-        }
 
         return Success(message: loginResponse.message ?? "Login successful");
       },
@@ -103,6 +106,7 @@ final class AuthInterfaceImpl extends AuthInterface {
       tryFunc: () async {
         final response = await appPigeon.post(ApiEndpoints.logout);
         debugPrint('LOGOUT RESPONSE => ${response.data}');
+        appPigeon.disconnectSocket();
         await appPigeon.logOut();
         if (Get.isRegistered<AccessTokenHolder>()) {
           Get.find<AccessTokenHolder>().clear();

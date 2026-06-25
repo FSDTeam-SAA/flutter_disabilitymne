@@ -9,10 +9,17 @@ const String _keyOnboardingCompleted = 'onboarding_completed';
 class OnboardingStateHolder extends GetxController {
   final GetStorage _box = GetStorage();
 
-  /// Save onboarding state from login API user. Call after successful login.
+  /// True if user finished onboarding (API flag or final step).
+  bool get isOnboardingCompleted {
+    final stored = _box.read<bool>(_keyOnboardingCompleted);
+    return stored == true;
+  }
+
+  /// Save onboarding state from login API user. Call before persisting auth.
   void saveFromLogin(UserModel? user) {
     if (user == null) return;
-    final completed = user.onboardingCompleted == true;
+    final completed =
+        user.onboardingCompleted == true || (user.onboardingStep ?? 0) >= 8;
     _box.write(_keyOnboardingCompleted, completed);
   }
 
@@ -20,9 +27,6 @@ class OnboardingStateHolder extends GetxController {
   void setOnboardingCompleted() {
     _box.write(_keyOnboardingCompleted, true);
   }
-
-  /// True only if we have a stored value of true (user completed onboarding).
-  bool get isOnboardingCompleted => _box.read<bool>(_keyOnboardingCompleted) == true;
 
   /// Clear on logout.
   void clear() {

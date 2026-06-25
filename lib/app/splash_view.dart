@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:app_pigeon/app_pigeon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/features/language/language_screen.dart';
+import 'package:disabilitymne/nabber_screen.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -20,8 +22,18 @@ class _SplashViewState extends State<SplashView> {
     _timer = Timer(const Duration(seconds: 2), _navigateNext);
   }
 
-  void _navigateNext() {
-    Get.offAll(() => LanguageScreen());
+  void _navigateNext() async {
+    if (!mounted) return;
+
+    final auth = await Get.find<AuthorizedPigeon>().getCurrentAuthRecord();
+    if (!mounted) return;
+
+    if (auth != null) {
+      Get.offAll(() => AppGround());
+      return;
+    }
+
+    Get.offAll(() => const LanguageScreen());
   }
 
   @override

@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'package:app_pigeon/app_pigeon.dart';
-import 'package:disabilitymne/app/splash_view.dart';
-import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
-import 'package:disabilitymne/features/language/language_screen.dart';
+import 'package:disabilitymne/features/chat/service/chat_socket_service.dart';
+import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,13 +12,6 @@ class AppManager extends GetxController {
   AuthStatus _authStatus = AuthLoading();
   AuthStatus get currentAuthStatus => _authStatus;
   Debouncer authDebouncer = Debouncer(delay: const Duration(milliseconds: 100));
-
-  /// Socket connection status
-  final RxBool socketConnected = false.obs;
-
-  StreamSubscription<dynamic>? _socketConnectSub;
-  StreamSubscription<dynamic>? _socketDisconnectSub;
-  StreamSubscription<dynamic>? _socketErrorSub;
 
   /// Initializes the stream to listen to auth status
   AppManager() {
@@ -42,37 +33,53 @@ class AppManager extends GetxController {
   }
 
   void _decideRoute(AuthStatus? authStatus) async {
+    if (authStatus == null || authStatus is AuthLoading) return;
+
     if (authStatus is UnAuthenticated) {
       _authStatus = authStatus;
-      Get.offAll(() => SplashView());
-      // navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      //   RouteNames.login,
-      //   (route) => false,
-      // );
-    } else if (authStatus is Authenticated) {
+      _disconnectSockets();
+      Get.offAll(() => const WelcomeScreen());
+      update();
+      return;
+    }
+
+    if (authStatus is Authenticated) {
       debugPrint(
         "currentAuthStatus: $_authStatus, beforeAuthStatus: $authStatus",
-      );
-      debugPrint(
-        "New auth:: ${!(currentAuthStatus is Authenticated && (authStatus).auth.userId != (currentAuthStatus as Authenticated).auth.userId)}",
       );
       _authStatus = authStatus;
       await _initializeControllers();
 
-      // Login API user with onboardingCompleted: false / null → show gender (onboarding) first
-      final onboardingCompleted = Get.isRegistered<OnboardingStateHolder>() &&
-          Get.find<OnboardingStateHolder>().isOnboardingCompleted;
-      if (onboardingCompleted) {
-        Get.offAll(() => AppGround());
-      } else {
-        Get.offAll(() => const LanguageScreen());
+      // Logged-in users go to the main app. Pre-login language/onboarding
+      // (Splash → Language → Onboarding → Welcome) is only for guests.
+      Get.offAll(() => AppGround());
+    }
+
+    update();
+  }
+
+  /// Tear down sockets before re-init or logout.
+  ///
+  /// app_pigeon's [SocketService.listen] can crash with
+  /// "Cannot add new events after calling close" when socketInit/dispose runs
+  /// while connect/disconnect handlers are still attached — so we disconnect
+  /// cleanly and never subscribe to those lifecycle events from AppManager.
+  void _disconnectSockets() {
+    try {
+      Get.find<AuthorizedPigeon>().disconnectSocket();
+    } catch (e, st) {
+      debugPrint("AppManager: disconnectSocket error: $e");
+      debugPrint("$st");
+    }
+
+    if (Get.isRegistered<ChatSocketService>()) {
+      try {
+        Get.find<ChatSocketService>().disconnect();
+      } catch (e, st) {
+        debugPrint("AppManager: ChatSocketService disconnect error: $e");
+        debugPrint("$st");
       }
     }
-    update();
-    // if (authStatus != null && authStatus != _authStatus) {
-    //   debugPrint("(In Appmanager)Auth status: $authStatus");
-
-    // }
   }
 
   // initiate controllers on auth change[Authenticated]
@@ -81,17 +88,10 @@ class AppManager extends GetxController {
 
     final userId = (currentAuthStatus as Authenticated).auth.userId;
 
-    // Cancel any existing socket listeners before re-init to avoid "Cannot add new events after calling close"
-    _socketConnectSub?.cancel();
-    _socketConnectSub = null;
-    _socketDisconnectSub?.cancel();
-    _socketDisconnectSub = null;
-    _socketErrorSub?.cancel();
-    _socketErrorSub = null;
+    _disconnectSockets();
 
     try {
-      // Small delay so previous socket disconnect can finish before we init again
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 100));
       await Get.find<AppPigeon>().socketInit(
         SocketConnetParamX(
           token: null,
@@ -100,39 +100,10 @@ class AppManager extends GetxController {
         ),
       );
       Get.find<AppPigeon>().emit("joinChatRoom", userId);
-      _bindSocketStatus();
     } catch (e, st) {
-      // app_pigeon can throw "Bad state: Cannot add new events after calling close" when
-      // re-initing socket; avoid crash and still allow navigation
       debugPrint("AppManager: socketInit error (continuing): $e");
       debugPrint("$st");
-      socketConnected.value = false;
     }
-  }
-
-  void _bindSocketStatus() {
-    _socketConnectSub?.cancel();
-    _socketDisconnectSub?.cancel();
-    _socketErrorSub?.cancel();
-
-    final appPigeon = Get.find<AppPigeon>();
-    _socketConnectSub = appPigeon.listen("connect").listen((_) {
-      socketConnected.value = true;
-    });
-    _socketDisconnectSub = appPigeon.listen("disconnect").listen((_) {
-      socketConnected.value = false;
-    });
-    _socketErrorSub = appPigeon.listen("connect_error").listen((_) {
-      socketConnected.value = false;
-    });
-  }
-
-  @override
-  void onClose() {
-    _socketConnectSub?.cancel();
-    _socketDisconnectSub?.cancel();
-    _socketErrorSub?.cancel();
-    super.onClose();
   }
 }
 // class AppManager extends GetxController {

@@ -68,7 +68,9 @@ class ChatSocketService {
   void _setState(SocketConnectionState state) {
     if (_currentState == state) return;
     _currentState = state;
-    _stateController.add(state);
+    if (!_stateController.isClosed) {
+      _stateController.add(state);
+    }
     debugPrint('state=$state');
   }
 
