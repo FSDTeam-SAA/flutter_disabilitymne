@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
+import 'package:disabilitymne/features/chat/presentation/chat_thread_screen.dart';
+import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
 import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
 import 'package:disabilitymne/features/progress/controller/progress_controller.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
@@ -46,6 +48,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
       controller.getProfile(),
       progressController.fetchProgress(),
     ]);
+  }
+
+  Future<void> _openChatWithAdmin() async {
+    final repo = Get.find<ChatRepository>();
+    final result = await repo.createOrGetThread();
+
+    result.fold(
+      (failure) {
+        Get.snackbar(
+          'Chat unavailable',
+          failure.uiMessage,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF1B2940),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(12),
+        );
+      },
+      (thread) {
+        Get.to(
+          () => ChatThreadScreen(
+            threadId: thread.threadId,
+            counterpartName: thread.counterpartName,
+          ),
+        );
+      },
+    );
   }
 
   void showLogoutDialog({required VoidCallback onConfirm}) {
@@ -273,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: Icons.chat_bubble_outline,
                             title: "Chat with Admin",
                             subtitle: "Message support",
-                            onTap: () {},
+                            onTap: _openChatWithAdmin,
                           ),
                           _SettingsTile(
                             icon: Icons.privacy_tip_outlined,
