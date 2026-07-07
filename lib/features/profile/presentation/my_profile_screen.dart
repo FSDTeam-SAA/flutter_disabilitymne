@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/profile/constants/profile_field_options.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -213,61 +214,95 @@ class MyProfileScreen extends GetView<ProfileController> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 ProfileField(
-                                  label: "Name",
+                                  label: 'Name',
                                   controller: controller.nameController,
                                   enabled: controller.isEditing.value,
                                 ),
                                 ProfileField(
-                                  label: "Gender",
-                                  controller: controller.genderController,
+                                  label: 'Gender',
                                   enabled: controller.isEditing.value,
+                                  isDropdown: true,
+                                  selectedValue: controller.selectedGender,
+                                  dropdownItems: ProfileFieldOptions.genders,
+                                  optionLabels: ProfileFieldOptions.genderLabels,
                                 ),
                                 ProfileField(
-                                  label: "Age",
-                                  controller: controller.ageController,
+                                  label: 'Age',
                                   enabled: controller.isEditing.value,
+                                  isDropdown: true,
+                                  usePickerSheet: true,
+                                  selectedValue: controller.selectedAge,
+                                  dropdownItems: ProfileFieldOptions.ageOptions,
+                                  displayValueBuilder: ProfileFieldOptions.formatAge,
                                 ),
                                 ProfileField(
-                                  label: "Height",
-                                  controller: controller.heightController,
+                                  label: 'Height',
                                   enabled: controller.isEditing.value,
                                   isMeasurement: true,
+                                  usePickerSheet: true,
+                                  selectedValue: controller.selectedHeight,
+                                  dropdownItems: controller.heightValueOptions,
                                   unit: controller.heightUnit,
                                   units: ProfileController.HEIGHT_UNITS,
+                                  onUnitChanged: controller.onHeightUnitChanged,
+                                  displayValueBuilder: (value) =>
+                                      ProfileFieldOptions.formatHeight(
+                                        value,
+                                        controller.heightUnit.value,
+                                      ),
                                 ),
                                 ProfileField(
-                                  label: "Weight",
-                                  controller: controller.weightController,
+                                  label: 'Weight',
                                   enabled: controller.isEditing.value,
                                   isMeasurement: true,
+                                  usePickerSheet: true,
+                                  selectedValue: controller.selectedWeight,
+                                  dropdownItems: controller.weightValueOptions,
                                   unit: controller.weightUnit,
                                   units: ProfileController.WEIGHT_UNITS,
+                                  onUnitChanged: controller.onWeightUnitChanged,
+                                  displayValueBuilder: (value) =>
+                                      ProfileFieldOptions.formatWeight(
+                                        value,
+                                        controller.weightUnit.value,
+                                      ),
                                 ),
                                 ProfileField(
-                                  label: "Your Fitness Goals",
+                                  label: 'Your Fitness Goals',
                                   enabled: controller.isEditing.value,
                                   isDropdown: true,
                                   selectedValue: controller.selectedFitnessGoal,
-                                  dropdownItems:
-                                      ProfileController.FITNESS_GOALS,
+                                  dropdownItems: ProfileController.FITNESS_GOALS,
+                                  optionLabels:
+                                      ProfileFieldOptions.fitnessGoalLabels,
                                 ),
                                 ProfileField(
-                                  label: "Your mobility type",
+                                  label: 'Your mobility type',
                                   enabled: controller.isEditing.value,
                                   isDropdown: true,
-                                  selectedValue:
-                                      controller.selectedMobilityType,
-                                  dropdownItems:
-                                      ProfileController.MOBILITY_TYPES,
+                                  selectedValue: controller.selectedMobilityType,
+                                  dropdownItems: ProfileController.MOBILITY_TYPES,
+                                  optionLabels:
+                                      ProfileFieldOptions.mobilityTypeLabels,
                                 ),
+                                if (controller.selectedMobilityType.value ==
+                                    'other')
+                                  ProfileField(
+                                    label: 'Describe your mobility type',
+                                    controller:
+                                        controller.mobilityTypeOtherController,
+                                    enabled: controller.isEditing.value,
+                                  ),
                                 ProfileField(
-                                  label: "Fitness experience",
+                                  label: 'Fitness experience',
                                   enabled: controller.isEditing.value,
                                   isDropdown: true,
                                   selectedValue:
                                       controller.selectedFitnessExperience,
                                   dropdownItems: ProfileController
                                       .FITNESS_EXPERIENCE_LEVELS,
+                                  optionLabels: ProfileFieldOptions
+                                      .fitnessExperienceLabels,
                                 ),
                                 const SizedBox(height: 20),
                               ],
@@ -405,10 +440,14 @@ class ProfileField extends StatelessWidget {
   final bool enabled;
   final bool isMeasurement;
   final bool isDropdown;
+  final bool usePickerSheet;
   final RxString? unit;
   final List<String>? units;
   final RxString? selectedValue;
   final List<String>? dropdownItems;
+  final Map<String, String>? optionLabels;
+  final String Function(String value)? displayValueBuilder;
+  final ValueChanged<String>? onUnitChanged;
 
   const ProfileField({
     super.key,
@@ -417,11 +456,182 @@ class ProfileField extends StatelessWidget {
     this.enabled = true,
     this.isMeasurement = false,
     this.isDropdown = false,
+    this.usePickerSheet = false,
     this.unit,
     this.units,
     this.selectedValue,
     this.dropdownItems,
+    this.optionLabels,
+    this.displayValueBuilder,
+    this.onUnitChanged,
   });
+
+  String _labelFor(String value) {
+    if (optionLabels != null) {
+      return ProfileFieldOptions.labelFor(value, optionLabels!);
+    }
+    return value.replaceAll('_', ' ');
+  }
+
+  String _displayValue(String value) {
+    if (value.isEmpty) return '';
+    if (displayValueBuilder != null) {
+      return displayValueBuilder!(value);
+    }
+    return _labelFor(value);
+  }
+
+  Future<void> _openPickerSheet(BuildContext context) async {
+    if (!enabled ||
+        selectedValue == null ||
+        dropdownItems == null ||
+        dropdownItems!.isEmpty) {
+      return;
+    }
+
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1F26),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        final initialIndex = dropdownItems!.indexOf(selectedValue!.value);
+        final scrollController = ScrollController(
+          initialScrollOffset: initialIndex > 0 ? initialIndex * 48.0 : 0,
+        );
+
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Select $label',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      icon: const Icon(Icons.close, color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 280,
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: dropdownItems!.length,
+                  itemBuilder: (context, index) {
+                    final value = dropdownItems![index];
+                    final isSelected = selectedValue!.value == value;
+
+                    return ListTile(
+                      title: Text(
+                        _displayValue(value),
+                        style: TextStyle(
+                          color: isSelected
+                              ? const Color(0xFF6FA8DC)
+                              : Colors.white,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: Color(0xFF6FA8DC),
+                            )
+                          : null,
+                      onTap: () => Navigator.pop(sheetContext, value),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (picked != null) {
+      selectedValue!.value = picked;
+    }
+  }
+
+  Widget _buildDropdownSelector(BuildContext context) {
+    return Obx(() {
+      final currentValue = selectedValue!.value;
+      final hasValue = currentValue.isNotEmpty;
+
+      if (usePickerSheet) {
+        return InkWell(
+          onTap: enabled ? () => _openPickerSheet(context) : null,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  hasValue ? _displayValue(currentValue) : 'Select option',
+                  style: TextStyle(
+                    color: hasValue ? Colors.white : Colors.white54,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              if (enabled)
+                const Icon(Icons.arrow_drop_down, color: Colors.blue),
+            ],
+          ),
+        );
+      }
+
+      return DropdownButton<String>(
+        value: hasValue ? currentValue : null,
+        hint: const Text(
+          'Select option',
+          style: TextStyle(color: Colors.white54),
+        ),
+        isExpanded: true,
+        dropdownColor: const Color(0xFF1A1F26),
+        icon: enabled
+            ? const Icon(Icons.arrow_drop_down, color: Colors.blue)
+            : const SizedBox.shrink(),
+        underline: const SizedBox.shrink(),
+        onChanged: enabled
+            ? (String? newValue) {
+                if (newValue != null) {
+                  selectedValue!.value = newValue;
+                }
+              }
+            : null,
+        items: dropdownItems!.map((value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(
+              _displayValue(value),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+        }).toList(),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -431,7 +641,7 @@ class ProfileField extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: enabled ? const Color(0xFF4B7FA8) : const Color(0xFF4B7FA8),
+          color: const Color(0xFF4B7FA8),
           width: enabled ? 1.5 : 1.0,
         ),
       ),
@@ -450,57 +660,11 @@ class ProfileField extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child:
-                    isDropdown && selectedValue != null && dropdownItems != null
-                    ? Obx(
-                        () => DropdownButton<String>(
-                          value: selectedValue!.value.isEmpty
-                              ? null
-                              : selectedValue!.value,
-                          hint: const Text(
-                            "Select Option",
-                            style: TextStyle(color: Colors.white54),
-                          ),
-                          isExpanded: true,
-                          dropdownColor: const Color(0xFF1A1F26),
-                          icon: enabled
-                              ? const Icon(
-                                  Icons.arrow_drop_down,
-                                  color: Colors.blue,
-                                )
-                              : const SizedBox.shrink(),
-                          underline: const SizedBox.shrink(),
-                          onChanged: enabled
-                              ? (String? newValue) {
-                                  if (newValue != null) {
-                                    selectedValue!.value = newValue;
-                                  }
-                                }
-                              : null,
-                          items: dropdownItems!.map<DropdownMenuItem<String>>((
-                            String value,
-                          ) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(
-                                value.replaceAll("_", " ").capitalizeFirst ??
-                                    value,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      )
+                child: selectedValue != null && dropdownItems != null
+                    ? _buildDropdownSelector(context)
                     : TextFormField(
                         controller: controller,
                         readOnly: !enabled,
-                        keyboardType: isMeasurement
-                            ? TextInputType.number
-                            : null,
                         cursorColor: Colors.blue,
                         style: const TextStyle(
                           color: Colors.white,
@@ -529,11 +693,11 @@ class ProfileField extends StatelessWidget {
                     onChanged: enabled
                         ? (String? newValue) {
                             if (newValue != null) {
-                              unit!.value = newValue;
+                              onUnitChanged?.call(newValue);
                             }
                           }
                         : null,
-                    items: units!.map<DropdownMenuItem<String>>((String value) {
+                    items: units!.map((value) {
                       return DropdownMenuItem<String>(
                         value: value,
                         child: Text(

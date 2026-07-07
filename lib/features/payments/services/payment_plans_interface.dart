@@ -12,5 +12,16 @@ abstract base class PaymentPlansInterface extends BaseRepository {
 
   /// POST or GET /payments/checkout/confirm with sessionId. Syncs Stripe session and returns payment/user.
   FutureRequest<CheckoutResponse> confirmCheckout(String sessionId);
+
+  /// POST /payments/apple/verify — iOS App Store purchase verification.
+  FutureRequest<CheckoutResponse> verifyApplePurchase({
+    required String receiptData,
+    required String planKey,
+    String? productId,
+    String? transactionId,
+  });
+
+  /// POST /payments/apple/restore — restore previous App Store subscriptions.
+  FutureRequest<CheckoutResponse> restoreApplePurchase(String receiptData);
 }
 

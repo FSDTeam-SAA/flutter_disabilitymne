@@ -9,6 +9,7 @@ import 'package:disabilitymne/features/calculator/presentation/screens/search_sc
 import 'package:disabilitymne/features/calculator/services/calculator_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 enum MealScreenTab { myMeal, recent, saved }
 
@@ -304,12 +305,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _showMessage(String title, String message) {
-    Get.snackbar(
+    AppSnackbar.show(
       title,
       message,
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1B2940),
-      colorText: Colors.white,
       margin: const EdgeInsets.all(12),
     );
   }

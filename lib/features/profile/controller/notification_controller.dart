@@ -1,6 +1,7 @@
 import 'package:disabilitymne/features/profile/model/notification_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 class NotificationController extends GetxController {
   var notifications = <NotificationModel>[].obs;
@@ -21,7 +22,7 @@ class NotificationController extends GetxController {
     result.fold(
       (failure) {
         isLoading.value = false;
-        Get.snackbar("Error", failure.uiMessage);
+        AppSnackbar.show("Error", failure.uiMessage);
       },
       (success) {
         notifications.value = success.data ?? [];
@@ -35,7 +36,7 @@ class NotificationController extends GetxController {
       final item = notifications[index];
       final result = await profileInterface.markNotificationAsRead(item);
       result.fold(
-        (failure) => Get.snackbar("Error", failure.uiMessage),
+        (failure) => AppSnackbar.show("Error", failure.uiMessage),
         (success) {
           notifications[index].read = true;
           notifications.refresh();
@@ -48,7 +49,7 @@ class NotificationController extends GetxController {
     final result =
         await profileInterface.markAllNotificationsAsRead(NotificationModel());
     result.fold(
-      (failure) => Get.snackbar("Error", failure.uiMessage),
+      (failure) => AppSnackbar.show("Error", failure.uiMessage),
       (success) {
         for (var notification in notifications) {
           notification.read = true;

@@ -2,6 +2,7 @@ import 'package:disabilitymne/core/componenet/pagination/paginated_models.dart';
 import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
 import 'package:disabilitymne/features/recipies/services/interface_impl.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 class RecipeController extends GetxController {
   static const int _pageSize = 20;
@@ -122,7 +123,7 @@ class RecipeController extends GetxController {
           isRefreshing: false,
           isLoadingMore: false,
         );
-        Get.snackbar('Error', failure.uiMessage);
+        AppSnackbar.show('Error', failure.uiMessage);
       },
       (success) {
         final response = success.data;
@@ -147,7 +148,7 @@ class RecipeController extends GetxController {
 
     result.fold(
       (failure) {
-        Get.snackbar('Error', failure.uiMessage);
+        AppSnackbar.show('Error', failure.uiMessage);
       },
       (success) {
         recipeDetail.value = success.data;
@@ -168,7 +169,7 @@ class RecipeController extends GetxController {
 
     result.fold(
       (failure) {
-        Get.snackbar('Error', failure.uiMessage);
+        AppSnackbar.show('Error', failure.uiMessage);
       },
       (_) {
         final currentDetail = recipeDetail.value;

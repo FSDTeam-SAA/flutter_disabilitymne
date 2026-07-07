@@ -5,6 +5,7 @@ import 'package:disabilitymne/features/calculator/controller/calculator_controll
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
 import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
@@ -183,14 +184,14 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
       }
 
       if (!mounted) return;
-      Get.snackbar(
+      AppSnackbar.show(
         'Added',
         'Recipe added to ${_titleCase(selectedMealType)}',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (_) {
       if (!mounted) return;
-      Get.snackbar(
+      AppSnackbar.show(
         'Error',
         'Failed to add recipe to meal',
         snackPosition: SnackPosition.BOTTOM,

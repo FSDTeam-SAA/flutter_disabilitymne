@@ -1,8 +1,8 @@
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
+import 'package:disabilitymne/app/guest_ground.dart';
 import 'package:disabilitymne/features/chat/service/chat_socket_service.dart';
-import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -38,7 +38,7 @@ class AppManager extends GetxController {
     if (authStatus is UnAuthenticated) {
       _authStatus = authStatus;
       _disconnectSockets();
-      Get.offAll(() => const WelcomeScreen());
+      Get.offAll(() => GuestGround());
       update();
       return;
     }

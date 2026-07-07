@@ -1,12 +1,18 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/payments/constants/iap_product_ids.dart';
 import 'package:disabilitymne/features/payments/model/payment_plan.dart';
+import 'package:disabilitymne/features/payments/services/apple_iap_service.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
+import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen.dart';
+import 'package:disabilitymne/features/profile/presentation/terms_condition_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/features/onboarding/congratulations_screen.dart';
 import 'package:disabilitymne/features/onboarding/stripe_checkout_webview_screen.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 /// Payment package selection: Monthly, Quarterly, Annual, Premium.
 /// Shown when user taps Continue on Fitness experience screen.
@@ -21,6 +27,9 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   int _selectedIndex = 0;
   late FutureRequest<List<PaymentPlan>> _plansFuture;
   bool _checkoutLoading = false;
+  bool _restoreLoading = false;
+  AppleIapService? _appleIapService;
+  Map<String, ProductDetails> _storeProducts = {};
 
   static const Color _green = Color(0xFF34C759);
   static const Color _greenFill = Color(0xFF204A47); // 20% opacity
@@ -40,6 +49,31 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   void initState() {
     super.initState();
     _plansFuture = Get.find<PaymentPlansInterface>().fetchPlans();
+    if (AppleIapService.isSupported) {
+      _appleIapService = AppleIapService(Get.find<PaymentPlansInterface>());
+      _initializeAppleIap();
+    }
+  }
+
+  @override
+  void dispose() {
+    _appleIapService?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initializeAppleIap() async {
+    try {
+      await _appleIapService?.initialize();
+      final products = await _appleIapService?.loadProducts() ?? {};
+      if (!mounted) return;
+      setState(() {
+        _storeProducts = {
+          for (final product in products) product.id: product,
+        };
+      });
+    } catch (error) {
+      debugPrint('Apple IAP init failed: $error');
+    }
   }
 
   void _retry() {
@@ -53,13 +87,66 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     PaymentPlan selectedPlan,
     PlanItem selectedUiPlan,
   ) async {
-    if (_checkoutLoading) return;
+    if (_checkoutLoading || _restoreLoading) return;
     if (selectedPlan.price <= 0) {
       Get.to(
         () => CongratulationsScreen(planName: selectedUiPlan.title),
       );
       return;
     }
+
+    if (AppleIapService.isSupported) {
+      await _handleIosPurchase(selectedPlan, selectedUiPlan);
+      return;
+    }
+
+    await _handleStripeCheckout(selectedPlan, selectedUiPlan);
+  }
+
+  Future<void> _handleIosPurchase(
+    PaymentPlan selectedPlan,
+    PlanItem selectedUiPlan,
+  ) async {
+    final productId = IapProductIds.forPlanKey(selectedPlan.key);
+    if (productId == null) {
+      AppSnackbar.error('Error', 'Invalid subscription plan.', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    final product = _storeProducts[productId];
+    if (product == null) {
+      AppSnackbar.error(
+        'Error',
+        'This plan is not available in the App Store yet.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    setState(() => _checkoutLoading = true);
+    try {
+      await _appleIapService?.purchasePlan(
+        planKey: selectedPlan.key,
+        product: product,
+      );
+      if (!mounted) return;
+      Get.offAll(() => CongratulationsScreen(planName: selectedUiPlan.title));
+    } catch (error) {
+      if (!mounted) return;
+      AppSnackbar.error(
+        'Purchase failed',
+        error.toString().replaceFirst('Exception: ', ''),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      if (mounted) setState(() => _checkoutLoading = false);
+    }
+  }
+
+  Future<void> _handleStripeCheckout(
+    PaymentPlan selectedPlan,
+    PlanItem selectedUiPlan,
+  ) async {
     setState(() => _checkoutLoading = true);
     final paymentInterface = Get.find<PaymentPlansInterface>();
     final result = await paymentInterface.checkout(selectedPlan.key);
@@ -68,12 +155,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
     result.fold(
       (failure) {
-        Get.snackbar(
+        AppSnackbar.error(
           'Error',
           failure.uiMessage,
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.withValues(alpha: 0.8),
-          colorText: Colors.white,
         );
       },
       (checkoutResponse) {
@@ -85,7 +170,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
         }
         final url = checkoutResponse.checkoutUrl?.trim();
         if (url == null || url.isEmpty) {
-          Get.snackbar(
+          AppSnackbar.show(
             'Error',
             'No checkout URL received.',
             snackPosition: SnackPosition.BOTTOM,
@@ -110,6 +195,29 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     );
   }
 
+  Future<void> _handleRestorePurchases() async {
+    if (_checkoutLoading || _restoreLoading) return;
+    setState(() => _restoreLoading = true);
+    try {
+      await _appleIapService?.restorePurchases();
+      if (!mounted) return;
+      AppSnackbar.show(
+        'Restored',
+        'Your subscription was restored successfully.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      AppSnackbar.error(
+        'Restore failed',
+        error.toString().replaceFirst('Exception: ', ''),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      if (mounted) setState(() => _restoreLoading = false);
+    }
+  }
+
   static ({Color accent, Color fill}) _colorsForKey(String key) {
     switch (key) {
       case 'annual':
@@ -125,8 +233,11 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     }
   }
 
-  static String _formatPrice(PaymentPlan plan) {
+  static String _formatPrice(PaymentPlan plan, Map<String, ProductDetails> storeProducts) {
     if (plan.price <= 0) return '00.00\$';
+    final productId = IapProductIds.forPlanKey(plan.key);
+    final storePrice = productId != null ? storeProducts[productId]?.price : null;
+    if (storePrice != null && storePrice.isNotEmpty) return storePrice;
     return '${plan.price.toStringAsFixed(2)}\$';
   }
 
@@ -136,13 +247,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     return '';
   }
 
-  static PlanItem _toPlanItem(PaymentPlan p) {
+  PlanItem _toPlanItem(PaymentPlan p) {
     final colors = _colorsForKey(p.key);
     return PlanItem(
       id: p.key,
       title: p.name,
       description: _formatDescription(p),
-      price: _formatPrice(p),
+      price: _formatPrice(p, _storeProducts),
       accentColor: colors.accent,
       accentFill: colors.fill,
       isPremium: p.key == 'premium',
@@ -215,7 +326,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                     final selectedPlan = plans[selected];
                     final selectedUiPlan = uiPlans[selected];
                     final isFreePlan = selectedPlan.price <= 0;
-                    final buttonText = isFreePlan ? 'Continue' : 'Continue to payment';
+                    final buttonText = _checkoutLoading
+                        ? 'Loading...'
+                        : isFreePlan
+                            ? 'Continue'
+                            : AppleIapService.isSupported
+                                ? 'Subscribe'
+                                : 'Continue to payment';
 
                     return Column(
                       children: [
@@ -297,8 +414,53 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                               selectedPlan,
                               selectedUiPlan,
                             ),
-                            text: _checkoutLoading ? 'Loading...' : buttonText,
+                            text: buttonText,
                           ),
+                        ),
+                        if (AppleIapService.isSupported) ...[
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: _restoreLoading ? null : _handleRestorePurchases,
+                            child: Text(
+                              _restoreLoading ? 'Restoring...' : 'Restore Purchases',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                            child: Text(
+                              'Payment will be charged to your Apple ID. Subscription renews automatically unless canceled at least 24 hours before the end of the current period.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white.withValues(alpha: 0.6),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                              onPressed: () => Get.to(() => const TermsConditionScreen()),
+                              child: const Text(
+                                'Terms of Use',
+                                style: TextStyle(fontSize: 12, color: Colors.white70),
+                              ),
+                            ),
+                            Text(
+                              '·',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+                            ),
+                            TextButton(
+                              onPressed: () => Get.to(() => const PrivacyLegalScreen()),
+                              child: const Text(
+                                'Privacy Policy',
+                                style: TextStyle(fontSize: 12, color: Colors.white70),
+                              ),
+                            ),
+                          ],
                         ),
 
                         const SizedBox(height: 8),

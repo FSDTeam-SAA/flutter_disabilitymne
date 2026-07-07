@@ -1,5 +1,6 @@
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 // import '../../../../core/theme/text_style.dart';
 
 // class ProgramDetailScreen extends StatelessWidget {
@@ -575,7 +576,7 @@ class ProgramDetailScreen extends StatelessWidget {
                 onPressed: () {
                   final selectedWorkoutDay = controller.selectedWorkoutDay;
                   if (selectedWorkoutDay == null || selectedWorkoutDay.exercises.isEmpty) {
-                    Get.snackbar("No workout available", "Select a day with assigned exercises.");
+                    AppSnackbar.show("No workout available", "Select a day with assigned exercises.");
                     return;
                   }
 

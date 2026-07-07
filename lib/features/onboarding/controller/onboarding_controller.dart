@@ -3,6 +3,7 @@ import 'package:disabilitymne/features/auth/model/user_model.dart' show Measurem
 import 'package:disabilitymne/features/profile/model/update_profile_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 /// Contract: UI labels → API slugs for onboarding PATCH /api/v1/users/me
 class OnboardingSlugs {
@@ -139,7 +140,7 @@ class OnboardingController extends GetxController {
 
     return result.fold(
       (failure) {
-        Get.snackbar('Error', failure.uiMessage);
+        AppSnackbar.show('Error', failure.uiMessage);
         return false;
       },
       (_) {

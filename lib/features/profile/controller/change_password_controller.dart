@@ -2,6 +2,7 @@ import 'package:disabilitymne/features/profile/model/change_password_model.dart'
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 class ChangePasswordController extends GetxController {
   ChangePasswordController({required this.profileInterface});
@@ -31,10 +32,10 @@ class ChangePasswordController extends GetxController {
 
     response.fold(
       (error) {
-        Get.snackbar("Error", error.uiMessage);
+        AppSnackbar.show("Error", error.uiMessage);
       },
       (success) {
-        Get.snackbar(
+        AppSnackbar.show(
           "Success",
           success.message,
           snackPosition: SnackPosition.BOTTOM,
@@ -49,12 +50,12 @@ class ChangePasswordController extends GetxController {
     if (model.currentPassword.isEmpty ||
         model.newPassword.isEmpty ||
         model.confirmNewPassword.isEmpty) {
-      Get.snackbar("Error", "All fields are required");
+      AppSnackbar.show("Error", "All fields are required");
       return false;
     }
 
     if (model.newPassword != model.confirmNewPassword) {
-      Get.snackbar("Error", "Passwords do not match");
+      AppSnackbar.show("Error", "Passwords do not match");
       return false;
     }
 

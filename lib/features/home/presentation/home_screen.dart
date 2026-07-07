@@ -21,12 +21,16 @@ import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
 import 'package:disabilitymne/features/recipies/presentation/screen/recipies_details.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
+import 'package:disabilitymne/core/helpers/guest_auth_prompt.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 /// Home screen matching the design: header, hero card, My Programs, My Recipes, Quick Action.
 class HomeScreen extends StatefulWidget {
   final bool? isPremiumUser;
-  const HomeScreen({super.key, this.isPremiumUser});
+  final bool isGuestMode;
+
+  const HomeScreen({super.key, this.isPremiumUser, this.isGuestMode = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -76,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// When profile user is loaded, show upgrade popup when subscription ends within 6 days.
   void _listenProfileAndShowUpgradePopup() {
-    if (!Get.isRegistered<ProfileController>()) return;
+    if (widget.isGuestMode || !Get.isRegistered<ProfileController>()) return;
     final profileController = Get.find<ProfileController>();
     ever(profileController.user, (UserModel? user) {
       if (user == null || !mounted || _hasCheckedUpgradePopup) return;
@@ -102,10 +106,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleRefresh() async {
     final futures = <Future<void>>[];
 
-    if (Get.isRegistered<ProfileController>()) {
+    if (!widget.isGuestMode && Get.isRegistered<ProfileController>()) {
       futures.add(Get.find<ProfileController>().getProfile());
     }
-    if (Get.isRegistered<ProgramController>()) {
+    if (!widget.isGuestMode) {
+      if (!Get.isRegistered<ProgramController>()) {
+        Get.put(
+          ProgramController(programInterface: Get.find<ProgramInterface>()),
+        );
+      }
       futures.add(Get.find<ProgramController>().getPrograms(showLoader: false));
     }
     if (Get.isRegistered<RecipeController>()) {
@@ -154,6 +163,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAppBar() {
+    if (widget.isGuestMode) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () => Get.find<AppGroundController>().changeIndex(4),
+                child: const CircleAvatar(
+                  radius: 26,
+                  backgroundColor: _cardBlue,
+                  child: Icon(
+                    Icons.person_outline,
+                    color: Colors.white70,
+                    size: 32,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome, Guest',
+                      style: TextStyle(
+                        color: AppColors.primaryText,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      _greetingByTime(),
+                      style: TextStyle(
+                        color: AppColors.primaryText.withValues(alpha: 0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () => showGuestAuthPrompt(
+                  message: 'Sign in to view notifications and personalized updates.',
+                ),
+                child: const Icon(
+                  Icons.notifications_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final controller = Get.find<ProfileController>();
     return SliverToBoxAdapter(
       child: Padding(
@@ -378,6 +444,56 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMyProgramsSection() {
+    if (widget.isGuestMode) {
+      return SliverToBoxAdapter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'My Programs',
+                    style: TextStyle(
+                      color: AppColors.primaryText,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => showGuestAuthPrompt(
+                      message:
+                          'Sign in to browse and start fitness programs.',
+                    ),
+                    child: Text(
+                      'See all',
+                      style: TextStyle(
+                        color: _seeAllBlue,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GestureDetector(
+                onTap: () => showGuestAuthPrompt(
+                  message: 'Sign in to browse and start fitness programs.',
+                ),
+                child: _buildProgramCard(),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (!Get.isRegistered<ProgramController>()) {
       Get.put(
         ProgramController(programInterface: Get.find<ProgramInterface>()),
@@ -386,12 +502,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final programController = Get.find<ProgramController>();
 
     return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
@@ -417,77 +533,76 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Obx(() {
-              if (programController.isLoading.value) {
-                return SizedBox(
-                  height: 160,
-                  child: Center(
-                    child: CircularProgressIndicator(color: _seeAllBlue),
-                  ),
-                );
-              }
-              final list = programController.programList;
-              if (list.isEmpty) {
-                return _buildProgramCard();
-              }
-              final showList = list.take(3).toList();
+          ),
+          const SizedBox(height: 12),
+          Obx(() {
+            if (programController.isLoading.value) {
               return SizedBox(
-                height: 168,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: showList.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final program = showList[index];
-                    return SizedBox(
-                      width: 280,
-                      child: ProgramCard(
-                        title: program.programName,
-                        image: program.programThumbnail,
-                        onTap: () {
-                          Get.to(() => ProgramDetailScreen(program: program));
-                        },
-                      ),
-                    );
-                  },
+                height: ProgramCard.bannerHeight,
+                child: const Center(
+                  child: CircularProgressIndicator(color: Color(0xff6FA8DC)),
                 ),
               );
-            }),
-          ],
-        ),
+            }
+
+            final list = programController.programList;
+            if (list.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildProgramCard(),
+              );
+            }
+
+            final showList = list.take(3).toList();
+            final screenWidth = MediaQuery.sizeOf(context).width;
+            final fullCardWidth = screenWidth - 40;
+            final carouselCardWidth = showList.length == 1
+                ? fullCardWidth
+                : fullCardWidth - 16;
+
+            return SizedBox(
+              height: ProgramCard.bannerHeight,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: showList.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final program = showList[index];
+                  return SizedBox(
+                    width: carouselCardWidth,
+                    child: ProgramCard(
+                      title: program.programName,
+                      image: program.programThumbnail,
+                      onTap: () {
+                        Get.to(() => ProgramDetailScreen(program: program));
+                      },
+                    ),
+                  );
+                },
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
 
   Widget _buildProgramCard() {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: double.infinity,
+        height: ProgramCard.bannerHeight,
+        child: ColoredBox(
+          color: const Color(0xFF172435),
+          child: Image.asset(
+            'assets/image/my_programs_card.png',
+            fit: BoxFit.fitWidth,
             width: double.infinity,
-            height: 200,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0x66000000),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Image.asset(
-              'assets/image/my_programs_card.png',
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (_, _, _) => _buildProgramCardFallback(),
-            ),
+            height: ProgramCard.bannerHeight,
+            alignment: Alignment.center,
+            errorBuilder: (_, _, _) => _buildProgramCardFallback(),
           ),
         ),
       ),
@@ -497,7 +612,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildProgramCardFallback() {
     return Container(
       width: double.infinity,
-      height: 200,
+      height: ProgramCard.bannerHeight,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _cardBlue,
@@ -815,11 +930,55 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  VoidCallback? _guestOrAuthAction(VoidCallback action) {
+    if (widget.isGuestMode) {
+      return () => showGuestAuthPrompt();
+    }
+    return action;
+  }
+
   Widget _buildQuickActionSection() {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Obx(() {
+        child: widget.isGuestMode
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Quick Action',
+                    style: TextStyle(
+                      color: AppColors.primaryText,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildQuickActionCard(
+                          imagePath: 'assets/image/quick_action_progress.png',
+                          label: 'Progress',
+                          fallbackIcon: Icons.show_chart_rounded,
+                          onTap: _guestOrAuthAction(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildQuickActionCard(
+                          imagePath:
+                              'assets/image/quick_action_daily_tracker.png',
+                          label: 'Daily Tracker',
+                          fallbackIcon: Icons.checklist_rounded,
+                          onTap: _guestOrAuthAction(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : Obx(() {
           final user = Get.find<ProfileController>().user.value;
           final showChat = user?.selectedPlan == 'premium';
           return Column(
@@ -875,7 +1034,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final result = await repo.createOrGetThread();
           result.fold(
             (failure) {
-              Get.snackbar(
+              AppSnackbar.show(
                 'Chat',
                 failure.uiMessage,
                 snackPosition: SnackPosition.BOTTOM,

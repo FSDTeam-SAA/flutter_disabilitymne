@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/otp_input.dart';
 import 'package:disabilitymne/features/auth/controller/verify_otp_controller.dart';
@@ -80,7 +81,7 @@ class OtpVerifyScreen extends StatelessWidget {
                     GestureDetector(
                       onTap: () {
                         // Currently do nothing
-                        Get.snackbar('Info', 'Resend OTP not implemented yet.');
+                        AppSnackbar.show('Info', 'Resend OTP not implemented yet.');
                       },
                       child: const Text(
                         'RESEND OTP',

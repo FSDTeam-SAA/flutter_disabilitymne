@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/features/programs/controller/workout_session_controller.dart';
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
@@ -43,18 +44,18 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
     if (isSubmitting) return;
 
     if (widget.program.id == null || widget.program.id!.isEmpty) {
-      Get.snackbar("Error", "Program id is missing. Please try again.");
+      AppSnackbar.show("Error", "Program id is missing. Please try again.");
       return;
     }
 
     if (!Get.isRegistered<WorkoutSessionController>(tag: widget.sessionTag)) {
-      Get.snackbar("Error", "Workout session data was not found.");
+      AppSnackbar.show("Error", "Workout session data was not found.");
       return;
     }
 
     final sessionController = Get.find<WorkoutSessionController>(tag: widget.sessionTag);
     if (!sessionController.isDayComplete) {
-      Get.snackbar(
+      AppSnackbar.show(
         "Workout incomplete",
         "Complete all assigned exercises before submitting this day.",
       );
@@ -63,7 +64,7 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
 
     final exercisesPayload = sessionController.buildExercisePayload();
     if (exercisesPayload.isEmpty) {
-      Get.snackbar("Workout incomplete", "No completed exercises found for this session.");
+      AppSnackbar.show("Workout incomplete", "No completed exercises found for this session.");
       return;
     }
 
@@ -95,14 +96,14 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
         setState(() {
           isSubmitting = false;
         });
-        Get.snackbar("Error", error.uiMessage);
+        AppSnackbar.show("Error", error.uiMessage);
       },
       (success) {
         if (!mounted) return;
         setState(() {
           isSubmitting = false;
         });
-        Get.snackbar("Success", success.message);
+        AppSnackbar.show("Success", success.message);
 
         if (Get.isRegistered<WorkoutSessionController>(tag: widget.sessionTag)) {
           Get.delete<WorkoutSessionController>(tag: widget.sessionTag, force: true);

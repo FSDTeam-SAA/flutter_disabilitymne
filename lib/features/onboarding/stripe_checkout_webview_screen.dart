@@ -1,6 +1,7 @@
 import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 /// Stripe Checkout in a WebView. Detects success/cancel redirects and calls confirm API.
@@ -66,8 +67,8 @@ class _StripeCheckoutWebViewScreenState
     if (!mounted) return;
     result.fold(
       (failure) {
-        Get.snackbar('Error', failure.uiMessage);
-        widget.onSuccess();
+        AppSnackbar.show('Error', failure.uiMessage);
+        widget.onCancel();
       },
       (_) => widget.onSuccess(),
     );

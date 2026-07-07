@@ -1,5 +1,6 @@
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 // import 'package:disabilitymne/features/auth/model/verify_otp_model.dart';
 // import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 
@@ -14,7 +15,7 @@
 
 //   Future<void> verifyOtp(VoidCallback onSuccess) async {
 //     if (otp.value.length != 6) {
-//       Get.snackbar("Error", "Enter a valid 6-digit OTP",
+//       AppSnackbar.show("Error", "Enter a valid 6-digit OTP",
 //           snackPosition: SnackPosition.BOTTOM);
 //       return;
 //     }
@@ -28,17 +29,17 @@
 
 //       result.fold(
 //         (failure) {
-//           Get.snackbar("Error", failure.uiMessage,
+//           AppSnackbar.show("Error", failure.uiMessage,
 //               snackPosition: SnackPosition.BOTTOM);
 //         },
 //         (success) {
-//           Get.snackbar("Success", success.message,
+//           AppSnackbar.show("Success", success.message,
 //               snackPosition: SnackPosition.BOTTOM);
 //           onSuccess();
 //         },
 //       );
 //     } catch (e) {
-//       Get.snackbar("Error", e.toString(),
+//       AppSnackbar.show("Error", e.toString(),
 //           snackPosition: SnackPosition.BOTTOM);
 //     } finally {
 //       isLoading.value = false;
@@ -63,7 +64,7 @@ class VerifyOtpController extends GetxController {
   /// Verify OTP
   Future<void> verifyOtp() async {
     if (otp.value.length != 6) {
-      Get.snackbar(
+      AppSnackbar.show(
         "Error",
         "Enter a valid 6-digit OTP",
         snackPosition: SnackPosition.BOTTOM,
@@ -79,13 +80,13 @@ class VerifyOtpController extends GetxController {
       final result = await authInterface.verifyOtp(model);
 
       result.fold(
-        (failure) => Get.snackbar(
+        (failure) => AppSnackbar.show(
           "Error",
           failure.uiMessage,
           snackPosition: SnackPosition.BOTTOM,
         ),
         (success) {
-          Get.snackbar(
+          AppSnackbar.show(
             "Success",
             success.message,
             snackPosition: SnackPosition.BOTTOM,
@@ -96,7 +97,7 @@ class VerifyOtpController extends GetxController {
         },
       );
     } catch (e) {
-      Get.snackbar("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.show("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }

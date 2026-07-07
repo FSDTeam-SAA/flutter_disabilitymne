@@ -190,6 +190,10 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     }
   }
 
+  void _dismissKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final exercises = widget.dayExercises;
@@ -197,288 +201,352 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         ? exercises[currentExerciseIndex]
         : null;
     final totalExercises = exercises.length;
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboardVisible = bottomInset > 0;
 
     return Scaffold(
       backgroundColor: const Color(0xff0F1C2E),
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Column(
-            children: [
-              /// TOP BAR
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Column(
                 children: [
+                  /// TOP BAR
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(
-                          Icons.arrow_back_ios,
-                          color: Colors.white,
-                          size: 18,
-                        ),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              _dismissKeyboard();
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(
+                              Icons.arrow_back_ios,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'Back',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      const Text("Back", style: TextStyle(color: Colors.white)),
+                      Text(
+                        'Exercise ${currentExerciseIndex + 1} of $totalExercises',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
                     ],
                   ),
-                  Text(
-                    "Exercise ${currentExerciseIndex + 1} of $totalExercises",
-                    style: const TextStyle(color: Colors.white70),
+
+                  const SizedBox(height: 15),
+
+                  /// PROGRESS BAR
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: LinearProgressIndicator(
+                      value: totalExercises > 0
+                          ? (currentExerciseIndex + 1) / totalExercises
+                          : 0,
+                      minHeight: 6,
+                      backgroundColor: Colors.white24,
+                      color: Colors.lightBlueAccent,
+                    ),
                   ),
                 ],
               ),
+            ),
 
-              const SizedBox(height: 15),
+            const SizedBox(height: 16),
 
-              /// PROGRESS BAR
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: LinearProgressIndicator(
-                  value: totalExercises > 0
-                      ? (currentExerciseIndex + 1) / totalExercises
-                      : 0,
-                  minHeight: 6,
-                  backgroundColor: Colors.white24,
-                  color: Colors.lightBlueAccent,
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              /// VIDEO CARD
-              Container(
-                height: 200,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.black,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child:
-                    _chewieController != null &&
-                        _chewieController!
-                            .videoPlayerController
-                            .value
-                            .isInitialized
-                    ? Chewie(controller: _chewieController!)
-                    : Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          if (currentExercise?.image != null &&
-                              currentExercise!.image.isNotEmpty)
-                            Image.network(
-                              currentExercise.image,
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                            )
-                          else
-                            Image.asset(
-                              "assets/images/exercise.jpg",
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                          if (_isVideoLoading)
-                            const CircularProgressIndicator(color: Colors.white)
-                          else
-                            const CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.white70,
-                              child: Icon(
-                                Icons.play_arrow,
-                                size: 35,
-                                color: Colors.black87,
-                              ),
-                            ),
-                        ],
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Column(
+                  children: [
+                    /// VIDEO CARD
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      height: keyboardVisible ? 130 : 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.black,
                       ),
-              ),
-
-              const SizedBox(height: 10),
-
-              if (currentExercise != null)
-                Text(
-                  currentExercise.exerciseName,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-              const SizedBox(height: 10),
-
-              /// SET CARD
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: const Color(0xFF263D57),
-                  ),
-                  child: Obx(() {
-                    if (controller.isLoading.value) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
-                    }
-                    return Column(
-                      children: [
-                        /// SAVE BUTTON
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: GestureDetector(
-                            onTap: controller.isSaving.value
-                                ? null
-                                : controller.updateExerciseSettings,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF4B7FA8),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: const Color(0xFF70AACD),
-                                ),
-                              ),
-                              child: controller.isSaving.value
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      "Save",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child:
+                          _chewieController != null &&
+                              _chewieController!
+                                  .videoPlayerController
+                                  .value
+                                  .isInitialized
+                          ? Chewie(controller: _chewieController!)
+                          : Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                if (currentExercise?.image != null &&
+                                    currentExercise!.image.isNotEmpty)
+                                  Image.network(
+                                    currentExercise.image,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )
+                                else
+                                  Image.asset(
+                                    'assets/images/exercise.jpg',
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                if (_isVideoLoading)
+                                  const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                else
+                                  const CircleAvatar(
+                                    radius: 30,
+                                    backgroundColor: Colors.white70,
+                                    child: Icon(
+                                      Icons.play_arrow,
+                                      size: 35,
+                                      color: Colors.black87,
                                     ),
+                                  ),
+                              ],
                             ),
-                          ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    if (currentExercise != null)
+                      Text(
+                        currentExercise.exerciseName,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
 
-                        const SizedBox(height: 10),
+                    const SizedBox(height: 12),
 
-                        /// SET LIST
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: controller.setControllers.length,
-                            itemBuilder: (context, index) {
-                              final controllers =
-                                  controller.setControllers[index];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    /// SET TITLE
-                                    Text(
-                                      "Set ${index + 1}",
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                    /// SET CARD
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: const Color(0xFF263D57),
+                      ),
+                      child: Obx(() {
+                        if (controller.isLoading.value) {
+                          return const SizedBox(
+                            height: 180,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            ),
+                          );
+                        }
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: GestureDetector(
+                                onTap: controller.isSaving.value
+                                    ? null
+                                    : () {
+                                        _dismissKeyboard();
+                                        controller.updateExerciseSettings();
+                                      },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF4B7FA8),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: const Color(0xFF70AACD),
                                     ),
-                                    const SizedBox(width: 20),
+                                  ),
+                                  child: controller.isSaving.value
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Save',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
 
-                                    /// KG FIELD
-                                    SizedBox(
-                                      width: 90,
-                                      child: TextField(
-                                        controller: controllers["kg"],
-                                        keyboardType: TextInputType.number,
+                            const SizedBox(height: 10),
+
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: controller.setControllers.length,
+                              itemBuilder: (context, index) {
+                                final controllers =
+                                    controller.setControllers[index];
+                                final isLastSet =
+                                    index == controller.setControllers.length - 1;
+
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Set ${index + 1}',
                                         style: const TextStyle(
                                           color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        decoration: inputDecoration("kg"),
                                       ),
-                                    ),
-
-                                    const SizedBox(width: 10),
-
-                                    /// REPS FIELD
-                                    SizedBox(
-                                      width: 90,
-                                      child: TextField(
-                                        controller: controllers["reps"],
-                                        keyboardType: TextInputType.number,
-                                        style: const TextStyle(
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: controllers['kg'],
+                                          keyboardType:
+                                              const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
+                                          textInputAction: isLastSet
+                                              ? TextInputAction.done
+                                              : TextInputAction.next,
+                                          scrollPadding: const EdgeInsets.only(
+                                            bottom: 160,
+                                          ),
+                                          onSubmitted: (_) {
+                                            if (isLastSet) {
+                                              _dismissKeyboard();
+                                            }
+                                          },
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                          decoration: inputDecoration('kg'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: controllers['reps'],
+                                          keyboardType: TextInputType.number,
+                                          textInputAction: isLastSet
+                                              ? TextInputAction.done
+                                              : TextInputAction.next,
+                                          scrollPadding: const EdgeInsets.only(
+                                            bottom: 160,
+                                          ),
+                                          onSubmitted: (_) => _dismissKeyboard(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                          decoration: inputDecoration('reps'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      GestureDetector(
+                                        onTap: () {
+                                          _dismissKeyboard();
+                                          controller.removeSet(index);
+                                        },
+                                        child: const Icon(
+                                          Icons.cancel_outlined,
                                           color: Colors.white,
+                                          size: 28,
                                         ),
-                                        decoration: inputDecoration("reps"),
                                       ),
-                                    ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
 
-                                    const SizedBox(width: 12),
+                            const SizedBox(height: 10),
 
-                                    /// DELETE BUTTON
-                                    GestureDetector(
-                                      onTap: () => controller.removeSet(index),
-                                      child: const Icon(
-                                        Icons.cancel_outlined,
-                                        color: Colors.white,
-                                        size: 28,
-                                      ),
-                                    ),
-                                  ],
+                            OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 51),
+                                side: const BorderSide(
+                                  color: Color(0xFF70AACD),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        /// ADD SET BUTTON
-                        OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 51),
-                            side: const BorderSide(color: Color(0xFF70AACD)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () {
+                                _dismissKeyboard();
+                                controller.addSet();
+                              },
+                              child: const Text(
+                                'Add New Set',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
-                          ),
-                          onPressed: controller.addSet,
-                          child: const Text(
-                            "Add New Set",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
+                          ],
+                        );
+                      }),
+                    ),
+
+                    const SizedBox(height: 16),
+                  ],
                 ),
               ),
+            ),
 
-              const SizedBox(height: 16),
+            if (keyboardVisible)
+              _KeyboardDismissBar(onDismiss: _dismissKeyboard),
 
-              /// NEXT BUTTON
-              SizedBox(
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                18,
+                keyboardVisible ? 4 : 0,
+                18,
+                keyboardVisible ? 8 : 10,
+              ),
+              child: SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: nextExercise,
+                  onPressed: () {
+                    _dismissKeyboard();
+                    nextExercise();
+                  },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
@@ -498,8 +566,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                       alignment: Alignment.center,
                       child: Text(
                         currentExerciseIndex < totalExercises - 1
-                            ? "Next Exercise"
-                            : "Continue",
+                            ? 'Next Exercise'
+                            : 'Continue',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -510,10 +578,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                   ),
                 ),
               ),
-
-              const SizedBox(height: 10),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -525,7 +591,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       hintStyle: const TextStyle(color: Colors.white54),
       filled: true,
       fillColor: const Color(0xff1E334B),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      isDense: true,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
         borderSide: const BorderSide(color: Color(0xFF1A263D)),
@@ -536,7 +603,52 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: const BorderSide(color: Color(0xFF1A263D)),
+        borderSide: const BorderSide(color: Color(0xFF70AACD)),
+      ),
+    );
+  }
+}
+
+class _KeyboardDismissBar extends StatelessWidget {
+  final VoidCallback onDismiss;
+
+  const _KeyboardDismissBar({required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFF1E334B),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(color: Color(0xFF70AACD)),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.keyboard_hide, color: Colors.white54, size: 18),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'Editing set values',
+                style: TextStyle(color: Colors.white54, fontSize: 13),
+              ),
+            ),
+            TextButton(
+              onPressed: onDismiss,
+              child: const Text(
+                'Done',
+                style: TextStyle(
+                  color: Color(0xFF8AC5E5),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

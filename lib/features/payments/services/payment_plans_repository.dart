@@ -57,5 +57,48 @@ base class PaymentPlansRepository extends PaymentPlansInterface {
       },
     );
   }
+
+  @override
+  FutureRequest<CheckoutResponse> verifyApplePurchase({
+    required String receiptData,
+    required String planKey,
+    String? productId,
+    String? transactionId,
+  }) async {
+    return asyncTryCatch(
+      tryFunc: () async {
+        final response = await _pigeon.post(
+          ApiEndpoints.paymentAppleVerify,
+          data: {
+            'receiptData': receiptData,
+            'planKey': planKey,
+            if (productId != null && productId.isNotEmpty) 'productId': productId,
+            if (transactionId != null && transactionId.isNotEmpty)
+              'transactionId': transactionId,
+          },
+        );
+        final body = response.data as Map<String, dynamic>?;
+        if (body == null) throw Exception('Invalid Apple verify response');
+        final data = body['data'] as Map<String, dynamic>? ?? body;
+        return CheckoutResponse.fromJson(data);
+      },
+    );
+  }
+
+  @override
+  FutureRequest<CheckoutResponse> restoreApplePurchase(String receiptData) async {
+    return asyncTryCatch(
+      tryFunc: () async {
+        final response = await _pigeon.post(
+          ApiEndpoints.paymentAppleRestore,
+          data: {'receiptData': receiptData},
+        );
+        final body = response.data as Map<String, dynamic>?;
+        if (body == null) throw Exception('Invalid Apple restore response');
+        final data = body['data'] as Map<String, dynamic>? ?? body;
+        return CheckoutResponse.fromJson(data);
+      },
+    );
+  }
 }
 

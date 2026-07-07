@@ -146,4 +146,22 @@ final class AuthInterfaceImpl extends AuthInterface {
       },
     );
   }
+
+  @override
+  FutureRequest<Success> deleteAccount() async {
+    return asyncTryCatch(
+      tryFunc: () async {
+        final response = await appPigeon.delete(ApiEndpoints.deleteAccount);
+        appPigeon.disconnectSocket();
+        await appPigeon.logOut();
+        if (Get.isRegistered<AccessTokenHolder>()) {
+          Get.find<AccessTokenHolder>().clear();
+        }
+        if (Get.isRegistered<OnboardingStateHolder>()) {
+          Get.find<OnboardingStateHolder>().clear();
+        }
+        return Success(message: extractSuccessMessage(response));
+      },
+    );
+  }
 }

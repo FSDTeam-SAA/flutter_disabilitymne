@@ -1,9 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:disabilitymne/features/programs/controller/explore_program%20controller.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/program_detail_screen.dart';
+import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import 'package:disabilitymne/features/programs/services/program_interface.dart';
 
 class ExploreWidget extends StatelessWidget {
   ExploreWidget({super.key});
@@ -75,6 +75,7 @@ class ExploreWidget extends StatelessWidget {
                 child: ProgramCard(
                   title: program.programName,
                   image: program.programThumbnail,
+                  imageFit: BoxFit.contain,
                   onTap: () {
                     Get.to(() => ProgramDetailScreen(program: program));
                   },
@@ -89,73 +90,69 @@ class ExploreWidget extends StatelessWidget {
 }
 
 class ProgramCard extends StatelessWidget {
+  static const double bannerHeight = 200;
+  static const double bannerAspectRatio = 2.0;
+  static double get horizontalBannerWidth => bannerHeight * bannerAspectRatio;
+
   final String? title;
   final String? image;
   final VoidCallback? onTap;
+  final BoxFit imageFit;
 
-  const ProgramCard({super.key, this.title, this.image, this.onTap});
+  const ProgramCard({
+    super.key,
+    this.title,
+    this.image,
+    this.onTap,
+    this.imageFit = BoxFit.fitWidth,
+  });
+
+  Widget _buildPlaceholder() {
+    return Container(
+      height: bannerHeight,
+      width: double.infinity,
+      color: const Color(0xFF172435),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.image_not_supported,
+        color: Colors.white54,
+        size: 50,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        height: 160,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.white12,
-        ),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: image == null || image!.isEmpty
-                    ? const Center(
-                        child: Icon(
-                          Icons.image_not_supported,
-                          color: Colors.white54,
-                          size: 50,
-                        ),
-                      )
-                    : Image.network(
-                        image!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Center(
-                              child: Icon(
-                                Icons.image_not_supported,
-                                color: Colors.white54,
-                                size: 50,
-                              ),
-                            ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: bannerHeight,
+          width: double.infinity,
+          child: image == null || image!.isEmpty
+              ? _buildPlaceholder()
+              : ColoredBox(
+                  color: const Color(0xFF172435),
+                  child: CachedNetworkImage(
+                    imageUrl: image!,
+                    width: double.infinity,
+                    height: bannerHeight,
+                    fit: imageFit,
+                    alignment: Alignment.center,
+                    placeholder: (_, _) => Container(
+                      height: bannerHeight,
+                      width: double.infinity,
+                      color: const Color(0xFF172435),
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(
+                        color: Color(0xff6FA8DC),
+                        strokeWidth: 2,
                       ),
-              ),
-            ),
-            // Container(
-            //   decoration: BoxDecoration(
-            //     borderRadius: BorderRadius.circular(16),
-            //     gradient: LinearGradient(
-            //       colors: [
-            //         Colors.black.withValues(alpha:0.2),
-            //         Colors.black.withValues(alpha:0.8),
-            //       ],
-            //       begin: Alignment.topCenter,
-            //       end: Alignment.bottomCenter,
-            //     ),
-            //   ),
-            //   // padding: const EdgeInsets.all(20),
-            //   // alignment: Alignment.bottomLeft,
-            //   // child: Text(
-            //   //   title ?? "",
-            //   //   style: const TextStyle(
-            //   //     color: Colors.white,
-            //   //     fontSize: 14,
-            //   //     fontWeight: FontWeight.bold,
-            //   //   ),
-            //   // ),
-            // ),
-          ],
+                    ),
+                    errorWidget: (_, _, _) => _buildPlaceholder(),
+                  ),
+                ),
         ),
       ),
     );

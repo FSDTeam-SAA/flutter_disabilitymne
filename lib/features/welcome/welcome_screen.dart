@@ -1,4 +1,5 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
+import 'package:disabilitymne/app/guest_ground.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
@@ -44,6 +45,20 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _SignInButton(
                 onPressed: () => Get.to(() => const SignInScreen()),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Get.offAll(() => GuestGround()),
+                child: Text(
+                  'Continue as Guest',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.85),
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
               ),
               SizedBox(height: MediaQuery.of(context).padding.bottom + 32),
             ],

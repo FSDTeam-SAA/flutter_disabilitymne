@@ -146,7 +146,7 @@
 //       child: ElevatedButton(
 //         onPressed: () {
 //           // Handle submission logic
-//           Get.snackbar(
+//           AppSnackbar.show(
 //             "Success",
 //             "Your report has been submitted.",
 //             snackPosition: SnackPosition.BOTTOM,

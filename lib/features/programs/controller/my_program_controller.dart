@@ -1,6 +1,7 @@
 import 'package:disabilitymne/features/programs/model/explore_program_model.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 class MyProgramController extends GetxController {
   static const int _pageSize = 20;
@@ -39,7 +40,7 @@ class MyProgramController extends GetxController {
     response.fold(
       (error) {
         isLoading.value = false;
-        Get.snackbar("Error", error.uiMessage);
+        AppSnackbar.show("Error", error.uiMessage);
       },
       (success) {
         final pageData = success.data;
@@ -67,7 +68,7 @@ class MyProgramController extends GetxController {
     response.fold(
       (error) {
         isLoadingMore.value = false;
-        Get.snackbar("Error", error.uiMessage);
+        AppSnackbar.show("Error", error.uiMessage);
       },
       (success) {
         final pageData = success.data;

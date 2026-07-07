@@ -3,6 +3,7 @@ import 'package:disabilitymne/features/auth/controller/signin_controller.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
 import 'package:disabilitymne/features/welcome/welcome_screen.dart';
@@ -185,7 +186,7 @@ SizedBox(),
                                     // Navigation is handled by AppManager when auth stream emits Authenticated
                                   },
                                   needVerifyAccount: () {
-                                    Get.snackbar(
+                                    AppSnackbar.show(
                                       "Verify Account",
                                       "Please verify your account first",
                                     );

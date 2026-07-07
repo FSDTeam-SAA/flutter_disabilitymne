@@ -6,12 +6,23 @@ import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
 import 'package:disabilitymne/features/recipies/services/recipes_interface.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 final class RecipesInterfaceImpl extends RecipesInterface {
   RecipesInterfaceImpl({required this.appPigeon});
   final AppPigeon appPigeon;
 
+  Future<bool> _isAuthenticated() async {
+    try {
+      final auth = await Get.find<AuthorizedPigeon>().getCurrentAuthRecord();
+      return auth != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Uri _buildRecipesUri({
+    required String listEndpoint,
     required int page,
     required int limit,
     String? recipeType,
@@ -26,9 +37,7 @@ final class RecipesInterfaceImpl extends RecipesInterface {
       queryParameters['recipeType'] = normalizedRecipeType;
     }
 
-    return Uri.parse(
-      ApiEndpoints.getAllRecipies,
-    ).replace(queryParameters: queryParameters);
+    return Uri.parse(listEndpoint).replace(queryParameters: queryParameters);
   }
 
   @override
@@ -39,8 +48,14 @@ final class RecipesInterfaceImpl extends RecipesInterface {
   }) async {
     return await asyncTryCatch(
       tryFunc: () async {
+        final isAuthenticated = await _isAuthenticated();
+        final listEndpoint = isAuthenticated
+            ? ApiEndpoints.getAllRecipies
+            : ApiEndpoints.getPublicRecipies;
+
         final response = await appPigeon.get(
           _buildRecipesUri(
+            listEndpoint: listEndpoint,
             page: page,
             limit: limit,
             recipeType: recipeType,
@@ -67,7 +82,12 @@ final class RecipesInterfaceImpl extends RecipesInterface {
   FutureRequest<Success<RecipeModel>> getRecipeDetail(String id) async {
     return await asyncTryCatch(
       tryFunc: () async {
-        final response = await appPigeon.get(ApiEndpoints.getRecipeDetail(id));
+        final isAuthenticated = await _isAuthenticated();
+        final endpoint = isAuthenticated
+            ? ApiEndpoints.getRecipeDetail(id)
+            : ApiEndpoints.getPublicRecipeDetail(id);
+
+        final response = await appPigeon.get(endpoint);
         debugPrint('GET RECIPE DETAIL RESPONSE => ${response.data}');
         final recipe = RecipeModel.fromJson(response.data['data']);
         return Success(data: recipe, message: extractSuccessMessage(response));

@@ -3,6 +3,7 @@ import 'package:disabilitymne/features/programs/model/library_model.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 
@@ -71,7 +72,7 @@ class ExerciseDetailController extends GetxController {
       isVideoInitialized.value = true;
       isPlayingVideo.value = true;
     } catch (e) {
-      Get.snackbar("Error", "Could not load video: $e");
+      AppSnackbar.show("Error", "Could not load video: $e");
     } finally {
       isLoading.value = false;
     }
@@ -85,7 +86,7 @@ class ExerciseDetailController extends GetxController {
     if (videoUrl.isNotEmpty) {
       initializeVideoPlayer(videoUrl);
     } else {
-      Get.snackbar("Error", "No video URL available");
+      AppSnackbar.show("Error", "No video URL available");
     }
   }
 
@@ -99,7 +100,7 @@ class ExerciseDetailController extends GetxController {
     response.fold(
       (error) {
         isLoading.value = false;
-        Get.snackbar("Error", error.uiMessage);
+        AppSnackbar.show("Error", error.uiMessage);
       },
       (success) {
         exercise.value = success.data;

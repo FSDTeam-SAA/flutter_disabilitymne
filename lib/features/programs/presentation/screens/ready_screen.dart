@@ -7,8 +7,9 @@ import 'package:disabilitymne/features/programs/presentation/screens/exercise_sc
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
-class ReadyStartScreen extends StatelessWidget {
+class ReadyStartScreen extends StatefulWidget {
   final ProgramModel program;
   final int dayIndex;
   final String dayLabel;
@@ -22,24 +23,31 @@ class ReadyStartScreen extends StatelessWidget {
     required this.dayExercises,
   });
 
+  @override
+  State<ReadyStartScreen> createState() => _ReadyStartScreenState();
+}
+
+class _ReadyStartScreenState extends State<ReadyStartScreen> {
+  bool _isStarting = false;
+
   String get _sessionTag {
-    final rawId = program.id ?? '';
+    final rawId = widget.program.id ?? '';
     final id = rawId.isNotEmpty ? rawId : 'program';
-    return 'workout-session-$id-$dayIndex';
+    return 'workout-session-$id-${widget.dayIndex}';
   }
 
   Future<void> _startProgramTracking() async {
-    if (program.id == null || program.id!.isEmpty) {
+    if (widget.program.id == null || widget.program.id!.isEmpty) {
       return;
     }
 
     final response = await Get.find<ProgramInterface>().startProgram(
-      ProgramModel(id: program.id),
+      ProgramModel(id: widget.program.id),
     );
 
     response.fold(
       (error) {
-        Get.snackbar("Error", error.uiMessage);
+        AppSnackbar.show('Error', error.uiMessage);
       },
       (_) {
         if (Get.isRegistered<MyProgramController>()) {
@@ -49,8 +57,8 @@ class ReadyStartScreen extends StatelessWidget {
     );
   }
 
-  void _goToWorkout() {
-    if (dayExercises.isEmpty) {
+  Future<void> _goToWorkout() async {
+    if (widget.dayExercises.isEmpty) {
       return;
     }
 
@@ -59,38 +67,82 @@ class ReadyStartScreen extends StatelessWidget {
     }
     Get.put(
       WorkoutSessionController(
-        program: program,
-        dayIndex: dayIndex,
-        dayLabel: dayLabel,
-        dayExercises: dayExercises,
+        program: widget.program,
+        dayIndex: widget.dayIndex,
+        dayLabel: widget.dayLabel,
+        dayExercises: widget.dayExercises,
       ),
       tag: _sessionTag,
     );
 
-    if (dayExercises.first.executionMode == 'countdown') {
-      Get.to(
+    if (mounted) {
+      setState(() => _isStarting = false);
+    }
+
+    if (widget.dayExercises.first.executionMode == 'countdown') {
+      await Get.to(
         () => ExerciseWorkoutScreen(
-          program: program,
-          dayIndex: dayIndex,
-          dayLabel: dayLabel,
-          dayExercises: dayExercises,
+          program: widget.program,
+          dayIndex: widget.dayIndex,
+          dayLabel: widget.dayLabel,
+          dayExercises: widget.dayExercises,
           sessionTag: _sessionTag,
           initialIndex: 0,
         ),
+        preventDuplicates: false,
+      );
+    } else {
+      await Get.to(
+        () => ExerciseScreen(
+          program: widget.program,
+          dayIndex: widget.dayIndex,
+          dayLabel: widget.dayLabel,
+          dayExercises: widget.dayExercises,
+          sessionTag: _sessionTag,
+          initialIndex: 0,
+        ),
+        preventDuplicates: false,
+      );
+    }
+
+    if (mounted) {
+      setState(() => _isStarting = false);
+    }
+  }
+
+  Future<void> _handleReady() async {
+    if (_isStarting) return;
+
+    if (widget.dayExercises.isEmpty) {
+      AppSnackbar.show(
+        'No workout available',
+        'No exercises are assigned for this day.',
       );
       return;
     }
 
-    Get.to(
-      () => ExerciseScreen(
-        program: program,
-        dayIndex: dayIndex,
-        dayLabel: dayLabel,
-        dayExercises: dayExercises,
-        sessionTag: _sessionTag,
-        initialIndex: 0,
-      ),
-    );
+    setState(() => _isStarting = true);
+
+    try {
+      await _startProgramTracking();
+
+      if (!mounted) return;
+
+      if (widget.dayExercises.isEmpty) {
+        setState(() => _isStarting = false);
+        AppSnackbar.show(
+          'No workout available',
+          'No exercises are assigned for this day.',
+        );
+        return;
+      }
+
+      await _goToWorkout();
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isStarting = false);
+      }
+    }
   }
 
   @override
@@ -139,25 +191,27 @@ class ReadyStartScreen extends StatelessWidget {
                       InfoRow(
                         icon: Icons.check_circle,
                         color: Colors.green,
-                        text: "${dayExercises.length} Exercise",
+                        text: '${widget.dayExercises.length} Exercise',
                       ),
                       const SizedBox(height: 12),
                       InfoRow(
                         icon: Icons.access_time,
                         color: Colors.blue,
-                        text: "${program.durationMinutes ?? 0} Minute",
+                        text: '${widget.program.durationMinutes ?? 0} Minute',
                       ),
                       const SizedBox(height: 12),
                       InfoRow(
                         icon: Icons.calendar_month,
                         color: Colors.blueAccent,
-                        text: dayLabel.isNotEmpty ? dayLabel : "Day $dayIndex",
+                        text: widget.dayLabel.isNotEmpty
+                            ? widget.dayLabel
+                            : 'Day ${widget.dayIndex}',
                       ),
                       const SizedBox(height: 12),
                       InfoRow(
                         icon: Icons.error,
                         color: Colors.red,
-                        text: program.safetyNote ?? "Stop if pain occurs",
+                        text: widget.program.safetyNote ?? 'Stop if pain occurs',
                       ),
                     ],
                   ),
@@ -173,26 +227,31 @@ class ReadyStartScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff8FD3FF),
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: const Color(
+                        0xff8FD3FF,
+                      ).withValues(alpha: 0.7),
+                      disabledForegroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () async {
-                      await _startProgramTracking();
-                      if (dayExercises.isEmpty) {
-                        Get.snackbar("No workout available", "No exercises are assigned for this day.");
-                        return;
-                      }
-
-                      _goToWorkout();
-                    },
-                    child: const Text(
-                      "I'm Ready",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    onPressed: _isStarting ? null : _handleReady,
+                    child: _isStarting
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            "I'm Ready",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ),
 
@@ -209,9 +268,7 @@ class ReadyStartScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: _isStarting ? null : () => Navigator.pop(context),
                     child: const Text(
                       "Back to Programs",
                       style: TextStyle(color: Colors.white, fontSize: 15),

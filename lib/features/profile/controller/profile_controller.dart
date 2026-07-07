@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:disabilitymne/features/auth/model/user_model.dart';
+import 'package:disabilitymne/features/profile/constants/profile_field_options.dart';
 import 'package:disabilitymne/features/profile/model/update_profile_model.dart';
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileController extends GetxController {
@@ -12,54 +14,36 @@ class ProfileController extends GetxController {
 
   final ProfileInterface profileInterface;
 
-  static const List<String> WEIGHT_UNITS = ["kg", "lbs"];
-  static const List<String> HEIGHT_UNITS = ["cm", "ft"];
-  static const List<String> FITNESS_GOALS = [
-    "build_muscle",
-    "lose_weight",
-    "manage_weight",
-    "boost_energy",
-    "flexibility",
-    "general_wellness",
-  ];
-  static const List<String> MOBILITY_TYPES = [
-    "wheelchair_user",
-    "limited_mobility",
-    "amputee_leg",
-    "amputee_arm",
-    "neurological_condition",
-    "chronic_pain",
-    "visual_impairment",
-    "other",
-  ];
-  static const List<String> FITNESS_EXPERIENCE_LEVELS = [
-    "beginner",
-    "intermediate",
-    "advanced",
-  ];
+  static const List<String> WEIGHT_UNITS = ProfileFieldOptions.weightUnits;
+  static const List<String> HEIGHT_UNITS = ProfileFieldOptions.heightUnits;
+  static const List<String> FITNESS_GOALS = ProfileFieldOptions.fitnessGoals;
+  static const List<String> MOBILITY_TYPES = ProfileFieldOptions.mobilityTypes;
+  static const List<String> FITNESS_EXPERIENCE_LEVELS =
+      ProfileFieldOptions.fitnessExperienceLevels;
 
   /// user model
   Rxn<UserModel> user = Rxn<UserModel>();
 
   /// text controllers
   final nameController = TextEditingController();
-  final genderController = TextEditingController();
-  final ageController = TextEditingController();
-  final heightController = TextEditingController();
-  final weightController = TextEditingController();
+  final mobilityTypeOtherController = TextEditingController();
 
   /// Dropdown selections
-  final RxString selectedFitnessGoal = "".obs;
-  final RxString selectedMobilityType = "".obs;
-  final RxString selectedFitnessExperience = "".obs;
+  final RxString selectedGender = ''.obs;
+  final RxString selectedAge = ''.obs;
+  final RxString selectedHeight = ''.obs;
+  final RxString selectedWeight = ''.obs;
+  final RxString selectedFitnessGoal = ''.obs;
+  final RxString selectedMobilityType = ''.obs;
+  final RxString selectedFitnessExperience = ''.obs;
 
   /// image picker
   final RxnString pickedImagePath = RxnString();
   final ImagePicker _picker = ImagePicker();
 
   /// units
-  final RxString weightUnit = "kg".obs;
-  final RxString heightUnit = "cm".obs;
+  final RxString weightUnit = 'kg'.obs;
+  final RxString heightUnit = 'cm'.obs;
 
   /// edit mode
   final RxBool isEditing = false.obs;
@@ -70,9 +54,47 @@ class ProfileController extends GetxController {
   /// uploading profile image
   final RxBool isUploadingImage = false.obs;
 
+  List<String> get heightValueOptions =>
+      ProfileFieldOptions.heightValueOptions(heightUnit.value);
+
+  List<String> get weightValueOptions =>
+      ProfileFieldOptions.weightValueOptions(weightUnit.value);
+
   /// toggle edit mode
   void toggleEdit() {
+    if (isEditing.value) {
+      _populateFormFromUser(user.value);
+    }
     isEditing.toggle();
+  }
+
+  void exitEditMode() {
+    isEditing.value = false;
+  }
+
+  void onHeightUnitChanged(String unit) {
+    heightUnit.value = unit;
+    _syncMeasurementSelection(
+      selectedValue: selectedHeight,
+      options: heightValueOptions,
+    );
+  }
+
+  void onWeightUnitChanged(String unit) {
+    weightUnit.value = unit;
+    _syncMeasurementSelection(
+      selectedValue: selectedWeight,
+      options: weightValueOptions,
+    );
+  }
+
+  void _syncMeasurementSelection({
+    required RxString selectedValue,
+    required List<String> options,
+  }) {
+    if (selectedValue.value.isEmpty) return;
+    if (options.contains(selectedValue.value)) return;
+    selectedValue.value = '';
   }
 
   /// ================================
@@ -85,56 +107,14 @@ class ProfileController extends GetxController {
 
     response.fold(
       (failure) {
-        Get.snackbar("Error", failure.uiMessage);
+        AppSnackbar.show('Error', failure.uiMessage);
       },
       (success) {
         final userData = success.data;
 
         if (userData != null) {
           user.value = userData;
-
-          /// fill controllers
-          nameController.text =
-              "${userData.firstName ?? ''} ${userData.lastName ?? ''}".trim();
-
-          genderController.text = userData.gender ?? '';
-
-          ageController.text = userData.age != null
-              ? userData.age.toString()
-              : '';
-
-          heightController.text = userData.height?.value != null
-              ? "${userData.height!.value}"
-              : '';
-          heightUnit.value = userData.height?.unit ?? 'cm';
-
-          weightController.text = userData.weightCurrent?.value != null
-              ? "${userData.weightCurrent!.value}"
-              : '';
-          weightUnit.value = userData.weightCurrent?.unit ?? 'kg';
-
-          // Initialize dropdowns from user data
-          if (userData.fitnessGoals != null &&
-              userData.fitnessGoals!.isNotEmpty) {
-            final goal = userData.fitnessGoals!.first.toString();
-            if (FITNESS_GOALS.contains(goal)) {
-              selectedFitnessGoal.value = goal;
-            }
-          } else {
-            selectedFitnessGoal.value = "";
-          }
-
-          if (MOBILITY_TYPES.contains(userData.mobilityType)) {
-            selectedMobilityType.value = userData.mobilityType!;
-          } else {
-            selectedMobilityType.value = "";
-          }
-
-          if (FITNESS_EXPERIENCE_LEVELS.contains(userData.fitnessExperience)) {
-            selectedFitnessExperience.value = userData.fitnessExperience!;
-          } else {
-            selectedFitnessExperience.value = "";
-          }
+          _populateFormFromUser(userData);
         }
       },
     );
@@ -142,104 +122,135 @@ class ProfileController extends GetxController {
     isLoading.value = false;
   }
 
+  void _populateFormFromUser(UserModel? userData) {
+    if (userData == null) return;
+
+    nameController.text =
+        '${userData.firstName ?? ''} ${userData.lastName ?? ''}'.trim();
+
+    selectedGender.value = ProfileFieldOptions.genders.contains(userData.gender)
+        ? userData.gender!
+        : '';
+
+    selectedAge.value =
+        userData.age != null &&
+            userData.age! >= ProfileFieldOptions.minAge &&
+            userData.age! <= ProfileFieldOptions.maxAge
+        ? userData.age.toString()
+        : '';
+
+    heightUnit.value = ProfileFieldOptions.heightUnits.contains(
+      userData.height?.unit,
+    )
+        ? userData.height!.unit!
+        : 'cm';
+
+    final parsedHeight = ProfileFieldOptions.parseStoredHeight(
+      userData.height?.value,
+      heightUnit.value,
+    );
+    selectedHeight.value = parsedHeight?.toString() ?? '';
+
+    weightUnit.value = ProfileFieldOptions.weightUnits.contains(
+      userData.weightCurrent?.unit,
+    )
+        ? userData.weightCurrent!.unit!
+        : 'kg';
+
+    final parsedWeight = ProfileFieldOptions.parseStoredWeight(
+      userData.weightCurrent?.value,
+      weightUnit.value,
+    );
+    selectedWeight.value = parsedWeight?.toString() ?? '';
+
+    if (userData.fitnessGoals != null && userData.fitnessGoals!.isNotEmpty) {
+      final goal = userData.fitnessGoals!.first.toString();
+      selectedFitnessGoal.value = FITNESS_GOALS.contains(goal) ? goal : '';
+    } else {
+      selectedFitnessGoal.value = '';
+    }
+
+    selectedMobilityType.value =
+        MOBILITY_TYPES.contains(userData.mobilityType)
+        ? userData.mobilityType!
+        : '';
+
+    mobilityTypeOtherController.text = userData.mobilityTypeOther ?? '';
+
+    selectedFitnessExperience.value =
+        FITNESS_EXPERIENCE_LEVELS.contains(userData.fitnessExperience)
+        ? userData.fitnessExperience!
+        : '';
+  }
+
   Future<void> updateProfile() async {
-    debugPrint("[ProfileController] updateProfile started");
+    debugPrint('[ProfileController] updateProfile started');
 
     try {
       isLoading.value = true;
 
-      /// split name
-      final names = nameController.text.trim().split(" ");
+      final names = nameController.text.trim().split(' ');
+      final firstName = names.isNotEmpty ? names.first : '';
+      final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
 
-      final firstName = names.isNotEmpty ? names.first : "";
-      final lastName = names.length > 1 ? names.sublist(1).join(" ") : "";
-
-      debugPrint(
-        "[ProfileController] form values => "
-        "name: '${nameController.text}', "
-        "firstName: '$firstName', lastName: '$lastName', "
-        "gender: '${genderController.text}', "
-        "age: '${ageController.text}', "
-        "height: '${heightController.text} ${heightUnit.value}', "
-        "weight: '${weightController.text} ${weightUnit.value}', "
-        "fitnessGoal: '${selectedFitnessGoal.value}', "
-        "mobilityType: '${selectedMobilityType.value}', "
-        "fitnessExperience: '${selectedFitnessExperience.value}'",
-      );
-
-      /// create model
       final params = UserProfileUpdateModel(
         firstName: firstName,
         lastName: lastName,
         phone: user.value?.phone,
         bio: user.value?.bio,
         preferredLanguage: user.value?.preferredLanguage,
-        gender: genderController.text,
-        age: int.tryParse(ageController.text),
-
-        /// weight
-        weightCurrent: Measurement(
-          value: int.tryParse(weightController.text),
-          unit: weightUnit.value,
-        ),
-
-        /// height
-        height: Measurement(
-          value: int.tryParse(heightController.text),
-          unit: heightUnit.value,
-        ),
-
+        gender: selectedGender.value.isNotEmpty ? selectedGender.value : null,
+        age: int.tryParse(selectedAge.value),
+        weightCurrent: selectedWeight.value.isNotEmpty
+            ? Measurement(
+                value: int.tryParse(selectedWeight.value),
+                unit: weightUnit.value,
+              )
+            : null,
+        height: selectedHeight.value.isNotEmpty
+            ? Measurement(
+                value: int.tryParse(selectedHeight.value),
+                unit: heightUnit.value,
+              )
+            : null,
         goalWeight: user.value?.goalWeight,
-
         fitnessGoals: selectedFitnessGoal.value.isNotEmpty
             ? [selectedFitnessGoal.value]
             : [],
-        mobilityType: selectedMobilityType.value,
-        fitnessExperience: selectedFitnessExperience.value,
+        mobilityType: selectedMobilityType.value.isNotEmpty
+            ? selectedMobilityType.value
+            : null,
+        mobilityTypeOther: selectedMobilityType.value == 'other'
+            ? mobilityTypeOtherController.text.trim()
+            : null,
+        fitnessExperience: selectedFitnessExperience.value.isNotEmpty
+            ? selectedFitnessExperience.value
+            : null,
         onboardingStep: 8,
-      );
-
-      debugPrint(
-        "[ProfileController] updateProfile payload => ${params.toJson()}",
       );
 
       final response = await profileInterface.updateProfile(params);
 
       response.fold(
         (failure) {
-          debugPrint(
-            "[ProfileController] updateProfile failed => "
-            "uiMessage: ${failure.uiMessage}, "
-            "fullError: ${failure.fullError}, "
-            "failure: ${failure.failure}",
-          );
-          Get.snackbar("Error", failure.uiMessage);
+          AppSnackbar.show('Error', failure.uiMessage);
         },
         (success) {
-          debugPrint(
-            "[ProfileController] updateProfile success => "
-            "message: ${success.message}, data: ${success.data?.toJson()}",
-          );
-          Get.snackbar(
-            "Success",
+          AppSnackbar.success(
+            'Success',
             success.message,
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green.withValues(alpha:0.7),
-            colorText: Colors.white,
           );
 
-          /// refresh profile
-          getProfile();
-          toggleEdit();
+          getProfile().then((_) => exitEditMode());
         },
       );
     } catch (e, stackTrace) {
-      debugPrint("[ProfileController] updateProfile exception => $e");
-      debugPrint("[ProfileController] updateProfile stackTrace => $stackTrace");
-      Get.snackbar("Error", e.toString());
+      debugPrint('[ProfileController] updateProfile exception => $e');
+      debugPrint('[ProfileController] updateProfile stackTrace => $stackTrace');
+      AppSnackbar.show('Error', e.toString());
     } finally {
       isLoading.value = false;
-      debugPrint("[ProfileController] updateProfile finished");
     }
   }
 
@@ -251,12 +262,11 @@ class ProfileController extends GetxController {
       final XFile? image = await _picker.pickImage(source: source);
 
       if (image != null) {
-        // Show picked image immediately (live update)
         pickedImagePath.value = image.path;
 
         final file = File(image.path);
         if (!await file.exists()) {
-          Get.snackbar("Error", "Image file not found");
+          AppSnackbar.show('Error', 'Image file not found');
           return;
         }
 
@@ -265,50 +275,38 @@ class ProfileController extends GetxController {
 
         response.fold(
           (failure) {
-            Get.snackbar("Error", failure.uiMessage);
-            // Keep showing picked image so user sees what they selected
+            AppSnackbar.show('Error', failure.uiMessage);
           },
           (success) {
             if (success.data != null) {
               user.value = success.data;
-              pickedImagePath.value = null; // Use server profileImage URL now
+              pickedImagePath.value = null;
             }
-            Get.snackbar(
-              "Success",
+            AppSnackbar.success(
+              'Success',
               success.message,
               snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green.withValues(alpha:0.7),
-              colorText: Colors.white,
             );
           },
         );
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to pick image: $e");
+      AppSnackbar.show('Error', 'Failed to pick image: $e');
     } finally {
       isUploadingImage.value = false;
     }
   }
 
-  /// ================================
-  /// INIT
-  /// ================================
   @override
   void onInit() {
     super.onInit();
     getProfile();
   }
 
-  /// ================================
-  /// DISPOSE
-  /// ================================
   @override
   void onClose() {
     nameController.dispose();
-    genderController.dispose();
-    ageController.dispose();
-    heightController.dispose();
-    weightController.dispose();
+    mobilityTypeOtherController.dispose();
     super.onClose();
   }
 }

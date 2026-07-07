@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/features/programs/model/model.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
 
@@ -170,12 +171,12 @@ class ExerciseController extends GetxController {
     response.fold(
       (error) {
         isSaving.value = false;
-        Get.snackbar("Error", "Failed to save settings: ${error.uiMessage}");
+        AppSnackbar.show("Error", "Failed to save settings: ${error.uiMessage}");
       },
       (success) {
         isSaving.value = false;
         exerciseData.value = success.data;
-        Get.snackbar("Success", "Exercise settings saved successfully.");
+        AppSnackbar.show("Success", "Exercise settings saved successfully.");
       },
     );
   }

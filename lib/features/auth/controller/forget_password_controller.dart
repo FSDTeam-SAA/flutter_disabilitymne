@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/features/auth/model/forget_password_model.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 
@@ -26,14 +27,14 @@ class ForgetPasswordController extends GetxController {
       // unwrap Either<DataCRUDFailure, Success>
       result.fold(
         (failure) {
-          Get.snackbar(
+          AppSnackbar.show(
             "Failed",
             failure.uiMessage,
             snackPosition: SnackPosition.BOTTOM,
           );
         },
         (success) {
-          Get.snackbar(
+          AppSnackbar.show(
             "Success",
             success.message,
             snackPosition: SnackPosition.BOTTOM,
@@ -42,7 +43,7 @@ class ForgetPasswordController extends GetxController {
         },
       );
     } catch (e) {
-      Get.snackbar("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.show("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }

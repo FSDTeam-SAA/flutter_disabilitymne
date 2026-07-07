@@ -2,6 +2,7 @@ import 'package:disabilitymne/features/profile/model/help_and_support_model.dart
 import 'package:disabilitymne/features/profile/services/profile_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 class HelpSupportController extends GetxController {
   HelpSupportController({required this.profileInterface});
@@ -33,12 +34,10 @@ class HelpSupportController extends GetxController {
     if (emailController.text.isEmpty ||
         subjectController.text.isEmpty ||
         descriptionController.text.isEmpty) {
-      Get.snackbar(
-        "Error",
-        "All fields are required",
+      AppSnackbar.error(
+        'Error',
+        'All fields are required',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
       );
       return;
     }
@@ -52,30 +51,26 @@ class HelpSupportController extends GetxController {
 
       response.fold(
         (failure) {
-          Get.snackbar(
-            "Error",
+          AppSnackbar.error(
+            'Error',
             failure.uiMessage,
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
           );
         },
         (success) {
           Get.back();
           clearFields();
           Future.delayed(const Duration(milliseconds: 300), () {
-            Get.snackbar(
-              "Success",
-              "Your report has been submitted.",
+            AppSnackbar.success(
+              'Success',
+              'Your report has been submitted.',
               snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green,
-              colorText: Colors.white,
             );
           });
         },
       );
     } catch (e) {
-      Get.snackbar(
+      AppSnackbar.show(
         "Error",
         "Something went wrong",
         snackPosition: SnackPosition.BOTTOM,

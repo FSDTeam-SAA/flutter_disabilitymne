@@ -2,6 +2,7 @@ import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class FoodDetailScreen extends StatefulWidget {
@@ -141,14 +142,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       );
       if (!mounted) return;
       Get.back(result: true);
-      Get.snackbar(
+      AppSnackbar.show(
         'Tracked',
         'Food added to ${_titleCase(_selectedMeal)}',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (_) {
       if (!mounted) return;
-      Get.snackbar(
+      AppSnackbar.show(
         'Error',
         'Failed to track food',
         snackPosition: SnackPosition.BOTTOM,

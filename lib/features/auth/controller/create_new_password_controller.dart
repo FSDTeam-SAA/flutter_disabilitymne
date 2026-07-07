@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:disabilitymne/core/api_handler/success.dart';
 import 'package:disabilitymne/features/auth/model/reset_password_model.dart';
@@ -23,12 +24,12 @@ class ResetPasswordController extends GetxController {
   Future<void> resetPassword(VoidCallback onSuccess) async {
     if (passwordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
-      Get.snackbar("Error", "Please enter password");
+      AppSnackbar.show("Error", "Please enter password");
       return;
     }
 
     if (passwordController.text != confirmPasswordController.text) {
-      Get.snackbar("Error", "Passwords do not match");
+      AppSnackbar.show("Error", "Passwords do not match");
       return;
     }
 
@@ -46,15 +47,15 @@ class ResetPasswordController extends GetxController {
 
       result.fold(
         (failure) {
-          Get.snackbar("Failed", failure.uiMessage);
+          AppSnackbar.show("Failed", failure.uiMessage);
         },
         (Success success) {
-          Get.snackbar("Success", success.message);
+          AppSnackbar.show("Success", success.message);
           onSuccess();
         },
       );
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      AppSnackbar.show("Error", e.toString());
     } finally {
       isLoading.value = false;
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/features/auth/model/signup_model.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 
@@ -46,14 +47,14 @@ class SignupController extends GetxController {
 
       result.fold(
         (failure) {
-          Get.snackbar(
+          AppSnackbar.show(
             "Signup Failed",
             failure.uiMessage,
             snackPosition: SnackPosition.BOTTOM,
           );
         },
         (success) {
-          Get.snackbar(
+          AppSnackbar.show(
             "Success",
             success.message,
             snackPosition: SnackPosition.BOTTOM,
@@ -62,7 +63,7 @@ class SignupController extends GetxController {
         },
       );
     } catch (e) {
-      Get.snackbar(
+      AppSnackbar.show(
         "Signup Failed",
         e.toString(),
         snackPosition: SnackPosition.BOTTOM,

@@ -26,6 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Disability Fitness needs camera access so you can take photos for your profile and send images in chat.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Disability Fitness needs photo library access so you can choose images for your profile and send images in chat.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

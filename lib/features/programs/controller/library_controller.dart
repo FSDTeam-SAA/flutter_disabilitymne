@@ -1,5 +1,6 @@
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 import '../model/library_model.dart';
 import '../services/program_interface.dart';
@@ -75,7 +76,7 @@ class LibraryController extends GetxController {
       (error) {
         isLoading.value = false;
         isLoadingMore.value = false;
-        Get.snackbar("Error", error.uiMessage);
+        AppSnackbar.show("Error", error.uiMessage);
       },
       (success) {
         final pageData = success.data;
@@ -110,7 +111,7 @@ class LibraryController extends GetxController {
     response.fold(
       (error) {
         isLoadingMore.value = false;
-        Get.snackbar("Error", error.uiMessage);
+        AppSnackbar.show("Error", error.uiMessage);
       },
       (success) {
         final pageData = success.data;

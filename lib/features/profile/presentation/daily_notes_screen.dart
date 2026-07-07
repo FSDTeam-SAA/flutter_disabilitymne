@@ -4,6 +4,7 @@ import 'package:disabilitymne/features/daily_tracker/repository/daily_tracker_re
 import 'package:disabilitymne/features/daily_tracker/utils/daily_tracker_date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 
 /// Filter options for daily tracker notes.
 enum NotesFilter { all, week, daily }
@@ -64,7 +65,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen> {
           _notes = [];
           _meta = null;
         });
-        Get.snackbar('Error', failure.uiMessage);
+        AppSnackbar.show('Error', failure.uiMessage);
       },
       (response) {
         List<DailyTrackerNoteItem> list = response.data;

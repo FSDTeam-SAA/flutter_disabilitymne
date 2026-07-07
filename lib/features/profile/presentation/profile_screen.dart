@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:disabilitymne/app/guest_ground.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/chat/presentation/chat_thread_screen.dart';
@@ -10,13 +11,13 @@ import 'package:disabilitymne/features/profile/controller/profile_controller.dar
 import 'package:disabilitymne/features/profile/presentation/change_password_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/daily_notes_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/help_support_screen.dart';
-import 'package:disabilitymne/features/profile/presentation/language_accessibility_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/my_profile_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/notification_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/terms_condition_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -56,12 +57,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     result.fold(
       (failure) {
-        Get.snackbar(
+        AppSnackbar.show(
           'Chat unavailable',
           failure.uiMessage,
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF1B2940),
-          colorText: Colors.white,
           margin: const EdgeInsets.all(12),
         );
       },
@@ -73,6 +72,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
+    );
+  }
+
+  void showDeleteAccountDialog() {
+    Get.defaultDialog(
+      backgroundColor: Colors.white,
+      title: 'Delete Account?',
+      middleText:
+          'This permanently deletes your account and data. This action cannot be undone.',
+      titleStyle: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
+      ),
+      middleTextStyle: const TextStyle(fontSize: 16, color: Colors.black),
+      barrierDismissible: true,
+      radius: 16,
+      contentPadding: const EdgeInsets.all(20),
+      cancel: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          side: const BorderSide(color: Colors.grey),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: Get.back,
+        child: const Text('Cancel'),
+      ),
+      confirm: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: () async {
+          Get.back();
+          final result = await Get.find<AuthInterface>().deleteAccount();
+          result.fold(
+            (failure) {
+              AppSnackbar.error(
+                'Delete failed',
+                failure.uiMessage,
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            },
+            (success) {
+              Get.offAll(() => const GuestGround());
+              AppSnackbar.show(
+                'Account deleted',
+                success.message,
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            },
+          );
+        },
+        child: const Text('Delete'),
+      ),
     );
   }
 
@@ -108,8 +164,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        onPressed: () {
-          Get.find<AuthInterface>().logout();
+        onPressed: () async {
+          Get.back();
+          await Get.find<AuthInterface>().logout();
         },
         child: Text("Logout"),
       ),
@@ -273,14 +330,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Get.to(() => ChoosePlanScreen());
                             },
                           ),
-                          _SettingsTile(
-                            icon: Icons.language,
-                            title: "Language & Accessibility",
-                            subtitle: "English/Serbian",
-                            onTap: () {
-                              Get.to(() => const LanguageAccessibilityScreen());
-                            },
-                          ),
+                          // _SettingsTile(
+                          //   icon: Icons.language,
+                          //   title: "Language & Accessibility",
+                          //   subtitle: "English/Serbian",
+                          //   onTap: () {
+                          //     Get.to(() => const LanguageAccessibilityScreen());
+                          //   },
+                          // ),
                           _SettingsTile(
                             icon: Icons.notifications_none,
                             title: "Notification Settings",
@@ -330,6 +387,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
 
                           const SizedBox(height: 10),
+
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: showDeleteAccountDialog,
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                size: 22,
+                                color: Colors.redAccent,
+                              ),
+                              label: const Text(
+                                'Delete Account',
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 4),
 
                           /// Sign Out
                           Center(

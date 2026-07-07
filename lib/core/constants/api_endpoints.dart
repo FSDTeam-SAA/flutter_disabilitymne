@@ -33,7 +33,10 @@ base class ApiEndpoints {
   static String getLibraryDetail(String id) => _Excerise.getLibraryDetails(id);
 
   static const String getAllRecipies = _Recipies.getAllRecipies;
+  static const String getPublicRecipies = _Recipies.getPublicRecipies;
   static String getRecipeDetail(String id) => _Recipies.getRecipeDetails(id);
+  static String getPublicRecipeDetail(String id) =>
+      _Recipies.getPublicRecipeDetails(id);
   static String toggleRecipeFavorite(String id) => _Recipies.toggleFavorite(id);
 
   static String getExcerisesData(String id) =>
@@ -54,6 +57,7 @@ base class ApiEndpoints {
   static String updateProfile = _User.updateProfile;
   static String updateProfileImage = _User.updateProfileImage;
   static String changePassword = _User.changePassword;
+  static String deleteAccount = _User.deleteAccount;
   static String helpAndSupport = _User.helpAndSupport;
 
   //-------------------------cart --------------------------
@@ -128,15 +132,11 @@ base class ApiEndpoints {
   static const String paymentPlans = _Payments.plans;
   static const String paymentCheckout = _Payments.checkout;
   static const String paymentConfirmCheckout = _Payments.confirmCheckout;
+  static const String paymentAppleVerify = _Payments.appleVerify;
+  static const String paymentAppleRestore = _Payments.appleRestore;
 }
 
-//arrow360degree@gmail.com
-
 class _RemoteServer {
-  // static const String socketUrl = 'http://72.60.29.234:5001';
-
-  // static const String baseUrl = 'http://72.60.29.234:5001/api/v1';
-  // 'https://disabilitymne-backend.onrender.com/api/v1';
   static const String socketUrl = 'http://187.124.21.65';
   static const String baseUrl = 'http://187.124.21.65/api/v1';
 }
@@ -181,7 +181,10 @@ class _Excerise {
 class _Recipies {
   static const String _recipesRoute = '${ApiEndpoints.baseUrl}/recipes';
   static const String getAllRecipies = '$_recipesRoute/all';
+  static const String getPublicRecipies = '$_recipesRoute/public/all';
   static String getRecipeDetails(String id) => '$_recipesRoute/$id';
+  static String getPublicRecipeDetails(String id) =>
+      '$_recipesRoute/public/$id';
   static String toggleFavorite(String id) => '$_recipesRoute/$id/favorite';
 }
 
@@ -225,6 +228,7 @@ class _User {
   static String updateProfile = '$_userRoute/me';
   static String updateProfileImage = '$_userRoute/me/profile-image';
   static String changePassword = '$_userRoute/me/change-password';
+  static String deleteAccount = '$_userRoute/me';
   static String helpAndSupport = '$_userRoute/me/support/tickets';
 }
 
@@ -300,6 +304,8 @@ class _Payments {
   static const String plans = '$_route/plans';
   static const String checkout = '$_route/checkout';
   static const String confirmCheckout = '$_route/checkout/confirm';
+  static const String appleVerify = '$_route/apple/verify';
+  static const String appleRestore = '$_route/apple/restore';
 }
 
 class _Uploads {
