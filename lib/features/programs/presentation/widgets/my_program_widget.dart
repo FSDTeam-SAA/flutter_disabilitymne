@@ -75,6 +75,7 @@ class MyProgramWidget extends StatelessWidget {
                 child: ProgramCard(
                   title: program.programName,
                   image: program.programThumbnail,
+                  imageFit: BoxFit.cover,
                   onTap: () {
                     Get.to(() => ProgramDetailScreen(program: program));
                   },
