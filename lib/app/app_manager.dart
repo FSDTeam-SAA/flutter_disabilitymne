@@ -3,6 +3,7 @@ import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
 import 'package:disabilitymne/app/guest_ground.dart';
 import 'package:disabilitymne/features/chat/service/chat_socket_service.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -38,6 +39,7 @@ class AppManager extends GetxController {
     if (authStatus is UnAuthenticated) {
       _authStatus = authStatus;
       _disconnectSockets();
+      _clearProfileController();
       Get.offAll(() => GuestGround());
       update();
       return;
@@ -49,6 +51,7 @@ class AppManager extends GetxController {
       );
       _authStatus = authStatus;
       await _initializeControllers();
+      await _refreshProfileAfterLogin();
 
       // Logged-in users go to the main app. Pre-login language/onboarding
       // (Splash → Language → Onboarding → Welcome) is only for guests.
@@ -79,6 +82,21 @@ class AppManager extends GetxController {
         debugPrint("AppManager: ChatSocketService disconnect error: $e");
         debugPrint("$st");
       }
+    }
+  }
+
+  void _clearProfileController() {
+    if (Get.isRegistered<ProfileController>()) {
+      Get.delete<ProfileController>(force: true);
+    }
+  }
+
+  Future<void> _refreshProfileAfterLogin() async {
+    try {
+      await Get.find<ProfileController>().getProfile();
+    } catch (e, st) {
+      debugPrint("AppManager: profile refresh error: $e");
+      debugPrint("$st");
     }
   }
 

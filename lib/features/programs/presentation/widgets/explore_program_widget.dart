@@ -75,7 +75,7 @@ class ExploreWidget extends StatelessWidget {
                 child: ProgramCard(
                   title: program.programName,
                   image: program.programThumbnail,
-                  imageFit: BoxFit.contain,
+                  imageFit: BoxFit.cover,
                   onTap: () {
                     Get.to(() => ProgramDetailScreen(program: program));
                   },
@@ -104,7 +104,7 @@ class ProgramCard extends StatelessWidget {
     this.title,
     this.image,
     this.onTap,
-    this.imageFit = BoxFit.fitWidth,
+    this.imageFit = BoxFit.cover,
   });
 
   Widget _buildPlaceholder() {
