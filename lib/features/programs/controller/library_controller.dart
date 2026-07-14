@@ -1,3 +1,4 @@
+import 'package:disabilitymne/core/helpers/premium_access.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/helpers/app_snackbar.dart';
@@ -26,10 +27,7 @@ class LibraryController extends GetxController {
   int _currentPage = 0;
   int _requestToken = 0;
 
-  bool get isPremiumUser {
-    final user = profileController.user.value;
-    return user?.selectedPlan == 'premium_plan';
-  }
+  bool get isPremiumUser => isPremiumActiveUser(profileController.user.value);
 
   @override
   void onInit() {

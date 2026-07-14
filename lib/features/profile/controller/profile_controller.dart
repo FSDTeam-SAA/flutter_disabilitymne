@@ -101,9 +101,13 @@ class ProfileController extends GetxController {
   /// GET PROFILE API
   /// ================================
   Future<void> getProfile() async {
+    if (isClosed) return;
+
     isLoading.value = true;
 
     final response = await profileInterface.getProfile(UserModel());
+
+    if (isClosed) return;
 
     response.fold(
       (failure) {
@@ -119,11 +123,13 @@ class ProfileController extends GetxController {
       },
     );
 
-    isLoading.value = false;
+    if (!isClosed) {
+      isLoading.value = false;
+    }
   }
 
   void _populateFormFromUser(UserModel? userData) {
-    if (userData == null) return;
+    if (userData == null || isClosed) return;
 
     nameController.text =
         '${userData.firstName ?? ''} ${userData.lastName ?? ''}'.trim();
@@ -231,6 +237,8 @@ class ProfileController extends GetxController {
 
       final response = await profileInterface.updateProfile(params);
 
+      if (isClosed) return;
+
       response.fold(
         (failure) {
           AppSnackbar.show('Error', failure.uiMessage);
@@ -242,15 +250,21 @@ class ProfileController extends GetxController {
             snackPosition: SnackPosition.BOTTOM,
           );
 
-          getProfile().then((_) => exitEditMode());
+          getProfile().then((_) {
+            if (!isClosed) exitEditMode();
+          });
         },
       );
     } catch (e, stackTrace) {
       debugPrint('[ProfileController] updateProfile exception => $e');
       debugPrint('[ProfileController] updateProfile stackTrace => $stackTrace');
-      AppSnackbar.show('Error', e.toString());
+      if (!isClosed) {
+        AppSnackbar.show('Error', e.toString());
+      }
     } finally {
-      isLoading.value = false;
+      if (!isClosed) {
+        isLoading.value = false;
+      }
     }
   }
 
@@ -273,6 +287,8 @@ class ProfileController extends GetxController {
         isUploadingImage.value = true;
         final response = await profileInterface.updateMyProfileImage(file);
 
+        if (isClosed) return;
+
         response.fold(
           (failure) {
             AppSnackbar.show('Error', failure.uiMessage);
@@ -291,9 +307,13 @@ class ProfileController extends GetxController {
         );
       }
     } catch (e) {
-      AppSnackbar.show('Error', 'Failed to pick image: $e');
+      if (!isClosed) {
+        AppSnackbar.show('Error', 'Failed to pick image: $e');
+      }
     } finally {
-      isUploadingImage.value = false;
+      if (!isClosed) {
+        isUploadingImage.value = false;
+      }
     }
   }
 
