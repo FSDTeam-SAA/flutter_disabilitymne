@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/core/helpers/guest_auth_prompt.dart';
+import 'package:disabilitymne/core/helpers/premium_access.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 /// Home screen matching the design: header, hero card, My Programs, My Recipes, Quick Action.
@@ -60,13 +61,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'Good night!';
   }
 
+  RecipeController get _recipeController => Get.find<RecipeController>();
+
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<RecipeController>()) {
-      Get.put(RecipeController());
-    }
-    Get.find<RecipeController>().ensureMealLoaded(_selectedHomeRecipeType);
+    _recipeController.ensureMealLoaded(_selectedHomeRecipeType);
     _greetingTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -117,11 +117,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       futures.add(Get.find<ProgramController>().getPrograms(showLoader: false));
     }
-    if (Get.isRegistered<RecipeController>()) {
-      futures.add(
-        Get.find<RecipeController>().refreshMealType(_selectedHomeRecipeType),
-      );
-    }
+    futures.add(
+      _recipeController.refreshMealType(_selectedHomeRecipeType),
+    );
 
     if (futures.isEmpty) {
       return;
@@ -659,7 +657,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMyRecipesSection() {
     const tabs = ['Breakfast', 'Lunch', 'Dinner'];
-    final recipeController = Get.find<RecipeController>();
+    final recipeController = _recipeController;
 
     return SliverToBoxAdapter(
       child: Padding(
@@ -980,7 +978,7 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             : Obx(() {
           final user = Get.find<ProfileController>().user.value;
-          final showChat = user?.selectedPlan == 'premium';
+          final showChat = isPremiumActiveUser(user);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
