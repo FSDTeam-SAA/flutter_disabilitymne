@@ -10,6 +10,7 @@ import 'package:disabilitymne/features/auth/model/signin_model.dart';
 import 'package:disabilitymne/features/auth/model/signup_model.dart';
 import 'package:disabilitymne/features/auth/model/verify_otp_model.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -40,6 +41,9 @@ final class AuthInterfaceImpl extends AuthInterface {
 
         if (Get.isRegistered<OnboardingStateHolder>() && loginData.user != null) {
           Get.find<OnboardingStateHolder>().saveFromLogin(loginData.user);
+        }
+        if (loginData.user != null) {
+          Get.find<ProfileController>().user.value = loginData.user;
         }
         if (Get.isRegistered<AccessTokenHolder>() && loginData.accessToken != null) {
           Get.find<AccessTokenHolder>().setToken(loginData.accessToken);
