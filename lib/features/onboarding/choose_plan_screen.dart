@@ -1,4 +1,5 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
+import 'package:disabilitymne/core/constants/legal_urls.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/payments/constants/iap_product_ids.dart';
@@ -13,6 +14,7 @@ import 'package:disabilitymne/core/helpers/app_snackbar.dart';
 import 'package:disabilitymne/features/onboarding/congratulations_screen.dart';
 import 'package:disabilitymne/features/onboarding/stripe_checkout_webview_screen.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Payment package selection: Monthly, Quarterly, Annual, Premium.
 /// Shown when user taps Continue on Fitness experience screen.
@@ -218,6 +220,27 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     }
   }
 
+  /// Opens a legal document. Prefers a functional external link (required by
+  /// App Review); falls back to the in-app screen if the URL is missing or
+  /// cannot be opened.
+  Future<void> _openLegalLink({
+    required String url,
+    required Widget fallbackScreen,
+  }) async {
+    final uri = url.trim().isEmpty ? null : Uri.tryParse(url.trim());
+    if (uri != null) {
+      try {
+        final launched =
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (launched) return;
+      } catch (_) {
+        // Fall through to the in-app screen below.
+      }
+    }
+    if (!mounted) return;
+    Get.to(() => fallbackScreen);
+  }
+
   static ({Color accent, Color fill}) _colorsForKey(String key) {
     switch (key) {
       case 'annual':
@@ -241,10 +264,40 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     return '${plan.price.toStringAsFixed(2)}\$';
   }
 
+  /// Number of months for a plan, falling back to the plan key when the
+  /// backend does not send a duration (keeps the subscription length visible,
+  /// which App Review requires for auto-renewable subscriptions).
+  static int _monthsForPlan(PaymentPlan plan) {
+    if (plan.durationMonths > 0) return plan.durationMonths;
+    switch (plan.key) {
+      case 'monthly':
+        return 1;
+      case 'quarterly':
+        return 3;
+      case 'annual':
+        return 12;
+      default:
+        return 0;
+    }
+  }
+
+  /// Human-readable subscription length. Always non-empty so the paid plans
+  /// clearly disclose their duration.
   static String _formatDescription(PaymentPlan plan) {
     if (plan.durationLabel.trim().isNotEmpty) return plan.durationLabel;
-    if (plan.durationMonths > 0) return '${plan.durationMonths} months';
-    return '';
+    final months = _monthsForPlan(plan);
+    if (months == 1) return '1 month';
+    if (months > 1) return '$months months';
+    return 'Auto-renewing subscription';
+  }
+
+  /// Price per month for multi-month plans (e.g. "≈ 9.99$/month").
+  /// Returned as null when a per-unit price is not meaningful.
+  static String? _formatPerUnitPrice(PaymentPlan plan) {
+    final months = _monthsForPlan(plan);
+    if (plan.price <= 0 || months <= 1) return null;
+    final perMonth = plan.price / months;
+    return '≈ ${perMonth.toStringAsFixed(2)}\$/month';
   }
 
   PlanItem _toPlanItem(PaymentPlan p) {
@@ -254,6 +307,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       title: p.name,
       description: _formatDescription(p),
       price: _formatPrice(p, _storeProducts),
+      perUnitPrice: _formatPerUnitPrice(p),
       accentColor: colors.accent,
       accentFill: colors.fill,
       isPremium: p.key == 'premium',
@@ -443,9 +497,12 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TextButton(
-                              onPressed: () => Get.to(() => const TermsConditionScreen()),
+                              onPressed: () => _openLegalLink(
+                                url: LegalUrls.termsOfUseUrl,
+                                fallbackScreen: const TermsConditionScreen(),
+                              ),
                               child: const Text(
-                                'Terms of Use',
+                                'Terms of Use (EULA)',
                                 style: TextStyle(fontSize: 12, color: Colors.white70),
                               ),
                             ),
@@ -454,7 +511,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                               style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                             ),
                             TextButton(
-                              onPressed: () => Get.to(() => const PrivacyLegalScreen()),
+                              onPressed: () => _openLegalLink(
+                                url: LegalUrls.privacyPolicyUrl,
+                                fallbackScreen: const PrivacyLegalScreen(),
+                              ),
                               child: const Text(
                                 'Privacy Policy',
                                 style: TextStyle(fontSize: 12, color: Colors.white70),
@@ -484,6 +544,7 @@ class PlanItem {
   final String title;
   final String description;
   final String price;
+  final String? perUnitPrice;
   final Color accentColor;
   final Color accentFill;
   final bool isPremium;
@@ -495,6 +556,7 @@ class PlanItem {
     required this.title,
     required this.description,
     required this.price,
+    this.perUnitPrice,
     required this.accentColor,
     required this.accentFill,
     this.isPremium = false,
@@ -574,13 +636,28 @@ class _PlanCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Text(
-                      plan.price,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: priceColor,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          plan.price,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: priceColor,
+                          ),
+                        ),
+                        if (plan.perUnitPrice != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            plan.perUnitPrice!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),

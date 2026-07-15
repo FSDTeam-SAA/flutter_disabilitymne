@@ -379,10 +379,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _SettingsTile(
                             icon: Icons.lock_outline,
                             title: "Privacy & Security",
-                            subtitle: "View personal details",
+                            subtitle: "How your data is protected",
                             onTap: () {
-                              // This seems to be a placeholder or test route
-                              // Get.to(() => ExerciseWorkoutScreen(program: ProgramModel(), initialIndex: 0));
+                              Get.to(() => const PrivacyLegalScreen());
                             },
                           ),
 
@@ -427,6 +426,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               label: const Text(
                                 "Sign Out",
                                 style: TextStyle(
+
+
+                                  
                                   color: Colors.red,
                                   fontSize: 20,
                                   fontWeight: FontWeight.w600,
