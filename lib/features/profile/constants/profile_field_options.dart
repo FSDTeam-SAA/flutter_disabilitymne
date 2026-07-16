@@ -143,27 +143,29 @@ class ProfileFieldOptions {
     return "$feet'$inches\"";
   }
 
-  static int? parseStoredHeight(int? value, String unit) {
+  static int? parseStoredHeight(num? value, String unit) {
     if (value == null) return null;
+    final intValue = value.round();
     if (unit == 'ft') {
-      if (value >= minHeightInches && value <= maxHeightInches) {
-        return value;
+      if (intValue >= minHeightInches && intValue <= maxHeightInches) {
+        return intValue;
       }
-      final inches = (value / 2.54).round();
+      final inches = (intValue / 2.54).round();
       return inches.clamp(minHeightInches, maxHeightInches);
     }
-    return value.clamp(minHeightCm, maxHeightCm);
+    return intValue.clamp(minHeightCm, maxHeightCm);
   }
 
-  static int? parseStoredWeight(int? value, String unit) {
+  static int? parseStoredWeight(num? value, String unit) {
     if (value == null) return null;
+    final intValue = value.round();
     if (unit == 'lbs') {
-      if (value >= minWeightLbs && value <= maxWeightLbs) {
-        return value;
+      if (intValue >= minWeightLbs && intValue <= maxWeightLbs) {
+        return intValue;
       }
-      final lbs = (value * 2.20462).round();
+      final lbs = (intValue * 2.20462).round();
       return lbs.clamp(minWeightLbs, maxWeightLbs);
     }
-    return value.clamp(minWeightKg, maxWeightKg);
+    return intValue.clamp(minWeightKg, maxWeightKg);
   }
 }

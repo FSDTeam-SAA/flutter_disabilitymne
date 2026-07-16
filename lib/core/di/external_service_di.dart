@@ -6,6 +6,7 @@ import 'package:disabilitymne/features/auth/services/auth_interface_impl.dart';
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
 import 'package:disabilitymne/features/chat/service/chat_socket_service.dart';
 import 'package:disabilitymne/features/daily_tracker/repository/daily_tracker_repository.dart';
+import 'package:disabilitymne/features/nutrition_plans/services/nutrition_plans_repository.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_repository.dart';
 import 'package:disabilitymne/features/progress/repository/progress_repository.dart';
@@ -47,6 +48,11 @@ void externalServiceDI() {
   // Payment Plans
   Get.lazyPut<PaymentPlansInterface>(
     () => PaymentPlansRepository(Get.find<AuthorizedPigeon>()),
+    fenix: true,
+  );
+
+  Get.lazyPut<NutritionPlansRepository>(
+    () => NutritionPlansRepository(Get.find<AuthorizedPigeon>()),
     fenix: true,
   );
 

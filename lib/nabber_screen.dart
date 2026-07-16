@@ -1,7 +1,9 @@
 import 'package:disabilitymne/app/controller/app_ground_controller.dart';
+import 'package:disabilitymne/core/helpers/premium_access.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/calculator/presentation/screens/calculator_screen.dart';
 import 'package:disabilitymne/features/home/presentation/home_screen.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/profile_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/program_screen.dart';
 import 'package:disabilitymne/features/recipies/presentation/screen/recipies_screen.dart';
@@ -13,14 +15,6 @@ class AppGround extends StatelessWidget {
 
   final AppGroundController controller =
       Get.put(AppGroundController(), permanent: true);
-
-  final List<Widget> pages = [
-    HomeScreen(isPremiumUser: true,),
-    ProgramsScreen(),
-    RecipesScreen(),
-    CalculatorScreen(),
-    ProfileScreen(),
-  ];
 
   final List<IconData> icons = const [
     Icons.home_outlined,
@@ -40,6 +34,18 @@ class AppGround extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPremium = Get.isRegistered<ProfileController>()
+        ? isPremiumActiveUser(Get.find<ProfileController>().user.value)
+        : false;
+
+    final pages = [
+      HomeScreen(isPremiumUser: isPremium),
+      const ProgramsScreen(),
+      const RecipesScreen(),
+      CalculatorScreen(),
+      ProfileScreen(),
+    ];
+
     return Scaffold(
       body: Obx(() => pages[controller.currentIndex.value]),
       backgroundColor: Colors.transparent,
@@ -54,7 +60,6 @@ class AppGround extends StatelessWidget {
               colors: [
                 Color(0xFF0B1A2A),
                 Color(0xFF12263A),
-                
               ],
             ),
             border: Border.all(
@@ -63,7 +68,7 @@ class AppGround extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:  .4),
+                color: Colors.black.withValues(alpha: .4),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               )

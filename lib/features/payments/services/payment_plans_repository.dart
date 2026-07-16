@@ -3,6 +3,7 @@ import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/payments/model/checkout_response.dart';
 import 'package:disabilitymne/features/payments/model/payment_plan.dart';
+import 'package:disabilitymne/features/payments/model/premium_availability.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
 
 base class PaymentPlansRepository extends PaymentPlansInterface {
@@ -22,6 +23,17 @@ base class PaymentPlansRepository extends PaymentPlansInterface {
         return data
             .map((e) => PaymentPlan.fromJson(e as Map<String, dynamic>? ?? const {}))
             .toList();
+      },
+    );
+  }
+
+  @override
+  FutureRequest<PremiumAvailability> fetchPremiumAvailability() async {
+    return asyncTryCatch(
+      tryFunc: () async {
+        final response = await _pigeon.get(ApiEndpoints.paymentPremiumAvailability);
+        final data = extractBodyData(response) as Map<String, dynamic>?;
+        return PremiumAvailability.fromJson(data);
       },
     );
   }

@@ -21,7 +21,6 @@ class CalculatorController extends GetxController {
   void onInit() {
     super.onInit();
     _bindProfileUpdates();
-    // fetchDiary is called with default date (today)
     fetchDiary();
   }
 
@@ -35,7 +34,7 @@ class CalculatorController extends GetxController {
   }) async {
     final request = _DiaryFetchRequest(
       goal: goal ?? _resolveNutritionGoalFromProfile(),
-      weightKg: weightKg,
+      weightKg: weightKg ?? _resolveWeightKgFromProfile(),
       proteinPerKg: proteinPerKg,
       carbsPerKg: carbsPerKg,
       fatPerKg: fatPerKg,
@@ -102,8 +101,25 @@ class CalculatorController extends GetxController {
     final profileController = Get.find<ProfileController>();
     _profileWorker = ever<UserModel?>(profileController.user, (user) {
       if (user == null) return;
-      fetchDiary();
+      // Pass current weight explicitly so calories recalculate after profile updates
+      fetchDiary(weightKg: _weightKgFromUser(user));
     });
+  }
+
+  double? _resolveWeightKgFromProfile() {
+    if (!Get.isRegistered<ProfileController>()) return null;
+    return _weightKgFromUser(Get.find<ProfileController>().user.value);
+  }
+
+  double? _weightKgFromUser(UserModel? user) {
+    final measurement = user?.weightCurrent;
+    if (measurement?.value == null) return null;
+    final value = measurement!.value!.toDouble();
+    final unit = (measurement.unit ?? 'kg').toLowerCase();
+    if (unit == 'lbs' || unit == 'lb') {
+      return value * 0.453592;
+    }
+    return value;
   }
 
   String? _resolveNutritionGoalFromProfile() {

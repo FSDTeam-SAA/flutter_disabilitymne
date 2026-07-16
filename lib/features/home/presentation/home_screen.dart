@@ -8,7 +8,7 @@ import 'package:disabilitymne/features/auth/presentation/widgets/background_imag
 import 'package:disabilitymne/features/chat/presentation/chat_thread_screen.dart';
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
 import 'package:disabilitymne/features/daily_tracker/presentation/daily_tracker_screen.dart';
-import 'package:disabilitymne/features/programs/controller/explore_program%20controller.dart';
+import 'package:disabilitymne/features/programs/controller/my_program_controller.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/program_detail_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/widgets/explore_program_widget.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
@@ -110,12 +110,12 @@ class _HomeScreenState extends State<HomeScreen> {
       futures.add(Get.find<ProfileController>().getProfile());
     }
     if (!widget.isGuestMode) {
-      if (!Get.isRegistered<ProgramController>()) {
+      if (!Get.isRegistered<MyProgramController>()) {
         Get.put(
-          ProgramController(programInterface: Get.find<ProgramInterface>()),
+          MyProgramController(programInterface: Get.find<ProgramInterface>()),
         );
       }
-      futures.add(Get.find<ProgramController>().getPrograms(showLoader: false));
+      futures.add(Get.find<MyProgramController>().getPrograms(showLoader: false));
     }
     futures.add(
       _recipeController.refreshMealType(_selectedHomeRecipeType),
@@ -492,12 +492,17 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (!Get.isRegistered<ProgramController>()) {
+    if (!Get.isRegistered<MyProgramController>()) {
       Get.put(
-        ProgramController(programInterface: Get.find<ProgramInterface>()),
+        MyProgramController(programInterface: Get.find<ProgramInterface>()),
       );
     }
-    final programController = Get.find<ProgramController>();
+    final programController = Get.find<MyProgramController>();
+
+    final user = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>().user.value
+        : null;
+    final isPremium = isPremiumActiveUser(user);
 
     return SliverToBoxAdapter(
       child: Column(
@@ -547,7 +552,21 @@ class _HomeScreenState extends State<HomeScreen> {
             if (list.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildProgramCard(),
+                child: isPremium
+                    ? Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: _cardBlue,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: const Text(
+                          premiumAwaitingCoachMessage,
+                          style: TextStyle(color: Colors.white70, height: 1.4),
+                        ),
+                      )
+                    : _buildProgramCard(),
               );
             }
 
@@ -658,6 +677,45 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMyRecipesSection() {
     const tabs = ['Breakfast', 'Lunch', 'Dinner'];
     final recipeController = _recipeController;
+    final user = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>().user.value
+        : null;
+    final isPremium = isPremiumActiveUser(user);
+
+    if (isPremium && user?.hasAssignedNutritionPlan != true) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'My Meal Plan',
+                style: TextStyle(
+                  color: AppColors.primaryText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _cardBlue,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: const Text(
+                  premiumAwaitingCoachMessage,
+                  style: TextStyle(color: Colors.white70, height: 1.4),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return SliverToBoxAdapter(
       child: Padding(

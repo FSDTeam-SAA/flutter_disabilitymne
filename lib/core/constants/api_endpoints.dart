@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 base class ApiEndpoints {
-  static const String socketUrl = _RemoteServer.socketUrl;
-  static const String baseUrl = _RemoteServer.baseUrl;
+  static const String socketUrl = _LocalServer.socketUrl;
+  static const String baseUrl = _LocalServer.baseUrl;
 
   /// ### post
   static const String login = _Auth.login;
@@ -130,16 +130,25 @@ base class ApiEndpoints {
   // ---------------------- Payments -----------------------------
   /// ### get
   static const String paymentPlans = _Payments.plans;
+  static const String paymentPremiumAvailability = _Payments.premiumAvailability;
   static const String paymentCheckout = _Payments.checkout;
   static const String paymentConfirmCheckout = _Payments.confirmCheckout;
   static const String paymentAppleVerify = _Payments.appleVerify;
   static const String paymentAppleRestore = _Payments.appleRestore;
+
+  static const String myNutritionPlans = _NutritionPlans.my;
+  static String nutritionPlanDetail(String id) => _NutritionPlans.detail(id);
 }
 
-class _RemoteServer {
-  static const String socketUrl = 'http://187.124.21.65';
-  static const String baseUrl = 'http://187.124.21.65/api/v1';
+class _LocalServer {
+  static const String socketUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://localhost:8000/api/v1';
 }
+
+// class _RemoteServer {
+//   static const String socketUrl = 'http://187.124.21.65';
+//   static const String baseUrl = 'http://187.124.21.65/api/v1';
+// }
 
 class _Auth {
   @protected
@@ -302,10 +311,17 @@ class _Nutrition {
 class _Payments {
   static const String _route = '${ApiEndpoints.baseUrl}/payments';
   static const String plans = '$_route/plans';
+  static const String premiumAvailability = '$_route/premium-availability';
   static const String checkout = '$_route/checkout';
   static const String confirmCheckout = '$_route/checkout/confirm';
   static const String appleVerify = '$_route/apple/verify';
   static const String appleRestore = '$_route/apple/restore';
+}
+
+class _NutritionPlans {
+  static const String _route = '${ApiEndpoints.baseUrl}/nutrition-plans';
+  static const String my = '$_route/my';
+  static String detail(String id) => '$_route/$id';
 }
 
 class _Uploads {

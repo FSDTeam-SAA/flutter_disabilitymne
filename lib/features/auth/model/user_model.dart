@@ -14,6 +14,7 @@ class UserModel {
   final Measurement? weightCurrent;
   final Measurement? goalWeight;
   final Measurement? height;
+  final String? activityLevel;
   final List<dynamic>? fitnessGoals;
   final String? mobilityType;
   final String? mobilityTypeOther;
@@ -31,6 +32,8 @@ class UserModel {
   final bool? isActive;
   final String? createdAt;
   final String? updatedAt;
+  final bool? hasAssignedProgram;
+  final bool? hasAssignedNutritionPlan;
 
   UserModel({
     this.id,
@@ -48,6 +51,7 @@ class UserModel {
     this.weightCurrent,
     this.goalWeight,
     this.height,
+    this.activityLevel,
     this.fitnessGoals,
     this.mobilityType,
     this.mobilityTypeOther,
@@ -65,6 +69,8 @@ class UserModel {
     this.isActive,
     this.createdAt,
     this.updatedAt,
+    this.hasAssignedProgram,
+    this.hasAssignedNutritionPlan,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -92,6 +98,7 @@ class UserModel {
       height: json['height'] != null
           ? Measurement.fromJson(json['height'])
           : null,
+      activityLevel: json['activityLevel'],
       fitnessGoals: json['fitnessGoals'],
       mobilityType: json['mobilityType'],
       mobilityTypeOther: json['mobilityTypeOther'],
@@ -109,6 +116,8 @@ class UserModel {
       isActive: json['isActive'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
+      hasAssignedProgram: json['hasAssignedProgram'] == true,
+      hasAssignedNutritionPlan: json['hasAssignedNutritionPlan'] == true,
     );
   }
 
@@ -129,6 +138,7 @@ class UserModel {
       'weightCurrent': weightCurrent?.toJson(),
       'goalWeight': goalWeight?.toJson(),
       'height': height?.toJson(),
+      'activityLevel': activityLevel,
       'fitnessGoals': fitnessGoals,
       'mobilityType': mobilityType,
       'mobilityTypeOther': mobilityTypeOther,
@@ -146,18 +156,27 @@ class UserModel {
       'isActive': isActive,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'hasAssignedProgram': hasAssignedProgram,
+      'hasAssignedNutritionPlan': hasAssignedNutritionPlan,
     };
   }
 }
 
 class Measurement {
-  final int? value;
+  final num? value;
   final String? unit;
 
   Measurement({this.value, this.unit});
 
   factory Measurement.fromJson(Map<String, dynamic> json) {
-    return Measurement(value: json['value'], unit: json['unit']);
+    final raw = json['value'];
+    num? parsed;
+    if (raw is num) {
+      parsed = raw;
+    } else if (raw != null) {
+      parsed = num.tryParse(raw.toString());
+    }
+    return Measurement(value: parsed, unit: json['unit']?.toString());
   }
 
   Map<String, dynamic> toJson() {

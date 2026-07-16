@@ -1,9 +1,11 @@
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/core/constants/legal_urls.dart';
+import 'package:disabilitymne/core/helpers/premium_access.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/payments/constants/iap_product_ids.dart';
 import 'package:disabilitymne/features/payments/model/payment_plan.dart';
+import 'package:disabilitymne/features/payments/model/premium_availability.dart';
 import 'package:disabilitymne/features/payments/services/apple_iap_service.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
 import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen.dart';
@@ -32,6 +34,8 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   bool _restoreLoading = false;
   AppleIapService? _appleIapService;
   Map<String, ProductDetails> _storeProducts = {};
+  PremiumAvailability? _premiumAvailability;
+  bool _premiumAvailabilityLoading = true;
 
   static const Color _green = Color(0xFF34C759);
   static const Color _greenFill = Color(0xFF204A47); // 20% opacity
@@ -51,11 +55,36 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   void initState() {
     super.initState();
     _plansFuture = Get.find<PaymentPlansInterface>().fetchPlans();
+    _loadPremiumAvailability();
     if (AppleIapService.isSupported) {
       _appleIapService = AppleIapService(Get.find<PaymentPlansInterface>());
       _initializeAppleIap();
     }
   }
+
+  Future<void> _loadPremiumAvailability() async {
+    setState(() => _premiumAvailabilityLoading = true);
+    final result =
+        await Get.find<PaymentPlansInterface>().fetchPremiumAvailability();
+    if (!mounted) return;
+    result.fold(
+      (_) {
+        setState(() {
+          _premiumAvailability = null;
+          _premiumAvailabilityLoading = false;
+        });
+      },
+      (availability) {
+        setState(() {
+          _premiumAvailability = availability;
+          _premiumAvailabilityLoading = false;
+        });
+      },
+    );
+  }
+
+  bool get _isPremiumFull =>
+      _premiumAvailability != null && !_premiumAvailability!.available;
 
   @override
   void dispose() {
@@ -83,6 +112,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       _plansFuture = Get.find<PaymentPlansInterface>().fetchPlans();
       _selectedIndex = 0;
     });
+    _loadPremiumAvailability();
   }
 
   Future<void> _handleContinue(
@@ -90,6 +120,14 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     PlanItem selectedUiPlan,
   ) async {
     if (_checkoutLoading || _restoreLoading) return;
+    if (selectedPlan.key == 'premium' && _isPremiumFull) {
+      AppSnackbar.error(
+        'Premium Unavailable',
+        _premiumAvailability?.message ?? premiumMembershipFullMessage,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
     if (selectedPlan.price <= 0) {
       Get.to(
         () => CongratulationsScreen(planName: selectedUiPlan.title),
@@ -380,13 +418,17 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                     final selectedPlan = plans[selected];
                     final selectedUiPlan = uiPlans[selected];
                     final isFreePlan = selectedPlan.price <= 0;
-                    final buttonText = _checkoutLoading
+                    final premiumBlocked =
+                        selectedPlan.key == 'premium' && _isPremiumFull;
+                    final buttonText = _checkoutLoading || _premiumAvailabilityLoading
                         ? 'Loading...'
-                        : isFreePlan
-                            ? 'Continue'
-                            : AppleIapService.isSupported
-                                ? 'Subscribe'
-                                : 'Continue to payment';
+                        : premiumBlocked
+                            ? 'Premium Full'
+                            : isFreePlan
+                                ? 'Continue'
+                                : AppleIapService.isSupported
+                                    ? 'Subscribe'
+                                    : 'Continue to payment';
 
                     return Column(
                       children: [
@@ -418,6 +460,30 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                           ),
                         ),
 
+                        if (_isPremiumFull)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.orange.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              child: Text(
+                                _premiumAvailability?.message ??
+                                    premiumMembershipFullMessage,
+                                style: const TextStyle(
+                                  color: Colors.orangeAccent,
+                                  fontSize: 13,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                          ),
                         /// SCROLLABLE CONTENT
                         Expanded(
                           child: ListView(
@@ -463,12 +529,19 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                         /// BUTTON (FIXED BOTTOM)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: CustomButton(
-                            onPressed: () => _handleContinue(
-                              selectedPlan,
-                              selectedUiPlan,
+                          child: Opacity(
+                            opacity: premiumBlocked ? 0.5 : 1,
+                            child: CustomButton(
+                              onPressed: premiumBlocked ||
+                                      _checkoutLoading ||
+                                      _premiumAvailabilityLoading
+                                  ? () {}
+                                  : () => _handleContinue(
+                                        selectedPlan,
+                                        selectedUiPlan,
+                                      ),
+                              text: buttonText,
                             ),
-                            text: buttonText,
                           ),
                         ),
                         if (AppleIapService.isSupported) ...[

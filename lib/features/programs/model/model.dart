@@ -10,6 +10,8 @@ class ExerciseData {
   final bool countdown;
   final int? durationSeconds;
   final int weightKg;
+  final int? restSeconds;
+  final String notes;
 
   ExerciseData({
     required this.exercise,
@@ -23,6 +25,8 @@ class ExerciseData {
     required this.countdown,
     required this.durationSeconds,
     required this.weightKg,
+    this.restSeconds,
+    this.notes = '',
   });
 
   factory ExerciseData.fromJson(Map<String, dynamic> json) {
@@ -46,6 +50,10 @@ class ExerciseData {
       weightKg: json['weightKg'] is double
           ? (json['weightKg'] as double).toInt()
           : (json['weightKg'] ?? 0),
+      restSeconds: json['restSeconds'] is double
+          ? (json['restSeconds'] as double).toInt()
+          : json['restSeconds'],
+      notes: (json['notes'] ?? '').toString(),
     );
   }
 
@@ -62,6 +70,8 @@ class ExerciseData {
       'countdown': countdown,
       'durationSeconds': durationSeconds,
       'weightKg': weightKg,
+      'restSeconds': restSeconds,
+      'notes': notes,
     };
   }
 
@@ -102,11 +112,15 @@ class SetModel {
   final int setNumber;
   final int reps;
   final int weightKg;
+  final int? restSeconds;
+  final String notes;
 
   SetModel({
     required this.setNumber,
     required this.reps,
     required this.weightKg,
+    this.restSeconds,
+    this.notes = '',
   });
 
   factory SetModel.fromJson(Map<String, dynamic> json) {
@@ -116,6 +130,10 @@ class SetModel {
       weightKg: json['weightKg'] is double
           ? (json['weightKg'] as double).toInt()
           : (json['weightKg'] ?? 0),
+      restSeconds: json['restSeconds'] is double
+          ? (json['restSeconds'] as double).toInt()
+          : json['restSeconds'],
+      notes: (json['notes'] ?? '').toString(),
     );
   }
 
@@ -124,6 +142,8 @@ class SetModel {
       'setNumber': setNumber,
       'reps': reps,
       'weightKg': weightKg,
+      if (restSeconds != null) 'restSeconds': restSeconds,
+      if (notes.isNotEmpty) 'notes': notes,
     };
   }
 }

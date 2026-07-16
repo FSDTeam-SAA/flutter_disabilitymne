@@ -1,4 +1,9 @@
+import 'package:disabilitymne/core/helpers/premium_access.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/nutrition_plans/controller/nutrition_plans_controller.dart';
+import 'package:disabilitymne/features/nutrition_plans/model/nutrition_plan_model.dart';
+import 'package:disabilitymne/features/nutrition_plans/services/nutrition_plans_repository.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
 import 'package:disabilitymne/features/recipies/model/recipes_model.dart';
 import 'package:disabilitymne/features/recipies/presentation/screen/recipies_details.dart';
@@ -21,11 +26,41 @@ class _RecipesScreenState extends State<RecipesScreen> {
     'snack',
   ];
 
+  static const List<Map<String, dynamic>> _weekDays = [
+    {'index': 1, 'label': 'Mon'},
+    {'index': 2, 'label': 'Tue'},
+    {'index': 3, 'label': 'Wed'},
+    {'index': 4, 'label': 'Thu'},
+    {'index': 5, 'label': 'Fri'},
+    {'index': 6, 'label': 'Sat'},
+    {'index': 7, 'label': 'Sun'},
+  ];
+
   final RecipeController controller = Get.isRegistered<RecipeController>()
       ? Get.find<RecipeController>()
       : Get.put(RecipeController());
 
   String _selectedMealType = _mealTypes.first;
+
+  String _dayLabel(NutritionDayModel day) {
+    if (day.label.trim().isNotEmpty) return day.label.trim();
+    final match = _weekDays.firstWhere(
+      (d) => d['index'] == day.dayIndex,
+      orElse: () => const {},
+    );
+    final label = match['label'] as String?;
+    if (label != null && label.isNotEmpty) return label;
+    return 'Day ${day.dayIndex}';
+  }
+
+  NutritionPlansController get _nutritionController {
+    if (Get.isRegistered<NutritionPlansController>()) {
+      return Get.find<NutritionPlansController>();
+    }
+    return Get.put(
+      NutritionPlansController(repository: Get.find<NutritionPlansRepository>()),
+    );
+  }
 
   @override
   void initState() {
@@ -40,6 +75,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Obx(() {
+      final isPremium = Get.isRegistered<ProfileController>() &&
+          isPremiumActiveUser(Get.find<ProfileController>().user.value);
+      if (isPremium) {
+        return _buildPremiumMealPlans();
+      }
+      return _buildCatalogRecipes();
+    });
+  }
+
+  Widget _buildCatalogRecipes() {
     return Scaffold(
       body: BackgroundImage(
         child: SafeArea(
@@ -204,6 +250,188 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumMealPlans() {
+    final nutrition = _nutritionController;
+
+    return Scaffold(
+      body: BackgroundImage(
+        child: SafeArea(
+          child: Obx(() {
+            if (nutrition.isLoading.value) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
+            }
+
+            final plans = nutrition.plans;
+            if (plans.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Meal Plans',
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      premiumAwaitingCoachMessage,
+                      style: TextStyle(color: Colors.white70, height: 1.4),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final plan = plans.first;
+            final planDays = plan.nutritionDays;
+            if (planDays.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Meal Plans',
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      premiumAwaitingCoachMessage,
+                      style: TextStyle(color: Colors.white70, height: 1.4),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final hasSelected =
+                planDays.any((d) => d.dayIndex == nutrition.selectedDayIndex.value);
+            final selectedDay = hasSelected
+                ? nutrition.selectedDayIndex.value
+                : planDays.first.dayIndex;
+            final day = planDays.firstWhere(
+              (d) => d.dayIndex == selectedDay,
+              orElse: () => planDays.first,
+            );
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Meal Plans',
+                        style: TextStyle(
+                          fontSize: 22,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        plan.title,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 44,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: planDays.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) {
+                      final planDay = planDays[index];
+                      final dayIndex = planDay.dayIndex;
+                      final selected = dayIndex == selectedDay;
+                      return InkWell(
+                        onTap: () => nutrition.selectedDayIndex.value = dayIndex,
+                        borderRadius: BorderRadius.circular(14),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? const Color(0xFF6FA8DC)
+                                : Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: selected
+                                  ? const Color(0xFF8EC4F1)
+                                  : Colors.white24,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              _dayLabel(planDay),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight:
+                                    selected ? FontWeight.w700 : FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: day.meals.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No meals for this day yet.',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: day.meals.length,
+                          itemBuilder: (context, index) {
+                            final meal = day.meals[index];
+                            final recipe = meal.recipe;
+                            if (recipe == null) return const SizedBox.shrink();
+                            return RecipeCard(
+                              recipe: RecipeModel(
+                                id: recipe.id,
+                                recipeName: recipe.recipeName,
+                                recipeType: recipe.recipeType,
+                                caloriesKcal: recipe.caloriesKcal?.toDouble(),
+                                recipeImage: recipe.recipeImage,
+                                durationMinutes: recipe.durationMinutes,
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          }),
         ),
       ),
     );
