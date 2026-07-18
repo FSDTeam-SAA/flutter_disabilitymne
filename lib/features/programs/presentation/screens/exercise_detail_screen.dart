@@ -124,26 +124,23 @@ class ExerciseDetailScreen extends StatelessWidget {
                       );
                     }
 
-                    // Show Image with Play Button
+                    // Show exercise image (thumbnail) with a play button
+                    // overlay. The video URL must never be passed to
+                    // Image.network - it always fails to render and results
+                    // in the "no preview" placeholder.
                     final videoUrl = selectPreferredVideoUrl(
                       demoVideo: model.demoVideo,
                       demoVideos: model.demoVideos,
                     );
+                    final thumbnailUrl = model.thumbnailUrl;
 
                     return Stack(
                       alignment: Alignment.center,
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            videoUrl.isNotEmpty
-                                ? videoUrl
-                                : (model.exerciseImage ?? ''),
-                            height: 220,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
+                          child: thumbnailUrl.isEmpty
+                              ? Container(
                                   height: 220,
                                   width: double.infinity,
                                   color: Colors.white10,
@@ -152,8 +149,24 @@ class ExerciseDetailScreen extends StatelessWidget {
                                     color: Colors.white24,
                                     size: 50,
                                   ),
+                                )
+                              : Image.network(
+                                  thumbnailUrl,
+                                  height: 220,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                        height: 220,
+                                        width: double.infinity,
+                                        color: Colors.white10,
+                                        child: const Icon(
+                                          Icons.image,
+                                          color: Colors.white24,
+                                          size: 50,
+                                        ),
+                                      ),
                                 ),
-                          ),
                         ),
                         if (videoUrl.isNotEmpty)
                           GestureDetector(

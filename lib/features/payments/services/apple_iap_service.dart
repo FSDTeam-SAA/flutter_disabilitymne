@@ -17,6 +17,7 @@ class AppleIapService {
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
   Completer<CheckoutResponse>? _pendingPurchase;
   String? _pendingPlanKey;
+  DateTime? _pendingStartedAt;
 
   static bool get isSupported => !kIsWeb && Platform.isIOS;
 
@@ -27,6 +28,9 @@ class AppleIapService {
     if (!available) {
       throw Exception('App Store purchases are not available on this device.');
     }
+
+    // Clear any stuck in-memory purchase lock from a previous failed attempt.
+    _clearPending();
 
     await _purchaseSub?.cancel();
     _purchaseSub = _iap.purchaseStream.listen(
@@ -41,6 +45,7 @@ class AppleIapService {
   Future<void> dispose() async {
     await _purchaseSub?.cancel();
     _purchaseSub = null;
+    _clearPending();
   }
 
   Future<Set<ProductDetails>> loadProducts() async {
@@ -66,11 +71,21 @@ class AppleIapService {
       throw Exception('Apple In-App Purchase is only available on iOS.');
     }
 
+    // If a previous attempt got stuck without finishing, allow a new purchase.
     if (_pendingPurchase != null) {
-      throw Exception('Another purchase is already in progress.');
+      final startedAt = _pendingStartedAt;
+      final isStale =
+          startedAt == null || DateTime.now().difference(startedAt) > const Duration(seconds: 90);
+      if (isStale) {
+        debugPrint('Clearing stale Apple IAP purchase lock.');
+        _clearPending();
+      } else {
+        throw Exception('Another purchase is already in progress. Please wait a moment and try again.');
+      }
     }
 
     _pendingPlanKey = planKey;
+    _pendingStartedAt = DateTime.now();
     _pendingPurchase = Completer<CheckoutResponse>();
 
     final param = PurchaseParam(productDetails: product);
@@ -208,5 +223,6 @@ class AppleIapService {
   void _clearPending() {
     _pendingPurchase = null;
     _pendingPlanKey = null;
+    _pendingStartedAt = null;
   }
 }

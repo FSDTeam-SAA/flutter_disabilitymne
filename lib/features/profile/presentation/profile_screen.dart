@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         AppSnackbar.show(
           'Chat unavailable',
           failure.uiMessage,
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
           margin: const EdgeInsets.all(12),
         );
       },
@@ -114,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               AppSnackbar.error(
                 'Delete failed',
                 failure.uiMessage,
-                snackPosition: SnackPosition.BOTTOM,
+                snackPosition: SnackPosition.TOP,
               );
             },
             (success) {
@@ -122,7 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               AppSnackbar.show(
                 'Account deleted',
                 success.message,
-                snackPosition: SnackPosition.BOTTOM,
+                snackPosition: SnackPosition.TOP,
               );
             },
           );

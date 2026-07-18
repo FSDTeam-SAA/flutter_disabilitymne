@@ -50,14 +50,14 @@ class SignupController extends GetxController {
           AppSnackbar.show(
             "Signup Failed",
             failure.uiMessage,
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
           );
         },
         (success) {
           AppSnackbar.show(
             "Success",
             success.message,
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
           );
           onSuccess();
         },
@@ -66,7 +66,7 @@ class SignupController extends GetxController {
       AppSnackbar.show(
         "Signup Failed",
         e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;

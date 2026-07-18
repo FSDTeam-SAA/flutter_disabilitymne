@@ -187,14 +187,14 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
       AppSnackbar.show(
         'Added',
         'Recipe added to ${_titleCase(selectedMealType)}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (_) {
       if (!mounted) return;
       AppSnackbar.show(
         'Error',
         'Failed to add recipe to meal',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       if (mounted) {

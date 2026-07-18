@@ -71,6 +71,24 @@ class LibraryModel {
     );
   }
 
+  /// Best available image to show as thumbnail/preview.
+  /// Never returns a video URL.
+  String get thumbnailUrl {
+    if (exerciseImage != null && exerciseImage!.trim().isNotEmpty) {
+      return exerciseImage!.trim();
+    }
+    if (exerciseImages != null && exerciseImages!.isNotEmpty) {
+      return exerciseImages!.first;
+    }
+    if (targetMuscleImage != null && targetMuscleImage!.trim().isNotEmpty) {
+      return targetMuscleImage!.trim();
+    }
+    if (targetMuscleImages != null && targetMuscleImages!.isNotEmpty) {
+      return targetMuscleImages!.first;
+    }
+    return '';
+  }
+
   /// Convert List
   static List<LibraryModel> fromJsonList(dynamic data) {
     if (data is! List) {

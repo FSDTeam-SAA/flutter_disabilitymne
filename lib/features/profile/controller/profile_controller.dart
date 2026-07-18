@@ -247,7 +247,7 @@ class ProfileController extends GetxController {
           AppSnackbar.success(
             'Success',
             success.message,
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
           );
 
           getProfile().then((_) {
@@ -301,7 +301,7 @@ class ProfileController extends GetxController {
             AppSnackbar.success(
               'Success',
               success.message,
-              snackPosition: SnackPosition.BOTTOM,
+              snackPosition: SnackPosition.TOP,
             );
           },
         );

@@ -43,14 +43,30 @@ class AppSnackbar {
     return AppSnackbarType.info;
   }
 
+  /// Auth/session errors (e.g. calling a logged-in-only API while in guest
+  /// mode after logout) should never be surfaced to the user as a snackbar.
+  static bool _isSuppressedAuthError(String message) {
+    final normalized = message.toLowerCase();
+    return normalized.contains('not logged in') ||
+        normalized.contains('bearer token') ||
+        normalized.contains('unauthenticated') ||
+        normalized.contains('token expired') ||
+        normalized.contains('jwt');
+  }
+
   static void show(
     String title,
     String message, {
     AppSnackbarType? type,
-    SnackPosition snackPosition = SnackPosition.BOTTOM,
+    SnackPosition snackPosition = SnackPosition.TOP,
     Duration duration = const Duration(seconds: 3),
     EdgeInsets margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
   }) {
+    if (_isSuppressedAuthError(message)) {
+      debugPrint('AppSnackbar suppressed auth error: $message');
+      return;
+    }
+
     final resolvedType = type ?? _typeFromTitle(title);
     final (backgroundColor, iconData, iconColor) = switch (resolvedType) {
       AppSnackbarType.success => (
@@ -100,7 +116,7 @@ class AppSnackbar {
   static void success(
     String title,
     String message, {
-    SnackPosition snackPosition = SnackPosition.BOTTOM,
+    SnackPosition snackPosition = SnackPosition.TOP,
   }) {
     show(
       title,
@@ -113,7 +129,7 @@ class AppSnackbar {
   static void error(
     String title,
     String message, {
-    SnackPosition snackPosition = SnackPosition.BOTTOM,
+    SnackPosition snackPosition = SnackPosition.TOP,
   }) {
     show(
       title,
@@ -126,7 +142,7 @@ class AppSnackbar {
   static void info(
     String title,
     String message, {
-    SnackPosition snackPosition = SnackPosition.BOTTOM,
+    SnackPosition snackPosition = SnackPosition.TOP,
   }) {
     show(
       title,
@@ -139,7 +155,7 @@ class AppSnackbar {
   static void warning(
     String title,
     String message, {
-    SnackPosition snackPosition = SnackPosition.BOTTOM,
+    SnackPosition snackPosition = SnackPosition.TOP,
   }) {
     show(
       title,

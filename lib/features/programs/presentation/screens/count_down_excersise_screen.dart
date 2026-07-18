@@ -377,7 +377,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                           child: Text(
                             currentExercise != null
                                 ? "${currentExercise.defaultSets.length} sets"
-                                : "4 sets - 15 reps",
+                                : "",
                             style: const TextStyle(color: Colors.white70),
                           ),
                         ),

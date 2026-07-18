@@ -1093,7 +1093,7 @@ class _HomeScreenState extends State<HomeScreen> {
               AppSnackbar.show(
                 'Chat',
                 failure.uiMessage,
-                snackPosition: SnackPosition.BOTTOM,
+                snackPosition: SnackPosition.TOP,
               );
             },
             (info) {

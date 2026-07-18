@@ -37,7 +37,7 @@ class HelpSupportController extends GetxController {
       AppSnackbar.error(
         'Error',
         'All fields are required',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -54,7 +54,7 @@ class HelpSupportController extends GetxController {
           AppSnackbar.error(
             'Error',
             failure.uiMessage,
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
           );
         },
         (success) {
@@ -64,7 +64,7 @@ class HelpSupportController extends GetxController {
             AppSnackbar.success(
               'Success',
               'Your report has been submitted.',
-              snackPosition: SnackPosition.BOTTOM,
+              snackPosition: SnackPosition.TOP,
             );
           });
         },
@@ -73,7 +73,7 @@ class HelpSupportController extends GetxController {
       AppSnackbar.show(
         "Error",
         "Something went wrong",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;

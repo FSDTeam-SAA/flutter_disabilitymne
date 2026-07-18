@@ -145,14 +145,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       AppSnackbar.show(
         'Tracked',
         'Food added to ${_titleCase(_selectedMeal)}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (_) {
       if (!mounted) return;
       AppSnackbar.show(
         'Error',
         'Failed to track food',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       if (mounted) {

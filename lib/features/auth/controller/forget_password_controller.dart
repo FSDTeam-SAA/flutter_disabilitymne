@@ -30,20 +30,20 @@ class ForgetPasswordController extends GetxController {
           AppSnackbar.show(
             "Failed",
             failure.uiMessage,
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
           );
         },
         (success) {
           AppSnackbar.show(
             "Success",
             success.message,
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
           );
           onSuccess();
         },
       );
     } catch (e) {
-      AppSnackbar.show("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.show("Error", e.toString(), snackPosition: SnackPosition.TOP);
     } finally {
       isLoading.value = false;
     }

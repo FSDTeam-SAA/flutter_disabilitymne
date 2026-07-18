@@ -149,7 +149,7 @@
 //           AppSnackbar.show(
 //             "Success",
 //             "Your report has been submitted.",
-//             snackPosition: SnackPosition.BOTTOM,
+//             snackPosition: SnackPosition.TOP,
 //             backgroundColor: Colors.green,
 //             colorText: Colors.white,
 //           );

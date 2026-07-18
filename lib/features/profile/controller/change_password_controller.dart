@@ -38,7 +38,7 @@ class ChangePasswordController extends GetxController {
         AppSnackbar.show(
           "Success",
           success.message,
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
 
         Get.offAllNamed('/login');

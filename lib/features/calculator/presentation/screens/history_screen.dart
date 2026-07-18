@@ -308,7 +308,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     AppSnackbar.show(
       title,
       message,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(12),
     );
   }

@@ -102,16 +102,24 @@ class ExerciseController extends GetxController {
     _disposeControllers();
     setControllers.clear();
 
-    // Prefer customSets if they exist, otherwise use defaultSets or effectiveSets
-    final setsToUse = data.customSets.isNotEmpty
-        ? data.customSets
-        : (data.effectiveSets.isNotEmpty ? data.effectiveSets : data.defaultSets);
-
-    for (var set in setsToUse) {
-      setControllers.add({
-        "kg": TextEditingController(text: set.weightKg.toString()),
-        "reps": TextEditingController(text: set.reps.toString()),
-      });
+    // Only prefill values the user saved themselves (customSets).
+    // Default sets should NOT be shown as values - users enter their own
+    // weight/reps, so we only use defaults to determine the number of
+    // empty set rows to display.
+    if (data.customSets.isNotEmpty) {
+      for (var set in data.customSets) {
+        setControllers.add({
+          "kg": TextEditingController(text: set.weightKg.toString()),
+          "reps": TextEditingController(text: set.reps.toString()),
+        });
+      }
+    } else {
+      final defaultCount = data.effectiveSets.isNotEmpty
+          ? data.effectiveSets.length
+          : data.defaultSets.length;
+      for (var i = 0; i < defaultCount; i++) {
+        addSet();
+      }
     }
 
     if (setControllers.isEmpty) {

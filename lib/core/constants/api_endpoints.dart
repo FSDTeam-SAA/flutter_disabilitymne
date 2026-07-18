@@ -140,15 +140,15 @@ base class ApiEndpoints {
   static String nutritionPlanDetail(String id) => _NutritionPlans.detail(id);
 }
 
-class _LocalServer {
-  static const String socketUrl = 'http://localhost:8000';
-  static const String baseUrl = 'http://localhost:8000/api/v1';
-}
-
-// class _RemoteServer {
-//   static const String socketUrl = 'http://187.124.21.65';
-//   static const String baseUrl = 'http://187.124.21.65/api/v1';
+// class _LocalServer {
+//   static const String socketUrl = 'http://localhost:8000';
+//   static const String baseUrl = 'http://localhost:8000/api/v1';
 // }
+
+class _LocalServer {
+  static const String socketUrl = 'http://187.124.21.65';
+  static const String baseUrl = 'http://187.124.21.65/api/v1';
+}
 
 class _Auth {
   @protected

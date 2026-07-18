@@ -144,9 +144,7 @@ class ExerciseCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child:
-                      model.exerciseImage == null ||
-                          model.exerciseImage!.isEmpty
+                  child: model.thumbnailUrl.isEmpty
                       ? Container(
                           height: 70,
                           width: 70,
@@ -158,7 +156,7 @@ class ExerciseCard extends StatelessWidget {
                           ),
                         )
                       : Image.network(
-                          model.exerciseImage!,
+                          model.thumbnailUrl,
                           height: 70,
                           width: 70,
                           fit: BoxFit.cover,

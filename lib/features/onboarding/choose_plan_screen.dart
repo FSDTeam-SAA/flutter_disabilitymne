@@ -124,7 +124,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       AppSnackbar.error(
         'Premium Unavailable',
         _premiumAvailability?.message ?? premiumMembershipFullMessage,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -149,7 +149,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   ) async {
     final productId = IapProductIds.forPlanKey(selectedPlan.key);
     if (productId == null) {
-      AppSnackbar.error('Error', 'Invalid subscription plan.', snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.error('Error', 'Invalid subscription plan.', snackPosition: SnackPosition.TOP);
       return;
     }
 
@@ -158,7 +158,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       AppSnackbar.error(
         'Error',
         'This plan is not available in the App Store yet.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -176,7 +176,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       AppSnackbar.error(
         'Purchase failed',
         error.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       if (mounted) setState(() => _checkoutLoading = false);
@@ -198,7 +198,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
         AppSnackbar.error(
           'Error',
           failure.uiMessage,
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
       },
       (checkoutResponse) {
@@ -213,7 +213,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
           AppSnackbar.show(
             'Error',
             'No checkout URL received.',
-            snackPosition: SnackPosition.BOTTOM,
+            snackPosition: SnackPosition.TOP,
           );
           return;
         }
@@ -244,14 +244,14 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       AppSnackbar.show(
         'Restored',
         'Your subscription was restored successfully.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (error) {
       if (!mounted) return;
       AppSnackbar.error(
         'Restore failed',
         error.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       if (mounted) setState(() => _restoreLoading = false);
