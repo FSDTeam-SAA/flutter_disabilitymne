@@ -64,8 +64,8 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
   Future<void> _loadPremiumAvailability() async {
     setState(() => _premiumAvailabilityLoading = true);
-    final result =
-        await Get.find<PaymentPlansInterface>().fetchPremiumAvailability();
+    final result = await Get.find<PaymentPlansInterface>()
+        .fetchPremiumAvailability();
     if (!mounted) return;
     result.fold(
       (_) {
@@ -98,9 +98,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       final products = await _appleIapService?.loadProducts() ?? {};
       if (!mounted) return;
       setState(() {
-        _storeProducts = {
-          for (final product in products) product.id: product,
-        };
+        _storeProducts = {for (final product in products) product.id: product};
       });
     } catch (error) {
       debugPrint('Apple IAP init failed: $error');
@@ -129,9 +127,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       return;
     }
     if (selectedPlan.price <= 0) {
-      Get.to(
-        () => CongratulationsScreen(planName: selectedUiPlan.title),
-      );
+      Get.to(() => CongratulationsScreen(planName: selectedUiPlan.title));
       return;
     }
 
@@ -149,7 +145,11 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   ) async {
     final productId = IapProductIds.forPlanKey(selectedPlan.key);
     if (productId == null) {
-      AppSnackbar.error('Error', 'Invalid subscription plan.', snackPosition: SnackPosition.TOP);
+      AppSnackbar.error(
+        'Error',
+        'Invalid subscription plan.',
+        snackPosition: SnackPosition.TOP,
+      );
       return;
     }
 
@@ -203,9 +203,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       },
       (checkoutResponse) {
         if (checkoutResponse.isFreePlan) {
-          Get.to(
-            () => CongratulationsScreen(planName: selectedUiPlan.title),
-          );
+          Get.to(() => CongratulationsScreen(planName: selectedUiPlan.title));
           return;
         }
         final url = checkoutResponse.checkoutUrl?.trim();
@@ -223,9 +221,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             planName: selectedUiPlan.title,
             onSuccess: () {
               Get.offAll(
-                () => CongratulationsScreen(
-                  planName: selectedUiPlan.title,
-                ),
+                () => CongratulationsScreen(planName: selectedUiPlan.title),
               );
             },
             onCancel: () => Get.back(),
@@ -268,8 +264,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     final uri = url.trim().isEmpty ? null : Uri.tryParse(url.trim());
     if (uri != null) {
       try {
-        final launched =
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
+        final launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
         if (launched) return;
       } catch (_) {
         // Fall through to the in-app screen below.
@@ -294,10 +292,15 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     }
   }
 
-  static String _formatPrice(PaymentPlan plan, Map<String, ProductDetails> storeProducts) {
+  static String _formatPrice(
+    PaymentPlan plan,
+    Map<String, ProductDetails> storeProducts,
+  ) {
     if (plan.price <= 0) return '00.00\$';
     final productId = IapProductIds.forPlanKey(plan.key);
-    final storePrice = productId != null ? storeProducts[productId]?.price : null;
+    final storePrice = productId != null
+        ? storeProducts[productId]?.price
+        : null;
     if (storePrice != null && storePrice.isNotEmpty) return storePrice;
     return '${plan.price.toStringAsFixed(2)}\$';
   }
@@ -414,21 +417,25 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                         ),
                       );
                     }
-                    final selected = _selectedIndex.clamp(0, uiPlans.length - 1);
+                    final selected = _selectedIndex.clamp(
+                      0,
+                      uiPlans.length - 1,
+                    );
                     final selectedPlan = plans[selected];
                     final selectedUiPlan = uiPlans[selected];
                     final isFreePlan = selectedPlan.price <= 0;
                     final premiumBlocked =
                         selectedPlan.key == 'premium' && _isPremiumFull;
-                    final buttonText = _checkoutLoading || _premiumAvailabilityLoading
+                    final buttonText =
+                        _checkoutLoading || _premiumAvailabilityLoading
                         ? 'Loading...'
                         : premiumBlocked
-                            ? 'Premium Full'
-                            : isFreePlan
-                                ? 'Continue'
-                                : AppleIapService.isSupported
-                                    ? 'Subscribe'
-                                    : 'Continue to payment';
+                        ? 'Premium Full'
+                        : isFreePlan
+                        ? 'Continue'
+                        : AppleIapService.isSupported
+                        ? 'Subscribe'
+                        : 'Continue to payment';
 
                     return Column(
                       children: [
@@ -484,6 +491,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                               ),
                             ),
                           ),
+
                         /// SCROLLABLE CONTENT
                         Expanded(
                           child: ListView(
@@ -532,14 +540,15 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                           child: Opacity(
                             opacity: premiumBlocked ? 0.5 : 1,
                             child: CustomButton(
-                              onPressed: premiumBlocked ||
+                              onPressed:
+                                  premiumBlocked ||
                                       _checkoutLoading ||
                                       _premiumAvailabilityLoading
                                   ? () {}
                                   : () => _handleContinue(
-                                        selectedPlan,
-                                        selectedUiPlan,
-                                      ),
+                                      selectedPlan,
+                                      selectedUiPlan,
+                                    ),
                               text: buttonText,
                             ),
                           ),
@@ -547,9 +556,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                         if (AppleIapService.isSupported) ...[
                           const SizedBox(height: 8),
                           TextButton(
-                            onPressed: _restoreLoading ? null : _handleRestorePurchases,
+                            onPressed: _restoreLoading
+                                ? null
+                                : _handleRestorePurchases,
                             child: Text(
-                              _restoreLoading ? 'Restoring...' : 'Restore Purchases',
+                              _restoreLoading
+                                  ? 'Restoring...'
+                                  : 'Restore Purchases',
                               style: const TextStyle(color: Colors.white70),
                             ),
                           ),
@@ -576,12 +589,17 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                               ),
                               child: const Text(
                                 'Terms of Use (EULA)',
-                                style: TextStyle(fontSize: 12, color: Colors.white70),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ),
                             Text(
                               '·',
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.5),
+                              ),
                             ),
                             TextButton(
                               onPressed: () => _openLegalLink(
@@ -590,7 +608,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                               ),
                               child: const Text(
                                 'Privacy Policy',
-                                style: TextStyle(fontSize: 12, color: Colors.white70),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ),
                           ],

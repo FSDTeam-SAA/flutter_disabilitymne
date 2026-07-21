@@ -3,19 +3,10 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 /// Listens to app lifecycle and disconnects socket on pause, reconnects on resume.
-/// Add in your root State's initState and remove in dispose.
 ///
-/// Example in MyApp State:
-///   late final ChatSocketLifecycleObserver _socketLifecycle;
-///   @override void initState() {
-///     super.initState();
-///     _socketLifecycle = ChatSocketLifecycleObserver();
-///     WidgetsBinding.instance.addObserver(_socketLifecycle);
-///   }
-///   @override void dispose() {
-///     WidgetsBinding.instance.removeObserver(_socketLifecycle);
-///     super.dispose();
-///   }
+/// Important: do NOT disconnect on [AppLifecycleState.inactive]. On iOS that
+/// fires for keyboard, control center, and navigation transitions — disconnecting
+/// there leaves chat stuck on "Connecting" / "Socket is not connected".
 class ChatSocketLifecycleObserver with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -23,12 +14,12 @@ class ChatSocketLifecycleObserver with WidgetsBindingObserver {
     final service = Get.find<ChatSocketService>();
     switch (state) {
       case AppLifecycleState.paused:
-      case AppLifecycleState.inactive:
         service.disconnectOnPause();
         break;
       case AppLifecycleState.resumed:
         service.reconnectOnResume();
         break;
+      case AppLifecycleState.inactive:
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:
         break;

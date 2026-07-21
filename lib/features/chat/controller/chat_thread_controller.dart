@@ -1,21 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/auth/access_token_holder.dart';
 import 'package:disabilitymne/features/chat/model/chat_models.dart';
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
 import 'package:disabilitymne/features/chat/service/chat_socket_service.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-/// Controller for a single chat thread: loads messages, sends via Socket.IO,
-/// keeps message list updated from socket chat:message:new, joins/leaves thread,
-/// and reflects socket connection state.
-///
-/// Socket emit flow (backend chatSocket.js):
-/// - chat:join-thread(threadId) → done in onInit via _socketService.joinThread(threadId)
-/// - chat:leave-thread(threadId) → done in onClose via _socketService.leaveThread(threadId)
-/// To emit any other event: _socketService.emit('event-name', data);
+/// Controller for a single chat thread: loads messages, sends via Socket.IO
+/// (with REST fallback), keeps message list updated from socket events,
+/// joins/leaves thread, and reflects socket connection state.
 class ChatThreadController extends GetxController {
   ChatThreadController({
     required this.threadId,
@@ -46,7 +42,7 @@ class ChatThreadController extends GetxController {
   final StreamController<List<ChatMessage>> _messagesStreamController =
       StreamController<List<ChatMessage>>.broadcast();
 
-  /// Live stream of messages for StreamBuilder. Emits when messages load or socket sends new message.
+  /// Live stream of messages for StreamBuilder.
   Stream<List<ChatMessage>> get messagesStream =>
       _messagesStreamController.stream;
 
@@ -63,12 +59,13 @@ class ChatThreadController extends GetxController {
   void onInit() {
     super.onInit();
     _messagesStreamController.add([]);
-    connectSocketAndJoin();
     _newMessageSub = _socketService.onNewMessage.listen(_onNewMessage);
     _stateSub = _socketService.onConnectionState.listen(_onConnectionState);
     socketConnected.value = _socketService.isConnected;
-    loadMessages();
-    markAsRead();
+    // Fire-and-forget: load history while we connect the live socket.
+    unawaited(connectSocketAndJoin());
+    unawaited(loadMessages());
+    unawaited(markAsRead());
   }
 
   @override
@@ -84,25 +81,47 @@ class ChatThreadController extends GetxController {
     socketConnected.value = state == SocketConnectionState.connected;
   }
 
-  void connectSocketAndJoin() {
+  /// Resolve JWT from in-memory holder, or fall back to persisted auth record.
+  Future<String?> _resolveAccessToken() async {
+    final cached = _tokenHolder?.token?.trim();
+    if (cached != null && cached.isNotEmpty) return cached;
+
+    if (!Get.isRegistered<AuthorizedPigeon>()) return null;
     try {
-      final token = _tokenHolder?.token?.trim();
-      if (token == null || token.isEmpty) {
-        debugPrint('Socket Connect Problem : missing access token');
-        return;
+      final auth = await Get.find<AuthorizedPigeon>().getCurrentAuthRecord();
+      final token = auth?.toJson()['access_token'] as String?;
+      final trimmed = token?.trim();
+      if (trimmed != null && trimmed.isNotEmpty) {
+        _tokenHolder?.setToken(trimmed);
+        return trimmed;
       }
-
-      if (!_socketService.isConnected) {
-        _socketService.connect(token);
-      }
-
-      _socketService.joinThread(threadId);
     } catch (e) {
-      debugPrint("Socket Connect Problem : $e");
+      debugPrint('ChatThreadController: resolve token error: $e');
     }
+    return null;
   }
 
-  // 0..................................
+  Future<bool> connectSocketAndJoin() async {
+    try {
+      final token = await _resolveAccessToken();
+      if (token == null || token.isEmpty) {
+        debugPrint('Socket Connect Problem : missing access token');
+        socketConnected.value = false;
+        return false;
+      }
+
+      final connected = await _socketService.ensureConnected(token);
+      socketConnected.value = connected;
+      if (connected) {
+        _socketService.joinThread(threadId);
+      }
+      return connected;
+    } catch (e) {
+      debugPrint('Socket Connect Problem : $e');
+      socketConnected.value = false;
+      return false;
+    }
+  }
 
   void _onNewMessage(ChatMessage msg) {
     final msgThreadId = msg.threadId?.trim() ?? '';
@@ -124,7 +143,6 @@ class ChatThreadController extends GetxController {
     isLoading.value = false;
   }
 
-  /// Mark this thread as read (REST + optional socket chat:thread:read is emitted by backend).
   Future<void> markAsRead() async {
     await _repo.markThreadAsRead(threadId);
   }
@@ -163,23 +181,54 @@ class ChatThreadController extends GetxController {
     }
 
     try {
-      if (!_socketService.isConnected) {
-        connectSocketAndJoin();
-        await Future<void>.delayed(const Duration(milliseconds: 300));
-      }
+      final connected = await connectSocketAndJoin();
 
-      final msg = await _socketService.sendMessage(
-        threadId: threadId,
-        message: trimmed,
-        attachments: attachments,
-      );
-
-      if (!messages.any((m) => m.id == msg.id)) {
-        messages.add(msg);
-        _emitMessages();
+      if (connected) {
+        final msg = await _socketService.sendMessage(
+          threadId: threadId,
+          message: trimmed,
+          attachments: attachments,
+        );
+        if (!messages.any((m) => m.id == msg.id)) {
+          messages.add(msg);
+          _emitMessages();
+        }
+      } else {
+        // REST fallback so chat still works when live socket is down.
+        final result = await _repo.sendMessage(
+          threadId: threadId,
+          text: trimmed,
+          attachments: attachments,
+        );
+        result.fold(
+          (f) => errorMessage.value = f.uiMessage,
+          (msg) {
+            if (!messages.any((m) => m.id == msg.id)) {
+              messages.add(msg);
+              _emitMessages();
+            }
+          },
+        );
       }
     } catch (e) {
-      errorMessage.value = e.toString().replaceFirst('Exception: ', '');
+      // Last resort: try REST if socket send threw.
+      final result = await _repo.sendMessage(
+        threadId: threadId,
+        text: trimmed,
+        attachments: attachments,
+      );
+      result.fold(
+        (f) => errorMessage.value = f.uiMessage.isNotEmpty
+            ? f.uiMessage
+            : e.toString().replaceFirst('Exception: ', ''),
+        (msg) {
+          errorMessage.value = null;
+          if (!messages.any((m) => m.id == msg.id)) {
+            messages.add(msg);
+            _emitMessages();
+          }
+        },
+      );
     } finally {
       isSending.value = false;
     }

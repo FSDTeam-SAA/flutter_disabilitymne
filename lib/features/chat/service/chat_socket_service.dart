@@ -94,21 +94,27 @@ class ChatSocketService {
       debugPrint('cannot connect without access token');
       return;
     }
-    // Initially check: socket already connected with same token → no need to reconnect
+    // Already connected with same token → no need to reconnect
     if (_socket != null && _socket!.connected && _lastToken == accessToken) {
       _setState(SocketConnectionState.connected);
       debugPrint('already connected, skipping reconnect');
       return;
     }
-    disconnect();
+
+    // Soft-dispose previous socket but keep joined thread ids + token so
+    // onConnect can re-join rooms after a reconnect/auth refresh.
+    final preservedThreads = Set<String>.from(_joinedThreadIds);
+    _disposeSocketOnly();
+    _joinedThreadIds.addAll(preservedThreads);
     _lastToken = accessToken;
     _setState(SocketConnectionState.connecting);
 
     _socket = io.io(
-      ApiEndpoints.socketUrl,
+      socketUrl.isNotEmpty ? socketUrl : ApiEndpoints.socketUrl,
       io.OptionBuilder()
           .setTransports(['websocket', 'polling'])
           .enableAutoConnect()
+          .enableForceNew()
           .enableReconnection()
           .setReconnectionAttempts(_reconnectionAttempts)
           .setReconnectionDelay(_reconnectionDelayMs)
@@ -317,14 +323,58 @@ class ChatSocketService {
     return completer.future;
   }
 
-  /// Disconnect and clear state. Call on logout or when pausing app if desired.
+  void _disposeSocketOnly() {
+    try {
+      _socket?.clearListeners();
+      _socket?.disconnect();
+      _socket?.dispose();
+    } catch (e) {
+      debugPrint('dispose socket error: $e');
+    }
+    _socket = null;
+  }
+
+  /// Disconnect and clear state. Call on logout.
   void disconnect() {
     _joinedThreadIds.clear();
-    _socket?.disconnect();
-    _socket?.dispose();
-    _socket = null;
+    _disposeSocketOnly();
     _lastToken = null;
     _setState(SocketConnectionState.disconnected);
+  }
+
+  /// Wait until the socket is connected (or [timeout] elapses).
+  Future<bool> ensureConnected(
+    String accessToken, {
+    Duration timeout = const Duration(seconds: 8),
+  }) async {
+    final token = accessToken.trim();
+    if (token.isEmpty) return false;
+    if (isConnected && _lastToken == token) {
+      _setState(SocketConnectionState.connected);
+      return true;
+    }
+
+    connect(token);
+    if (isConnected) return true;
+
+    final completer = Completer<bool>();
+    late final StreamSubscription<SocketConnectionState> sub;
+    final timer = Timer(timeout, () {
+      if (!completer.isCompleted) completer.complete(isConnected);
+    });
+
+    sub = onConnectionState.listen((state) {
+      if (state == SocketConnectionState.connected && !completer.isCompleted) {
+        completer.complete(true);
+      }
+    });
+
+    try {
+      return await completer.future;
+    } finally {
+      timer.cancel();
+      await sub.cancel();
+    }
   }
 
   /// Reconnect using the last token (e.g. on app resume). No-op if never connected or no token.
@@ -335,13 +385,13 @@ class ChatSocketService {
     }
   }
 
-  /// Call when app is paused (optional). Disconnects to save resources.
+  /// Call when app is paused. Disconnects to save resources but keeps token/rooms.
   void disconnectOnPause() {
-    _socket?.disconnect();
+    _disposeSocketOnly();
     _setState(SocketConnectionState.disconnected);
   }
 
-  /// Call when app is resumed (optional). Reconnects with last token and re-joins threads.
+  /// Call when app is resumed. Reconnects with last token and re-joins threads.
   void reconnectOnResume() {
     reconnect();
   }

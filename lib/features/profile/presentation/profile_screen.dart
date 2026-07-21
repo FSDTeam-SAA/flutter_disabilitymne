@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:disabilitymne/app/guest_ground.dart';
+import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/chat/presentation/chat_thread_screen.dart';
@@ -15,6 +15,7 @@ import 'package:disabilitymne/features/profile/presentation/my_profile_screen.da
 import 'package:disabilitymne/features/profile/presentation/notification_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/terms_condition_screen.dart';
+import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/helpers/app_snackbar.dart';
@@ -118,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             },
             (success) {
-              Get.offAll(() => const GuestGround());
+              Get.offAll(() => const WelcomeScreen());
               AppSnackbar.show(
                 'Account deleted',
                 success.message,
@@ -201,9 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     } else if (hasProfileImage) {
                       avatarImage = CachedNetworkImageProvider(profileImageUrl);
                     } else {
-                      avatarImage = const AssetImage(
-                        "assets/image/app_logo.png",
-                      );
+                      avatarImage = AssetImage(ImagePath.splashLogo);
                     }
 
                     final name = [

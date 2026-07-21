@@ -39,8 +39,11 @@ final class AuthInterfaceImpl extends AuthInterface {
         final loginData = loginResponse.data!;
         final userId = loginData.user?.id?.trim();
 
-        if (Get.isRegistered<OnboardingStateHolder>() && loginData.user != null) {
-          Get.find<OnboardingStateHolder>().saveFromLogin(loginData.user);
+        if (Get.isRegistered<OnboardingStateHolder>()) {
+          Get.find<OnboardingStateHolder>().setIntroSeen();
+          if (loginData.user != null) {
+            Get.find<OnboardingStateHolder>().saveFromLogin(loginData.user);
+          }
         }
         if (loginData.user != null) {
           Get.find<ProfileController>().user.value = loginData.user;

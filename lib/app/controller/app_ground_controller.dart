@@ -6,4 +6,9 @@ class AppGroundController extends GetxController {
   void changeIndex(int index) {
     currentIndex.value = index;
   }
+
+  /// Call after login / when opening AppGround so logout→login lands on Home.
+  void resetToHome() {
+    currentIndex.value = 0;
+  }
 }

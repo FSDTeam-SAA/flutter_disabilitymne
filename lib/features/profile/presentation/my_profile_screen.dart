@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
 import 'package:disabilitymne/features/profile/constants/profile_field_options.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
@@ -126,9 +127,7 @@ class MyProfileScreen extends GetView<ProfileController> {
                                                   .value!
                                                   .profileImage!,
                                             )
-                                          : const AssetImage(
-                                                  "assets/image/app_logo.png",
-                                                )
+                                          : AssetImage(ImagePath.splashLogo)
                                                 as ImageProvider,
                                     ),
                                     if (controller.isEditing.value)

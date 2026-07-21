@@ -39,12 +39,15 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   final List<File> _pendingFiles = [];
   int _prevMessageCount = 0;
 
-  static const Color _screenBg = Color(0xFFF5F7FB);
+  static const Color _screenBg = Color(0xFF121927);
   static const Color _headerBg = Color(0xFF0B1A2A);
   static const Color _sentBubble = Color(0xFF2F80C1);
-  static const Color _receivedBubble = Color(0xFFFFFFFF);
-  static const Color _inputBg = Color(0xFFFFFFFF);
-  static const Color _muted = Color(0xFF667085);
+  static const Color _receivedBubble = Color(0xFF1C2533);
+  static const Color _receivedText = Color(0xFFE7EAF0);
+  static const Color _inputAreaBg = Color(0xFF0F1624);
+  static const Color _inputBg = Color(0xFF1C2533);
+  static const Color _inputBorder = Color(0xFF2E3A4E);
+  static const Color _muted = Color(0xFFA0A8B7);
 
   @override
   void initState() {
@@ -85,7 +88,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     FocusScope.of(context).unfocus();
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: _screenBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
@@ -100,7 +103,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   width: 42,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD0D5DD),
+                    color: const Color(0xFF3B4250),
                     borderRadius: BorderRadius.circular(100),
                   ),
                 ),
@@ -306,7 +309,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               child: Text(
                 error,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFFB42318), fontSize: 12),
+                style: const TextStyle(color: Color(0xFFFF6B6B), fontSize: 12),
               ),
             );
           }),
@@ -325,8 +328,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         bottom: 10 + MediaQuery.of(context).padding.bottom,
       ),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE4E7EC))),
+        color: _inputAreaBg,
+        border: Border(top: BorderSide(color: _inputBorder)),
       ),
       child: SafeArea(
         top: false,
@@ -350,12 +353,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     decoration: BoxDecoration(
                       color: _inputBg,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: const Color(0xFFD0D5DD)),
+                      border: Border.all(color: _inputBorder),
                     ),
                     child: TextField(
                       controller: _textController,
                       style: const TextStyle(
-                        color: Color(0xFF101828),
+                        color: Color(0xFFE7EAF0),
                         fontSize: 15,
                       ),
                       decoration: const InputDecoration(
@@ -415,7 +418,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 child: Container(
                   width: 68,
                   height: 68,
-                  color: const Color(0xFFE4E7EC),
+                  color: const Color(0xFF1C2A3A),
                   child: isVideo
                       ? const Icon(
                           Icons.play_circle_fill_rounded,
@@ -458,7 +461,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     bool filled = false,
   }) {
     return Material(
-      color: filled ? _sentBubble : const Color(0xFFF2F4F7),
+      color: filled ? _sentBubble : const Color(0xFF1C2533),
       shape: const CircleBorder(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -468,7 +471,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           height: 46,
           child: Icon(
             icon,
-            color: filled ? Colors.white : const Color(0xFF344054),
+            color: filled ? Colors.white : const Color(0xFFB8C1D1),
             size: 22,
           ),
         ),
@@ -497,18 +500,18 @@ class _AttachmentAction extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF2F4F7),
+            color: const Color(0xFF1C2533),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: const Color(0xFF175CD3), size: 26),
+              Icon(icon, color: const Color(0xFF89C9E6), size: 26),
               const SizedBox(height: 8),
               Text(
                 label,
                 style: const TextStyle(
-                  color: Color(0xFF101828),
+                  color: Color(0xFFE7EAF0),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -579,7 +582,9 @@ class _MessageBubble extends StatelessWidget {
                     Text(
                       message.message,
                       style: TextStyle(
-                        color: isMine ? Colors.white : const Color(0xFF101828),
+                        color: isMine
+                            ? Colors.white
+                            : _ChatThreadScreenState._receivedText,
                         fontSize: 15,
                         height: 1.35,
                       ),
@@ -590,7 +595,7 @@ class _MessageBubble extends StatelessWidget {
                     style: TextStyle(
                       color: isMine
                           ? Colors.white.withValues(alpha: 0.72)
-                          : const Color(0xFF98A2B3),
+                          : const Color(0xFF8792A2),
                       fontSize: 10,
                     ),
                   ),
@@ -651,7 +656,7 @@ class _AttachmentPreview extends StatelessWidget {
           placeholder: (_, _) => Container(
             width: 230,
             height: 150,
-            color: const Color(0xFFE4E7EC),
+            color: const Color(0xFF1C2A3A),
             child: const Center(child: CircularProgressIndicator()),
           ),
           errorWidget: (_, _, _) => const _FileAttachmentTile(),
@@ -746,15 +751,15 @@ class _FileAttachmentTile extends StatelessWidget {
       width: 220,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE4E7EC),
+        color: const Color(0xFF1C2A3A),
         borderRadius: BorderRadius.circular(12),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.attach_file, color: Color(0xFF344054)),
+          Icon(Icons.attach_file, color: Color(0xFFB8C1D1)),
           SizedBox(width: 8),
-          Text('Attachment', style: TextStyle(color: Color(0xFF344054))),
+          Text('Attachment', style: TextStyle(color: Color(0xFFB8C1D1))),
         ],
       ),
     );

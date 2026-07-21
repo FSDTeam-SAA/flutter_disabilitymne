@@ -10,11 +10,15 @@ import 'package:disabilitymne/features/recipies/presentation/screen/recipies_scr
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AppGround extends StatelessWidget {
-  AppGround({super.key});
+class AppGround extends StatefulWidget {
+  const AppGround({super.key});
 
-  final AppGroundController controller =
-      Get.put(AppGroundController(), permanent: true);
+  @override
+  State<AppGround> createState() => _AppGroundState();
+}
+
+class _AppGroundState extends State<AppGround> with WidgetsBindingObserver {
+  late final AppGroundController controller;
 
   final List<IconData> icons = const [
     Icons.home_outlined,
@@ -33,21 +37,47 @@ class AppGround extends StatelessWidget {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    controller = Get.put(AppGroundController(), permanent: true);
+    // Permanent controller keeps last tab (e.g. Profile) across logout→login.
+    controller.resetToHome();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (Get.isRegistered<ProfileController>()) {
+        Get.find<ProfileController>().getProfile();
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isPremium = Get.isRegistered<ProfileController>()
-        ? isPremiumActiveUser(Get.find<ProfileController>().user.value)
-        : false;
-
-    final pages = [
-      HomeScreen(isPremiumUser: isPremium),
-      const ProgramsScreen(),
-      const RecipesScreen(),
-      CalculatorScreen(),
-      ProfileScreen(),
-    ];
-
     return Scaffold(
-      body: Obx(() => pages[controller.currentIndex.value]),
+      body: Obx(() {
+        final isPremium = Get.isRegistered<ProfileController>()
+            ? isPremiumActiveUser(Get.find<ProfileController>().user.value)
+            : false;
+
+        final pages = [
+          HomeScreen(isPremiumUser: isPremium),
+          const ProgramsScreen(),
+          const RecipesScreen(),
+          CalculatorScreen(),
+          ProfileScreen(),
+        ];
+
+        return pages[controller.currentIndex.value];
+      }),
       backgroundColor: Colors.transparent,
       bottomNavigationBar: SafeArea(
         child: Container(

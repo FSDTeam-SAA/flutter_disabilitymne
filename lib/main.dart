@@ -1,4 +1,5 @@
 import 'package:disabilitymne/app/app_manager.dart';
+import 'package:disabilitymne/core/auth/clear_auth_on_fresh_install.dart';
 import 'package:disabilitymne/core/di/external_service_di.dart';
 import 'package:disabilitymne/core/di/internal_service_di.dart';
 import 'package:disabilitymne/core/theme/app_theme.dart';
@@ -7,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:get_storage/get_storage.dart';
-import 'package:disabilitymne/core/common/background_image.dart';  
+import 'package:disabilitymne/core/common/background_image.dart';
 import 'package:disabilitymne/app/splash_view.dart';
 
 // sendbox email: saafsd.app+sandbox7@gmail.com
@@ -16,6 +17,8 @@ import 'package:disabilitymne/app/splash_view.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  // Wipe Keychain tokens if SharedPreferences/GetStorage was cleared (reinstall).
+  await clearAuthIfFreshInstall();
   externalServiceDI();
   initServices();
   runApp(const MyApp());
@@ -29,7 +32,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late final AppManager appManager;
+  late final AppManager appManager; 
   late final ChatSocketLifecycleObserver _socketLifecycle;
 
   @override

@@ -61,9 +61,9 @@ void externalServiceDI() {
     () => ChatRepository(Get.find<AuthorizedPigeon>()),
     fenix: true,
   );
-  Get.lazyPut<ChatSocketService>(
-    () => ChatSocketService(socketUrl: ApiEndpoints.socketUrl),
-    fenix: true,
+  Get.put<ChatSocketService>(
+    ChatSocketService(socketUrl: ApiEndpoints.socketUrl),
+    permanent: true,
   );
 
   // Calculator

@@ -2,8 +2,12 @@ abstract class ImagePath {
   static String profilepic = "assets/images/profilepic.png";
   /// App-wide background image (splash/dark blue)
   static String appBackground = "assets/image/splash_bg.png";
-  /// App logo (Disability Fitness Club)
-  static String appLogo = "assets/logo/AppLogo.png";
+  /// App logo (Disability Fitness Club) — used as app icon
+  static String appLogo = "assets/logo/App_Logo.png";
+  /// Circular badge for branded splash screen
+  static String splashBadge = "assets/logo/splash_logo.png";
+  /// Original welcome/auth screen logo (wordmark, not the app-icon badge)
+  static String splashLogo = "assets/image/App_Logo.png";
   /// Language selection globe icon (blue/green)
   static String languageIcon = "assets/image/language_icon.png";
   /// Onboarding screens

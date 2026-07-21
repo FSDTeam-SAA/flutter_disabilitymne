@@ -1,3 +1,4 @@
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -37,6 +38,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
+  void _finishIntro() {
+    if (Get.isRegistered<OnboardingStateHolder>()) {
+      Get.find<OnboardingStateHolder>().setIntroSeen();
+    }
+    Get.offAll(() => const WelcomeScreen());
+  }
+
   void _goToNext() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
@@ -44,11 +52,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      Get.offAll(() => const WelcomeScreen());
+      _finishIntro();
     }
   }
 
-  void _skip() => Get.offAll(() => const WelcomeScreen());
+  void _skip() => _finishIntro();
 
   @override
   void dispose() {

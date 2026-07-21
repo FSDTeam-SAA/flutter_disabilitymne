@@ -1,16 +1,24 @@
-import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/app/guest_ground.dart';
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
+import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_up_screen.dart';
 
-/// Welcome / landing screen after onboarding - Create Account & Sign in.
+/// Welcome / landing screen after onboarding — Create Account, Sign in, or Guest.
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   static const Color _darkBlue = Color(0xFF0D1B2A);
+
+  void _continueAsGuest() {
+    if (Get.isRegistered<OnboardingStateHolder>()) {
+      Get.find<OnboardingStateHolder>().setGuestMode();
+    }
+    Get.offAll(() => const GuestGround());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +31,7 @@ class WelcomeScreen extends StatelessWidget {
             children: [
               const Spacer(flex: 2),
               Image.asset(
-                ImagePath.appLogo,
+                ImagePath.splashLogo,
                 height: 120,
                 fit: BoxFit.contain,
               ),
@@ -46,21 +54,21 @@ class WelcomeScreen extends StatelessWidget {
               _SignInButton(
                 onPressed: () => Get.to(() => const SignInScreen()),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               TextButton(
-                onPressed: () => Get.offAll(() => GuestGround()),
+                onPressed: _continueAsGuest,
                 child: Text(
                   'Continue as Guest',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white.withValues(alpha: 0.85),
                     decoration: TextDecoration.underline,
-                    decorationColor: Colors.white.withValues(alpha: 0.5),
+                    decorationColor: Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 32),
+              SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
             ],
           ),
         ),
