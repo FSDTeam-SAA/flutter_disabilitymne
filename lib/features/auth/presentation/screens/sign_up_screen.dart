@@ -5,15 +5,27 @@ import 'package:disabilitymne/core/common/widget/app_text_field.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/features/auth/controller/signup_controller.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:disabilitymne/features/onboarding/fitness_experience_screen.dart';
 import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 
 class SignUpScreen extends StatelessWidget {
-  SignUpScreen({super.key});
+  SignUpScreen({super.key, this.fromOnboarding = false});
+
+  /// When true, this screen sits between Mobility and Fitness Experience.
+  final bool fromOnboarding;
 
   final SignupController controller = Get.put(SignupController(Get.find()));
 
   static const Color _darkNavy = Color(0xFF1A2C46);
   static const Color _linkBlue = Color(0xFF89C9E6);
+
+  void _onBack() {
+    if (fromOnboarding) {
+      Get.back();
+    } else {
+      Get.offAll(() => const WelcomeScreen());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +44,7 @@ class SignUpScreen extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   GestureDetector(
-                    onTap: () => Get.offAll(() => const WelcomeScreen()),
+                    onTap: _onBack,
                     child: const Row(
                       children: [
                         Icon(Icons.chevron_left,color: Colors.white,size: 28),
@@ -167,7 +179,11 @@ class SignUpScreen extends StatelessWidget {
                             ? () {}
                             : () {
                                 controller.signUp(() {
-                                  Get.offAll(() => const SignInScreen());
+                                  if (fromOnboarding) {
+                                    Get.to(() => const FitnessExperienceScreen());
+                                  } else {
+                                    Get.offAll(() => const SignInScreen());
+                                  }
                                 });
                               },
                         text: controller.isLoading.value

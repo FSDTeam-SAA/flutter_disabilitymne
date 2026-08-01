@@ -86,6 +86,40 @@ final class AuthInterfaceImpl extends AuthInterface {
         if (signupResponse.success != true || signupResponse.data == null) {
           throw Exception("Signup failed");
         }
+        final signupData = signupResponse.data!;
+        final userId = signupData.user?.id?.trim();
+        final accessToken = signupData.accessToken ?? signupData.token;
+
+        if (Get.isRegistered<OnboardingStateHolder>()) {
+          Get.find<OnboardingStateHolder>().setIntroSeen();
+          if (signupData.user != null) {
+            Get.find<OnboardingStateHolder>().saveFromLogin(signupData.user);
+          }
+        }
+        if (signupData.user != null && Get.isRegistered<ProfileController>()) {
+          Get.find<ProfileController>().user.value = signupData.user;
+        }
+        if (Get.isRegistered<AccessTokenHolder>() && accessToken != null) {
+          Get.find<AccessTokenHolder>().setToken(accessToken);
+        }
+
+        if (accessToken != null || userId != null) {
+          await appPigeon.saveNewAuth(
+            saveAuthParams: SaveNewAuthParams(
+              uid: userId,
+              accessToken: accessToken,
+              refreshToken: signupData.refreshToken,
+              data: {
+                "userId": userId,
+                "name":
+                    "${signupData.user?.firstName ?? ""} ${signupData.user?.lastName ?? ""}",
+                "email": signupData.user?.email,
+                "role": signupData.user?.role,
+              },
+            ),
+          );
+        }
+
         return Success(message: signupResponse.message ?? "Signup successful");
       },
     );

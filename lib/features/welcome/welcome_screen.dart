@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
-import 'package:disabilitymne/features/auth/presentation/screens/sign_up_screen.dart';
+import 'package:disabilitymne/features/onboarding/gender_selection_screen.dart';
 
 /// Welcome / landing screen after onboarding — Create Account, Sign in, or Guest.
 class WelcomeScreen extends StatelessWidget {
@@ -47,7 +47,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const Spacer(flex: 3),
               CustomButton(
-                onPressed: () => Get.to(() => SignUpScreen()),
+                onPressed: () => Get.to(() => const GenderSelectionScreen()),
                 text: 'Create Account',
               ),
               const SizedBox(height: 16),

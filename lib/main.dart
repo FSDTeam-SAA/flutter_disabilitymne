@@ -6,7 +6,6 @@ import 'package:disabilitymne/core/theme/app_theme.dart';
 import 'package:disabilitymne/features/chat/service/chat_socket_lifecycle.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import 'package:get_storage/get_storage.dart';
 import 'package:disabilitymne/core/common/background_image.dart';
 import 'package:disabilitymne/app/splash_view.dart';

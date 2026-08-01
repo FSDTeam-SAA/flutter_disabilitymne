@@ -1,5 +1,5 @@
+import 'package:disabilitymne/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
-import 'package:disabilitymne/features/onboarding/fitness_experience_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
@@ -191,7 +191,8 @@ class _MobilityTypeSelectionScreenState extends State<MobilityTypeSelectionScree
                   } else {
                     c.setMobilityType(7, _otherController.text.trim());
                   }
-                  Get.to(() => const FitnessExperienceScreen());
+                  // Create Account comes before Fitness Experience.
+                  Get.to(() => SignUpScreen(fromOnboarding: true));
                 },
                 text: 'Continue',
               ),
