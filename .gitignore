@@ -41,6 +41,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android release signing — never commit
+/android/key.properties
+/android/app/upload-keystore.jks
+**/*.jks
+**/*.keystore
+
 branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat

@@ -1,7 +1,7 @@
 # Copy this file to android/key.properties and fill in your upload keystore details.
 # Generate a keystore:
 # keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
-storePassword=your_store_password
-keyPassword=your_key_password
+storePassword=LILslpP3iKF8CxvdnToE
+keyPassword=LILslpP3iKF8CxvdnToE
 keyAlias=upload
-storeFile=../upload-keystore.jks
+storeFile=/Volumes/+01/flutter app/disabilitymne/keystores/play-upload.jks

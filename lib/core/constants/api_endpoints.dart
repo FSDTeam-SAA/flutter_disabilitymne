@@ -1,39 +1,42 @@
 import 'package:flutter/foundation.dart';
 
 base class ApiEndpoints {
-  static const String socketUrl = _LocalServer.socketUrl;
-  static const String baseUrl = _LocalServer.baseUrl;
+  /// Release / App Store builds use production. Debug uses localhost.
+  static String get socketUrl =>
+      kDebugMode ? _DevServer.socketUrl : _ProdServer.socketUrl;
+  static String get baseUrl =>
+      kDebugMode ? _DevServer.baseUrl : _ProdServer.baseUrl;
 
   /// ### post
-  static const String login = _Auth.login;
-  static const String logout = _Auth.logout;
-  static const String socialLogin = _Auth.socialLogin;
-  static const String signup = _Auth.signup;
-  static const String verifyCode = _Auth.verifyCode;
-  static const String forgetPassword = _Auth.forgetPassword;
-  static const String createNewPassword = _Auth.resetPassword;
-  static const String refreshToken = _Auth.refreshToken;
-  static const String helpSupport = _HelpSupport.helpSupport;
-  static const String verification = _Verification.verification;
+  static String get login => _Auth.login;
+  static String get logout => _Auth.logout;
+  static String get socialLogin => _Auth.socialLogin;
+  static String get signup => _Auth.signup;
+  static String get verifyCode => _Auth.verifyCode;
+  static String get forgetPassword => _Auth.forgetPassword;
+  static String get createNewPassword => _Auth.resetPassword;
+  static String get refreshToken => _Auth.refreshToken;
+  static String get helpSupport => _HelpSupport.helpSupport;
+  static String get verification => _Verification.verification;
 
   //---------------report----------------
 
   /// ### post
-  static const String sendReport = _Report.sendReport;
+  static String get sendReport => _Report.sendReport;
 
   //-------------------------Program--------------------------
-  static const String getExplorePrograms = _Program.getExplorePrograms;
-  static const String getMyPrograms = _Program.getMyPrograms;
-  static const String getAllPrograms = _Program.getAllPrograms;
+  static String get getExplorePrograms => _Program.getExplorePrograms;
+  static String get getMyPrograms => _Program.getMyPrograms;
+  static String get getAllPrograms => _Program.getAllPrograms;
   static String getProgramDetail(String id) => _Program.getProgramDetails(id);
   static String startProgram(String id) => _Program.startProgram(id);
-  static const String completeWorkoutSession = _Program.completeWorkoutSession;
+  static String get completeWorkoutSession => _Program.completeWorkoutSession;
 
-  static const String getAllLibrary = _Excerise.getAllLibrary;
+  static String get getAllLibrary => _Excerise.getAllLibrary;
   static String getLibraryDetail(String id) => _Excerise.getLibraryDetails(id);
 
-  static const String getAllRecipies = _Recipies.getAllRecipies;
-  static const String getPublicRecipies = _Recipies.getPublicRecipies;
+  static String get getAllRecipies => _Recipies.getAllRecipies;
+  static String get getPublicRecipies => _Recipies.getPublicRecipies;
   static String getRecipeDetail(String id) => _Recipies.getRecipeDetails(id);
   static String getPublicRecipeDetail(String id) =>
       _Recipies.getPublicRecipeDetails(id);
@@ -46,77 +49,77 @@ base class ApiEndpoints {
 
   //------------notification----------------
   /// ### get
-  static const String getAllNotifications = _Notification.getAllNotifications;
+  static String get getAllNotifications => _Notification.getAllNotifications;
   static String markNotificationAsRead({required String notificationId}) =>
       _Notification.markNotificationAsRead(notificationId);
-  static const String markAllAsRead = _Notification.markAllAsRead;
+  static String get markAllAsRead => _Notification.markAllAsRead;
 
   // ---------------------- USER -----------------------------
   /// ### get
-  static String getProfile = _User.getProfile;
-  static String updateProfile = _User.updateProfile;
-  static String updateProfileImage = _User.updateProfileImage;
-  static String changePassword = _User.changePassword;
-  static String deleteAccount = _User.deleteAccount;
-  static String helpAndSupport = _User.helpAndSupport;
+  static String get getProfile => _User.getProfile;
+  static String get updateProfile => _User.updateProfile;
+  static String get updateProfileImage => _User.updateProfileImage;
+  static String get changePassword => _User.changePassword;
+  static String get deleteAccount => _User.deleteAccount;
+  static String get helpAndSupport => _User.helpAndSupport;
 
   //-------------------------cart --------------------------
-  static const String addToCart = _Cart.addToCart;
-  static const String getAllCartItems = _Cart.getAllCartItems;
-  static const String clearCart = _Cart.clearCart;
-  static const String updateCart = _Cart.updateCart;
+  static String get addToCart => _Cart.addToCart;
+  static String get getAllCartItems => _Cart.getAllCartItems;
+  static String get clearCart => _Cart.clearCart;
+  static String get updateCart => _Cart.updateCart;
 
   //-------------------------Shop --------------------------
   static String getShop(String id) => _Shop.getShop(id);
 
   //------------------------- Order --------------------------
-  static const String getMyOrders = _Order.getMyOrders;
-  static const String createOrder = _Order.createOrder;
+  static String get getMyOrders => _Order.getMyOrders;
+  static String get createOrder => _Order.createOrder;
 
   //------------------------- Review --------------------------
-  static const String addReview = _Review.addReview;
+  static String get addReview => _Review.addReview;
 
   //------------------------- WishList --------------------------
-  static const String addWishList = _WishList.addWishList;
+  static String get addWishList => _WishList.addWishList;
   static String removeWishList(String id) => _WishList.removeWishList(id);
 
   //------------------------- Progress --------------------------
   /// ### get
-  static const String getProgress = _Progress.progress;
+  static String get getProgress => _Progress.progress;
 
   //-------------------------Messaging --------------------------
-  static const String createChat = _Messaging.createChat;
-  static const String sendMessage = _Messaging.sendMessage;
-  static const String getAllChats = _Messaging.getAllChats;
+  static String get createChat => _Messaging.createChat;
+  static String get sendMessage => _Messaging.sendMessage;
+  static String get getAllChats => _Messaging.getAllChats;
   static String getChat(String id) => _Messaging.getChat(id);
 
   // Chat threads (admin chat)
-  static const String chatThreads = _Messaging.chatThreads;
+  static String get chatThreads => _Messaging.chatThreads;
   static String chatThreadMessages(String threadId) =>
       _Messaging.chatThreadMessages(threadId);
   static String chatThreadSendMessage(String threadId) =>
       _Messaging.chatThreadSendMessage(threadId);
   static String chatThreadMarkRead(String threadId) =>
       _Messaging.chatThreadMarkRead(threadId);
-  static const String uploadImage = _Uploads.image;
-  static const String uploadVideo = _Uploads.video;
+  static String get uploadImage => _Uploads.image;
+  static String get uploadVideo => _Uploads.video;
 
   //------------------------- Daily Tracker --------------------------
   /// ### get, patch
-  static const String dailyTracker = _DailyTracker.dailyTracker;
+  static String get dailyTracker => _DailyTracker.dailyTracker;
 
   /// ### post
-  static const String dailyTrackerNotes = _DailyTracker.dailyTrackerNotes;
+  static String get dailyTrackerNotes => _DailyTracker.dailyTrackerNotes;
 
   //------------------------- Nutrition --------------------------
   /// ### get
-  static const String nutritionDiary = _Nutrition.diary;
-  static const String nutritionHistory = _Nutrition.history;
-  static const String nutritionFavorites = _Nutrition.favorites;
-  static const String nutritionFavoriteSections = _Nutrition.favoriteSections;
-  static const String nutritionFavoriteMeals = _Nutrition.favoriteMeals;
-  static const String nutritionFoodSuggestions = _Nutrition.foodSuggestions;
-  static const String nutritionFoodSearch = _Nutrition.foodSearch;
+  static String get nutritionDiary => _Nutrition.diary;
+  static String get nutritionHistory => _Nutrition.history;
+  static String get nutritionFavorites => _Nutrition.favorites;
+  static String get nutritionFavoriteSections => _Nutrition.favoriteSections;
+  static String get nutritionFavoriteMeals => _Nutrition.favoriteMeals;
+  static String get nutritionFoodSuggestions => _Nutrition.foodSuggestions;
+  static String get nutritionFoodSearch => _Nutrition.foodSearch;
   static String nutritionFoodDetails(dynamic fdcId) =>
       _Nutrition.foodDetails(fdcId);
   static String nutritionDiaryEntryById(dynamic entryId) =>
@@ -125,72 +128,72 @@ base class ApiEndpoints {
       _Nutrition.favoriteMealById(mealFavoriteId);
 
   /// ### post
-  static const String nutritionDiaryEntries = _Nutrition.diaryEntries;
+  static String get nutritionDiaryEntries => _Nutrition.diaryEntries;
 
   // ---------------------- Payments -----------------------------
   /// ### get
-  static const String paymentPlans = _Payments.plans;
-  static const String paymentPremiumAvailability = _Payments.premiumAvailability;
-  static const String paymentCheckout = _Payments.checkout;
-  static const String paymentConfirmCheckout = _Payments.confirmCheckout;
-  static const String paymentAppleVerify = _Payments.appleVerify;
-  static const String paymentAppleRestore = _Payments.appleRestore;
+  static String get paymentPlans => _Payments.plans;
+  static String get paymentPremiumAvailability => _Payments.premiumAvailability;
+  static String get paymentCheckout => _Payments.checkout;
+  static String get paymentConfirmCheckout => _Payments.confirmCheckout;
+  static String get paymentAppleVerify => _Payments.appleVerify;
+  static String get paymentAppleRestore => _Payments.appleRestore;
 
-  static const String myNutritionPlans = _NutritionPlans.my;
+  static String get myNutritionPlans => _NutritionPlans.my;
   static String nutritionPlanDetail(String id) => _NutritionPlans.detail(id);
 }
 
-// class _LocalServer {
-//   static const String socketUrl = 'http://localhost:8000';
-//   static const String baseUrl = 'http://localhost:8000/api/v1';
-// }
+class _DevServer {
+  static const String socketUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://localhost:8000/api/v1';
+}
 
-class _LocalServer {
+class _ProdServer {
   static const String socketUrl = 'http://187.124.21.65';
   static const String baseUrl = 'http://187.124.21.65/api/v1';
 }
 
 class _Auth {
   @protected
-  static const String _authRoute = '${ApiEndpoints.baseUrl}/auth';
-  static const String login = '$_authRoute/login';
-  static const String logout = '$_authRoute/logout';
-  static const String socialLogin = '$_authRoute/social-login';
-  static const String signup = '$_authRoute/register';
-  static const String forgetPassword = '$_authRoute/forgot-password/send-otp';
-  static const String refreshToken = '$_authRoute/refresh-token';
-  static const String verifyCode = '$_authRoute/forgot-password/verify-otp';
-  static const String resetPassword = '$_authRoute/forgot-password/reset';
+  static String get _authRoute => '${ApiEndpoints.baseUrl}/auth';
+  static String get login => '$_authRoute/login';
+  static String get logout => '$_authRoute/logout';
+  static String get socialLogin => '$_authRoute/social-login';
+  static String get signup => '$_authRoute/register';
+  static String get forgetPassword => '$_authRoute/forgot-password/send-otp';
+  static String get refreshToken => '$_authRoute/refresh-token';
+  static String get verifyCode => '$_authRoute/forgot-password/verify-otp';
+  static String get resetPassword => '$_authRoute/forgot-password/reset';
 }
 
 //------------------------------ Help&Support -----------------------------
 class _HelpSupport {
-  static const String _helpSupportRoute = '${ApiEndpoints.baseUrl}/support';
-  static const String helpSupport = '$_helpSupportRoute/';
+  static String get _helpSupportRoute => '${ApiEndpoints.baseUrl}/support';
+  static String get helpSupport => '$_helpSupportRoute/';
 }
 
 //------------------------------ Program -----------------------------
 class _Program {
-  static const String _programRoute = '${ApiEndpoints.baseUrl}/programs';
-  static const String getExplorePrograms = '$_programRoute/explore';
-  static const String getMyPrograms = '$_programRoute/my';
-  static const String getAllPrograms = '$_programRoute/all';
+  static String get _programRoute => '${ApiEndpoints.baseUrl}/programs';
+  static String get getExplorePrograms => '$_programRoute/explore';
+  static String get getMyPrograms => '$_programRoute/my';
+  static String get getAllPrograms => '$_programRoute/all';
   static String getProgramDetails(String id) => '$_programRoute/$id';
   static String startProgram(String id) => '$_programRoute/$id/start';
-  static const String completeWorkoutSession =
+  static String get completeWorkoutSession =>
       '${ApiEndpoints.baseUrl}/users/me/workouts/sessions/complete';
 }
 
 class _Excerise {
-  static const String _excercisesRoute = '${ApiEndpoints.baseUrl}/exercises';
-  static const String getAllLibrary = '$_excercisesRoute/all';
+  static String get _excercisesRoute => '${ApiEndpoints.baseUrl}/exercises';
+  static String get getAllLibrary => '$_excercisesRoute/all';
   static String getLibraryDetails(String id) => '$_excercisesRoute/$id';
 }
 
 class _Recipies {
-  static const String _recipesRoute = '${ApiEndpoints.baseUrl}/recipes';
-  static const String getAllRecipies = '$_recipesRoute/all';
-  static const String getPublicRecipies = '$_recipesRoute/public/all';
+  static String get _recipesRoute => '${ApiEndpoints.baseUrl}/recipes';
+  static String get getAllRecipies => '$_recipesRoute/all';
+  static String get getPublicRecipies => '$_recipesRoute/public/all';
   static String getRecipeDetails(String id) => '$_recipesRoute/$id';
   static String getPublicRecipeDetails(String id) =>
       '$_recipesRoute/public/$id';
@@ -198,7 +201,7 @@ class _Recipies {
 }
 
 class _ExceriseData {
-  static const String _excersisesDataRoute =
+  static String get _excersisesDataRoute =>
       '${ApiEndpoints.baseUrl}/users/me/exercises';
   static String getExcerisesData(String id) =>
       '$_excersisesDataRoute/$id/settings';
@@ -208,100 +211,101 @@ class _ExceriseData {
 
 // ---------------------- Verification -----------------------------
 class _Verification {
-  static const String _verificationRoute =
+  static String get _verificationRoute =>
       '${ApiEndpoints.baseUrl}/verification';
-  static const String verification = '$_verificationRoute/create';
+  static String get verification => '$_verificationRoute/create';
 }
 
 // ---------------------- Report -----------------------------
 class _Report {
-  static const String _reportRoute = '${ApiEndpoints.baseUrl}/reports';
-  static const String sendReport = '$_reportRoute/';
+  static String get _reportRoute => '${ApiEndpoints.baseUrl}/reports';
+  static String get sendReport => '$_reportRoute/';
 }
 
 // ---------------------- Notification -----------------------------
 class _Notification {
-  static const String _notificationRoute = '${ApiEndpoints.baseUrl}/users';
+  static String get _notificationRoute => '${ApiEndpoints.baseUrl}/users';
   static String markNotificationAsRead(String notificationId) =>
       '$_notificationRoute/me/notifications/$notificationId/read';
-  static const String markAllAsRead =
+  static String get markAllAsRead =>
       '$_notificationRoute/me/notifications/read-all';
-  static const String getAllNotifications =
+  static String get getAllNotifications =>
       '$_notificationRoute/me/notifications';
 }
 
 // ---------------------- USER -----------------------------
 class _User {
-  static const String _userRoute = '${ApiEndpoints.baseUrl}/users';
-  static String getProfile = '$_userRoute/me';
-  static String updateProfile = '$_userRoute/me';
-  static String updateProfileImage = '$_userRoute/me/profile-image';
-  static String changePassword = '$_userRoute/me/change-password';
-  static String deleteAccount = '$_userRoute/me';
-  static String helpAndSupport = '$_userRoute/me/support/tickets';
+  static String get _userRoute => '${ApiEndpoints.baseUrl}/users';
+  static String get getProfile => '$_userRoute/me';
+  static String get updateProfile => '$_userRoute/me';
+  static String get updateProfileImage => '$_userRoute/me/profile-image';
+  static String get changePassword => '$_userRoute/me/change-password';
+  static String get deleteAccount => '$_userRoute/me';
+  static String get helpAndSupport => '$_userRoute/me/support/tickets';
 }
 
 //---------------------- Cart -----------------------------
 class _Cart {
-  static const String _cartRoute = '${ApiEndpoints.baseUrl}/cart';
-  static const String addToCart = '$_cartRoute/add';
-  static const String getAllCartItems = '$_cartRoute/';
-  static const String clearCart = '$_cartRoute/clear';
-  static const String updateCart = '$_cartRoute/update';
+  static String get _cartRoute => '${ApiEndpoints.baseUrl}/cart';
+  static String get addToCart => '$_cartRoute/add';
+  static String get getAllCartItems => '$_cartRoute/';
+  static String get clearCart => '$_cartRoute/clear';
+  static String get updateCart => '$_cartRoute/update';
 }
 
 //---------------------- Shop -----------------------------
 class _Shop {
-  static const String _shopRoute = '${ApiEndpoints.baseUrl}/shop';
+  static String get _shopRoute => '${ApiEndpoints.baseUrl}/shop';
   static String getShop(String id) => '$_shopRoute/$id';
 }
 
 //---------------------- Order -----------------------------
 class _Order {
-  static const String _orderRoute = '${ApiEndpoints.baseUrl}/order';
-  static const String getMyOrders = '$_orderRoute/';
-  static const String createOrder = '$_orderRoute/create';
+  static String get _orderRoute => '${ApiEndpoints.baseUrl}/order';
+  static String get getMyOrders => '$_orderRoute/';
+  static String get createOrder => '$_orderRoute/create';
 }
 
 //---------------------- Review -----------------------------
 class _Review {
-  static const String _reviewRoute = '${ApiEndpoints.baseUrl}/reviews';
-  static const String addReview = '$_reviewRoute/';
+  static String get _reviewRoute => '${ApiEndpoints.baseUrl}/reviews';
+  static String get addReview => '$_reviewRoute/';
 }
 
 //---------------------- WishList -----------------------------
 class _WishList {
-  static const String _wishListRoute = '${ApiEndpoints.baseUrl}/wishlist';
-  static const String addWishList = '$_wishListRoute/toggle';
+  static String get _wishListRoute => '${ApiEndpoints.baseUrl}/wishlist';
+  static String get addWishList => '$_wishListRoute/toggle';
   static String removeWishList(String id) => '$_wishListRoute/$id';
 }
 
 //---------------------- Progress -----------------------------
 class _Progress {
-  static const String _progressRoute =
+  static String get _progressRoute =>
       '${ApiEndpoints.baseUrl}/users/me/progress';
-  static const String progress = _progressRoute;
+  static String get progress => _progressRoute;
 }
 
 //---------------------- Daily Tracker -----------------------------
 class _DailyTracker {
-  static const String _route = '${ApiEndpoints.baseUrl}/users/me/daily-tracker';
-  static const String dailyTracker = _route;
-  static const String dailyTrackerNotes = '$_route/notes';
+  static String get _route =>
+      '${ApiEndpoints.baseUrl}/users/me/daily-tracker';
+  static String get dailyTracker => _route;
+  static String get dailyTrackerNotes => '$_route/notes';
 }
 
 //---------------------- Nutrition -----------------------------
 class _Nutrition {
-  static const String _route = '${ApiEndpoints.baseUrl}/nutrition';
-  static const String diary = '$_route/diary';
-  static const String history = '$_route/history';
-  static const String favorites = '$_route/favorites';
-  static const String favoriteSections = '$_route/favorites/sections';
-  static const String favoriteMeals = '$_route/favorites/meals';
-  static const String foodSuggestions = '$_route/foods/suggestions';
-  static const String foodSearch = '$_route/foods/search';
+  static String get _route => '${ApiEndpoints.baseUrl}/nutrition';
+  static String get diary => '$_route/diary';
+  static String get history => '$_route/history';
+  static String get favorites => '$_route/favorites';
+  static String get favoriteSections => '$_route/favorites/sections';
+  static String get favoriteMeals => '$_route/favorites/meals';
+  static String get foodSuggestions => '$_route/foods/suggestions';
+  static String get foodSearch => '$_route/foods/search';
   static String foodDetails(dynamic fdcId) => '$_route/foods/$fdcId';
-  static const String diaryEntries = '$_route/diary/entries';
+  static String get diaryEntries => '$_route/diary/entries';
   static String diaryEntryById(dynamic entryId) => '$diaryEntries/$entryId';
   static String favoriteMealById(dynamic mealFavoriteId) =>
       '$favoriteMeals/$mealFavoriteId';
@@ -309,37 +313,37 @@ class _Nutrition {
 
 //---------------------- Payments -----------------------------
 class _Payments {
-  static const String _route = '${ApiEndpoints.baseUrl}/payments';
-  static const String plans = '$_route/plans';
-  static const String premiumAvailability = '$_route/premium-availability';
-  static const String checkout = '$_route/checkout';
-  static const String confirmCheckout = '$_route/checkout/confirm';
-  static const String appleVerify = '$_route/apple/verify';
-  static const String appleRestore = '$_route/apple/restore';
+  static String get _route => '${ApiEndpoints.baseUrl}/payments';
+  static String get plans => '$_route/plans';
+  static String get premiumAvailability => '$_route/premium-availability';
+  static String get checkout => '$_route/checkout';
+  static String get confirmCheckout => '$_route/checkout/confirm';
+  static String get appleVerify => '$_route/apple/verify';
+  static String get appleRestore => '$_route/apple/restore';
 }
 
 class _NutritionPlans {
-  static const String _route = '${ApiEndpoints.baseUrl}/nutrition-plans';
-  static const String my = '$_route/my';
+  static String get _route => '${ApiEndpoints.baseUrl}/nutrition-plans';
+  static String get my => '$_route/my';
   static String detail(String id) => '$_route/$id';
 }
 
 class _Uploads {
-  static const String _route = '${ApiEndpoints.baseUrl}/uploads';
-  static const String image = '$_route/image';
-  static const String video = '$_route/video';
+  static String get _route => '${ApiEndpoints.baseUrl}/uploads';
+  static String get image => '$_route/image';
+  static String get video => '$_route/video';
 }
 
 //----------------------Message -----------------------------
 class _Messaging {
-  static const String _messagingRoute = '${ApiEndpoints.baseUrl}/chat';
+  static String get _messagingRoute => '${ApiEndpoints.baseUrl}/chat';
   static String getChat(String id) => '$_messagingRoute/$id';
-  static const String sendMessage = '$_messagingRoute/message';
-  static const String createChat = '$_messagingRoute/';
-  static const String getAllChats = '$_messagingRoute/';
+  static String get sendMessage => '$_messagingRoute/message';
+  static String get createChat => '$_messagingRoute/';
+  static String get getAllChats => '$_messagingRoute/';
 
   // Chat threads (admin chat) – dynamic API + socket
-  static const String chatThreads = '$_messagingRoute/threads';
+  static String get chatThreads => '$_messagingRoute/threads';
   static String chatThreadMessages(String threadId) =>
       '$_messagingRoute/threads/$threadId/messages';
   static String chatThreadSendMessage(String threadId) =>

@@ -183,9 +183,8 @@ class AppleIapService {
           _pendingPurchase!.completeError(error);
         }
         _clearPending();
-        if (purchase.pendingCompletePurchase) {
-          await _iap.completePurchase(purchase);
-        }
+        // Do not call completePurchase on verification failure.
+        // Leaving the transaction unfinished lets StoreKit redeliver it for retry.
       }
     }
   }

@@ -36,6 +36,8 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   Map<String, ProductDetails> _storeProducts = {};
   PremiumAvailability? _premiumAvailability;
   bool _premiumAvailabilityLoading = true;
+  bool _iapProductsLoading = false;
+  String? _iapProductsError;
 
   static const Color _green = Color(0xFF34C759);
   static const Color _greenFill = Color(0xFF204A47); // 20% opacity
@@ -93,16 +95,41 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   }
 
   Future<void> _initializeAppleIap() async {
+    if (!AppleIapService.isSupported) return;
+
+    setState(() {
+      _iapProductsLoading = true;
+      _iapProductsError = null;
+    });
+
     try {
       await _appleIapService?.initialize();
       final products = await _appleIapService?.loadProducts() ?? {};
       if (!mounted) return;
       setState(() {
         _storeProducts = {for (final product in products) product.id: product};
+        _iapProductsLoading = false;
+        _iapProductsError = products.isEmpty
+            ? 'Subscription products could not be loaded from the App Store. Please try again.'
+            : null;
       });
     } catch (error) {
       debugPrint('Apple IAP init failed: $error');
+      if (!mounted) return;
+      setState(() {
+        _iapProductsLoading = false;
+        _iapProductsError = error
+            .toString()
+            .replaceFirst('Exception: ', '');
+      });
     }
+  }
+
+  bool _isStoreProductReady(String planKey) {
+    if (!AppleIapService.isSupported) return true;
+    final productId = IapProductIds.forPlanKey(planKey);
+    if (productId == null) return false;
+    return _storeProducts.containsKey(productId);
   }
 
   void _retry() {
@@ -111,6 +138,9 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       _selectedIndex = 0;
     });
     _loadPremiumAvailability();
+    if (AppleIapService.isSupported) {
+      _initializeAppleIap();
+    }
   }
 
   Future<void> _handleContinue(
@@ -153,13 +183,24 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       return;
     }
 
+    if (_iapProductsLoading) {
+      AppSnackbar.show(
+        'Please wait',
+        'Loading App Store subscription products…',
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+
     final product = _storeProducts[productId];
     if (product == null) {
       AppSnackbar.error(
         'Error',
-        'This plan is not available in the App Store yet.',
+        _iapProductsError ??
+            'This subscription is temporarily unavailable. Tap Retry and try again.',
         snackPosition: SnackPosition.TOP,
       );
+      await _initializeAppleIap();
       return;
     }
 
@@ -298,10 +339,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   ) {
     if (plan.price <= 0) return '00.00\$';
     final productId = IapProductIds.forPlanKey(plan.key);
-    final storePrice = productId != null
-        ? storeProducts[productId]?.price
-        : null;
-    if (storePrice != null && storePrice.isNotEmpty) return storePrice;
+    if (AppleIapService.isSupported) {
+      final storePrice = productId != null
+          ? storeProducts[productId]?.price
+          : null;
+      if (storePrice != null && storePrice.isNotEmpty) return storePrice;
+      return '…';
+    }
     return '${plan.price.toStringAsFixed(2)}\$';
   }
 
@@ -426,11 +470,26 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                     final isFreePlan = selectedPlan.price <= 0;
                     final premiumBlocked =
                         selectedPlan.key == 'premium' && _isPremiumFull;
+                    final storeProductMissing =
+                        AppleIapService.isSupported &&
+                        !isFreePlan &&
+                        !_iapProductsLoading &&
+                        !_isStoreProductReady(selectedPlan.key);
+                    final subscribeBlocked =
+                        _checkoutLoading ||
+                        _premiumAvailabilityLoading ||
+                        (AppleIapService.isSupported && _iapProductsLoading) ||
+                        premiumBlocked ||
+                        storeProductMissing;
                     final buttonText =
-                        _checkoutLoading || _premiumAvailabilityLoading
+                        _checkoutLoading ||
+                            _premiumAvailabilityLoading ||
+                            (AppleIapService.isSupported && _iapProductsLoading)
                         ? 'Loading...'
                         : premiumBlocked
                         ? 'Premium Full'
+                        : storeProductMissing
+                        ? 'Unavailable'
                         : isFreePlan
                         ? 'Continue'
                         : AppleIapService.isSupported
@@ -466,6 +525,51 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                             ),
                           ),
                         ),
+
+                        if (AppleIapService.isSupported &&
+                            (_iapProductsError != null || storeProductMissing))
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _iapProductsError ??
+                                        'Some App Store subscription products are unavailable right now.',
+                                    style: const TextStyle(
+                                      color: Colors.redAccent,
+                                      fontSize: 13,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: _iapProductsLoading
+                                        ? null
+                                        : _initializeAppleIap,
+                                    child: Text(
+                                      _iapProductsLoading
+                                          ? 'Retrying...'
+                                          : 'Retry loading products',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
 
                         if (_isPremiumFull)
                           Padding(
@@ -538,12 +642,9 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Opacity(
-                            opacity: premiumBlocked ? 0.5 : 1,
+                            opacity: subscribeBlocked ? 0.5 : 1,
                             child: CustomButton(
-                              onPressed:
-                                  premiumBlocked ||
-                                      _checkoutLoading ||
-                                      _premiumAvailabilityLoading
+                              onPressed: subscribeBlocked
                                   ? () {}
                                   : () => _handleContinue(
                                       selectedPlan,
