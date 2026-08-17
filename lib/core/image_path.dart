@@ -1,5 +1,7 @@
 abstract class ImagePath {
   static String profilepic = "assets/images/profilepic.png";
+  /// Home "My Programs" placeholder until a workout is assigned
+  static String welcomeProgramsCard = "assets/image/welcome_programs_card.png";
   /// App-wide background image (splash/dark blue)
   static String appBackground = "assets/image/splash_bg.png";
   /// App logo (Disability Fitness Club) — used as app icon

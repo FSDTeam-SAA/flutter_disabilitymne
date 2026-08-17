@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/helpers/app_snackbar.dart';
@@ -29,7 +31,7 @@ class SignupController extends GetxController {
     obscureConfirmPassword.value = !obscureConfirmPassword.value;
   }
 
-  Future<void> signUp(VoidCallback onSuccess) async {
+  Future<void> signUp(FutureOr<void> Function() onSuccess) async {
     if (!formKey.currentState!.validate()) return;
 
     SignupModel model = SignupModel(
@@ -45,13 +47,14 @@ class SignupController extends GetxController {
 
       final result = await authInterface.signup(model);
 
-      result.fold(
+      final succeeded = result.fold(
         (failure) {
           AppSnackbar.show(
             "Signup Failed",
             failure.uiMessage,
             snackPosition: SnackPosition.TOP,
           );
+          return false;
         },
         (success) {
           AppSnackbar.show(
@@ -59,9 +62,12 @@ class SignupController extends GetxController {
             success.message,
             snackPosition: SnackPosition.TOP,
           );
-          onSuccess();
+          return true;
         },
       );
+      if (succeeded) {
+        await onSuccess();
+      }
     } catch (e) {
       AppSnackbar.show(
         "Signup Failed",

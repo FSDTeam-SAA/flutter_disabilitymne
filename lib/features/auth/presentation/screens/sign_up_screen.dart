@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/common/widget/app_text_field.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/features/auth/controller/signup_controller.dart';
 import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/onboarding/fitness_experience_screen.dart';
 import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 
@@ -178,12 +180,20 @@ class SignUpScreen extends StatelessWidget {
                         onPressed: controller.isLoading.value
                             ? () {}
                             : () {
-                                controller.signUp(() {
+                                if (Get.isRegistered<OnboardingStateHolder>()) {
+                                  Get.find<OnboardingStateHolder>()
+                                      .suppressAuthNavigation = true;
+                                }
+                                controller.signUp(() async {
                                   if (fromOnboarding) {
                                     Get.to(() => const FitnessExperienceScreen());
-                                  } else {
-                                    Get.offAll(() => const SignInScreen());
+                                    return;
                                   }
+                                  if (Get.isRegistered<OnboardingStateHolder>()) {
+                                    Get.find<OnboardingStateHolder>()
+                                        .routeToLoginOnLogout = true;
+                                  }
+                                  await Get.find<AuthInterface>().logout();
                                 });
                               },
                         text: controller.isLoading.value

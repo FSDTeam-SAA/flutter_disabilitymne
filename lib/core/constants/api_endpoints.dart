@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
 
 base class ApiEndpoints {
-  /// Release / App Store builds use production. Debug uses localhost.
-  static String get socketUrl =>
-      kDebugMode ? _DevServer.socketUrl : _ProdServer.socketUrl;
-  static String get baseUrl =>
-      kDebugMode ? _DevServer.baseUrl : _ProdServer.baseUrl;
+  /// Debug + release both hit the live API (admin UI is on :3000).
+  static String get socketUrl => _ProdServer.socketUrl;
+  static String get baseUrl => _ProdServer.baseUrl;
 
   /// ### post
   static String get login => _Auth.login;
@@ -144,13 +142,16 @@ base class ApiEndpoints {
 }
 
 class _DevServer {
+  /// Kept for local backend testing if needed later.
   static const String socketUrl = 'http://localhost:8000';
   static const String baseUrl = 'http://localhost:8000/api/v1';
 }
 
 class _ProdServer {
-  static const String socketUrl = 'http://187.124.21.65';
-  static const String baseUrl = 'http://187.124.21.65/api/v1';
+  /// Live server: admin UI = :3000, API/socket = :8000
+  /// Admin: http://187.124.21.65:3000/
+  static const String socketUrl = 'http://187.124.21.65:8000';
+  static const String baseUrl = 'http://187.124.21.65:8000/api/v1';
 }
 
 class _Auth {

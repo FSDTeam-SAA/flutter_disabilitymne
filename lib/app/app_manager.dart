@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:app_pigeon/app_pigeon.dart';
 import 'package:disabilitymne/core/auth/access_token_holder.dart';
 import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
+import 'package:disabilitymne/core/auth/subscription_gate.dart';
 import 'package:disabilitymne/core/constants/api_endpoints.dart';
 import 'package:disabilitymne/core/helpers/auth_role.dart';
 import 'package:disabilitymne/app/controller/app_ground_controller.dart';
+import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:disabilitymne/features/chat/service/chat_socket_service.dart';
-import 'package:disabilitymne/app/guest_ground.dart';
 import 'package:disabilitymne/features/welcome/welcome_screen.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
-import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
@@ -43,24 +43,23 @@ class AppManager extends GetxController {
     if (authStatus == null || authStatus is AuthLoading) return;
 
     if (authStatus is UnAuthenticated) {
-      // Only navigate on real logout. Cold-start guests are routed by SplashView
+      // Only navigate on real logout. Cold-start is routed by SplashView
       // (first install: splash → onboarding; returning: Welcome).
       final wasAuthenticated = _authStatus is Authenticated;
       _authStatus = authStatus;
       _disconnectSockets();
       _clearProfileController();
 
-      // Logout → guest shell if they browsed as guest before; else Welcome
       if (wasAuthenticated) {
         final holder = Get.isRegistered<OnboardingStateHolder>()
             ? Get.find<OnboardingStateHolder>()
             : null;
         holder?.setIntroSeen();
-        if (holder?.isGuestMode == true) {
-          Get.offAll(() => const GuestGround());
-        } else {
-          Get.offAll(() => const WelcomeScreen());
-        }
+        final goToLogin = holder?.routeToLoginOnLogout == true;
+        holder?.routeToLoginOnLogout = false;
+        Get.offAll(
+          () => goToLogin ? const SignInScreen() : const WelcomeScreen(),
+        );
       }
       update();
       return;
@@ -78,15 +77,31 @@ class AppManager extends GetxController {
         return;
       }
 
-      // Keep guest flag so logout can return to GuestGround.
       _authStatus = authStatus;
       await _initializeControllers();
       await _refreshProfileAfterLogin();
 
+      // Signup may log out before onboarding finishes; don't reopen the app.
+      if (_authStatus is! Authenticated) {
+        update();
+        return;
+      }
+
+      final holder = Get.isRegistered<OnboardingStateHolder>()
+          ? Get.find<OnboardingStateHolder>()
+          : null;
+      if (holder?.suppressAuthNavigation == true) {
+        update();
+        return;
+      }
+
       if (Get.isRegistered<AppGroundController>()) {
         Get.find<AppGroundController>().resetToHome();
       }
-      Get.offAll(() => AppGround());
+      final user = Get.isRegistered<ProfileController>()
+          ? Get.find<ProfileController>().user.value
+          : null;
+      Get.offAll(() => screenForAuthenticatedUser(user));
     }
 
     update();

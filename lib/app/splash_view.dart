@@ -1,20 +1,20 @@
 import 'package:app_pigeon/app_pigeon.dart';
-import 'package:disabilitymne/app/guest_ground.dart';
 import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
+import 'package:disabilitymne/core/auth/subscription_gate.dart';
 import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/features/onboarding/onboarding_screen.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/welcome/welcome_screen.dart';
-import 'package:disabilitymne/nabber_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Branded splash — logo + spinner, then routes by auth / guest / intro.
+/// Branded splash — logo + spinner, then routes by auth / intro.
 ///
-/// Fresh install: Onboarding → Welcome (login / guest)
-/// Logged in: Home nav
-/// Guest chosen: GuestGround
-/// Logged out: Welcome (login / guest)
+/// Fresh install: Onboarding → Welcome (login)
+/// Logged in + paid: Home nav
+/// Logged in + unpaid: Subscription paywall
+/// Logged out: Welcome (login)
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
 
@@ -49,16 +49,22 @@ class _SplashViewState extends State<SplashView> {
     final auth = await Get.find<AuthorizedPigeon>().getCurrentAuthRecord();
 
     if (auth != null) {
-      return AppGround();
+      if (Get.isRegistered<ProfileController>()) {
+        try {
+          await Get.find<ProfileController>().getProfile();
+        } catch (e) {
+          debugPrint('Splash: profile refresh error: $e');
+        }
+      }
+      final user = Get.isRegistered<ProfileController>()
+          ? Get.find<ProfileController>().user.value
+          : null;
+      return screenForAuthenticatedUser(user);
     }
 
     final holder = Get.isRegistered<OnboardingStateHolder>()
         ? Get.find<OnboardingStateHolder>()
         : null;
-
-    if (holder?.isGuestMode == true) {
-      return const GuestGround();
-    }
 
     if (holder?.hasSeenIntro == true) {
       return const WelcomeScreen();

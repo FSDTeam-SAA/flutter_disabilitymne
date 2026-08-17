@@ -1,4 +1,5 @@
 import 'package:disabilitymne/core/api_handler/failure.dart';
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/helpers/handle_fold.dart';
 import 'package:disabilitymne/core/helpers/validation.dart';
 import 'package:disabilitymne/features/auth/model/signin_model.dart';
@@ -86,6 +87,11 @@ class LoginController extends GetxController {
     if (!formKey.currentState!.validate()) return;
 
     processStatusNotifier.setLoading();
+
+    if (Get.isRegistered<OnboardingStateHolder>()) {
+      Get.find<OnboardingStateHolder>().suppressAuthNavigation = false;
+      Get.find<OnboardingStateHolder>().routeToLoginOnLogout = false;
+    }
 
     final result = await Get.find<AuthInterface>().login(
       SigninModel(email: email, password: password),

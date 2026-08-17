@@ -8,14 +8,32 @@ const String premiumMembershipFullMessage =
 const String premiumAwaitingCoachMessage =
     'Your coach is preparing your personalized plan. You can use the Nutrition Calculator and Exercise Library in the meantime.';
 
-/// Mirrors backend [isPremiumActiveUser] in disabilitymne-backend/src/utils/access.js.
-bool isPremiumActiveUser(UserModel? user) {
+/// True when the user has an active paid (or trial) subscription.
+/// Mirrors backend [isSubscriptionCurrentlyActive] in access.js.
+bool isPaidSubscriber(UserModel? user) {
   if (user == null) return false;
 
-  final plan = (user.selectedPlan ?? '').trim().toLowerCase();
-  if (!_premiumPlanKeys.contains(plan)) return false;
+  if (user.isSponsored == true) return true;
 
-  if (user.subscriptionStatus != 'active') return false;
+  final status = (user.subscriptionStatus ?? '').trim().toLowerCase();
+  if (status == 'cancelled' ||
+      status == 'none' ||
+      status == 'pending_payment' ||
+      status == 'expired' ||
+      status.isEmpty) {
+    return false;
+  }
+
+  if (status == 'trial') {
+    final trialEnds = user.trialEndsAt ?? user.subscriptionEndsAt;
+    if (trialEnds != null && trialEnds.isNotEmpty) {
+      final end = DateTime.tryParse(trialEnds);
+      if (end != null && !end.isAfter(DateTime.now())) return false;
+    }
+    return true;
+  }
+
+  if (status != 'active') return false;
 
   final endsAt = user.subscriptionEndsAt;
   if (endsAt != null && endsAt.isNotEmpty) {
@@ -24,6 +42,16 @@ bool isPremiumActiveUser(UserModel? user) {
   }
 
   return true;
+}
+
+/// Mirrors backend [isPremiumActiveUser] in disabilitymne-backend/src/utils/access.js.
+bool isPremiumActiveUser(UserModel? user) {
+  if (user == null) return false;
+
+  final plan = (user.selectedPlan ?? '').trim().toLowerCase();
+  if (!_premiumPlanKeys.contains(plan)) return false;
+
+  return isPaidSubscriber(user);
 }
 
 bool premiumHasAssignedWorkout(UserModel? user) =>

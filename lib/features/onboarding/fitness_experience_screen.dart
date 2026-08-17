@@ -1,7 +1,9 @@
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
+import 'package:disabilitymne/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:disabilitymne/features/onboarding/choose_plan_screen.dart';
 import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 
 /// Step 8 of 8: Fitness experience — Beginner / Intermediate / Advanced cards.
@@ -132,7 +134,16 @@ class _FitnessExperienceScreenState extends State<FitnessExperienceScreen> {
                   final c = Get.find<OnboardingController>();
                   c.setFitnessExperience(_selectedIndex);
                   final ok = await c.submitOnboarding();
-                  if (ok) Get.to(() => const ChoosePlanScreen());
+                  if (!ok || !mounted) return;
+                  if (Get.isRegistered<OnboardingStateHolder>()) {
+                    Get.find<OnboardingStateHolder>().routeToLoginOnLogout =
+                        true;
+                  }
+                  if (Get.isRegistered<AuthInterface>()) {
+                    await Get.find<AuthInterface>().logout();
+                  } else {
+                    Get.offAll(() => const SignInScreen());
+                  }
                 },
                 text: 'Continue',
               ),

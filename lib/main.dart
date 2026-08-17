@@ -52,7 +52,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Disability Fitness Center',
+      title: 'Disability Fitness',
       theme: AppTheme.light,
       builder: (context, child) => GlobalAppBackground(child: child),
       home: const SplashView(),

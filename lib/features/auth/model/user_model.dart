@@ -27,6 +27,7 @@ class UserModel {
   final String? trialEndsAt;
   final String? subscriptionStartedAt;
   final String? subscriptionEndsAt;
+  final bool? isSponsored;
   final String? lastLoginAt;
   final String? accountStatus;
   final bool? isActive;
@@ -64,6 +65,7 @@ class UserModel {
     this.trialEndsAt,
     this.subscriptionStartedAt,
     this.subscriptionEndsAt,
+    this.isSponsored,
     this.lastLoginAt,
     this.accountStatus,
     this.isActive,
@@ -111,6 +113,7 @@ class UserModel {
       trialEndsAt: json['trialEndsAt'],
       subscriptionStartedAt: json['subscriptionStartedAt'],
       subscriptionEndsAt: json['subscriptionEndsAt'],
+      isSponsored: json['isSponsored'] == true,
       lastLoginAt: json['lastLoginAt'],
       accountStatus: json['accountStatus'],
       isActive: json['isActive'],
@@ -151,6 +154,7 @@ class UserModel {
       'trialEndsAt': trialEndsAt,
       'subscriptionStartedAt': subscriptionStartedAt,
       'subscriptionEndsAt': subscriptionEndsAt,
+      'isSponsored': isSponsored,
       'lastLoginAt': lastLoginAt,
       'accountStatus': accountStatus,
       'isActive': isActive,

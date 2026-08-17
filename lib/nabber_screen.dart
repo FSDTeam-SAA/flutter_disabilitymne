@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:disabilitymne/app/controller/app_ground_controller.dart';
+import 'package:disabilitymne/core/auth/subscription_gate.dart';
 import 'package:disabilitymne/core/helpers/premium_access.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/calculator/presentation/screens/calculator_screen.dart';
@@ -19,6 +22,8 @@ class AppGround extends StatefulWidget {
 
 class _AppGroundState extends State<AppGround> with WidgetsBindingObserver {
   late final AppGroundController controller;
+  Worker? _paidAccessWorker;
+  Timer? _subscriptionPollTimer;
 
   final List<IconData> icons = const [
     Icons.home_outlined,
@@ -43,10 +48,30 @@ class _AppGroundState extends State<AppGround> with WidgetsBindingObserver {
     // Permanent controller keeps last tab (e.g. Profile) across logout→login.
     controller.resetToHome();
     WidgetsBinding.instance.addObserver(this);
+    if (Get.isRegistered<ProfileController>()) {
+      final profile = Get.find<ProfileController>();
+      void kickIfUnpaid() {
+        final user = profile.user.value;
+        if (user != null && !isPaidSubscriber(user)) {
+          Get.offAll(() => screenForAuthenticatedUser(user));
+        }
+      }
+
+      kickIfUnpaid();
+      _paidAccessWorker = ever(profile.user, (_) => kickIfUnpaid());
+    }
+
+    // Re-check membership periodically so expired App Store subs lock the app.
+    _subscriptionPollTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+      if (!Get.isRegistered<ProfileController>()) return;
+      Get.find<ProfileController>().getProfile();
+    });
   }
 
   @override
   void dispose() {
+    _subscriptionPollTimer?.cancel();
+    _paidAccessWorker?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

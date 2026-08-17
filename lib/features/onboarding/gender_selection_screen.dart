@@ -1,3 +1,4 @@
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/features/onboarding/age_selection_screen.dart';
 import 'package:disabilitymne/features/onboarding/controller/onboarding_controller.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,6 +25,9 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
   void initState() {
     super.initState();
     _selectedGender = 'male';
+    if (Get.isRegistered<OnboardingStateHolder>()) {
+      Get.find<OnboardingStateHolder>().suppressAuthNavigation = true;
+    }
   }
 
   static const Color _accentBlue = Color(0xFF89C9E6);

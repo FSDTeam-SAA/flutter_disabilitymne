@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:disabilitymne/app/controller/app_ground_controller.dart';
+import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/auth/model/user_model.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
@@ -9,7 +10,6 @@ import 'package:disabilitymne/features/chat/presentation/chat_thread_screen.dart
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
 import 'package:disabilitymne/features/daily_tracker/presentation/daily_tracker_screen.dart';
 import 'package:disabilitymne/features/programs/controller/my_program_controller.dart';
-import 'package:disabilitymne/features/programs/presentation/screens/program_detail_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/widgets/explore_program_widget.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:disabilitymne/features/home/widgets/upgrade_plan_dialog.dart';
@@ -22,16 +22,14 @@ import 'package:disabilitymne/features/recipies/presentation/screen/recipies_det
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/helpers/app_snackbar.dart';
-import 'package:disabilitymne/core/helpers/guest_auth_prompt.dart';
 import 'package:disabilitymne/core/helpers/premium_access.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 /// Home screen matching the design: header, hero card, My Programs, My Recipes, Quick Action.
 class HomeScreen extends StatefulWidget {
   final bool? isPremiumUser;
-  final bool isGuestMode;
 
-  const HomeScreen({super.key, this.isPremiumUser, this.isGuestMode = false});
+  const HomeScreen({super.key, this.isPremiumUser});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -80,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// When profile user is loaded, show upgrade popup when subscription ends within 6 days.
   void _listenProfileAndShowUpgradePopup() {
-    if (widget.isGuestMode || !Get.isRegistered<ProfileController>()) return;
+    if (!Get.isRegistered<ProfileController>()) return;
     final profileController = Get.find<ProfileController>();
     ever(profileController.user, (UserModel? user) {
       if (user == null || !mounted || _hasCheckedUpgradePopup) return;
@@ -106,24 +104,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleRefresh() async {
     final futures = <Future<void>>[];
 
-    if (!widget.isGuestMode && Get.isRegistered<ProfileController>()) {
+    if (Get.isRegistered<ProfileController>()) {
       futures.add(Get.find<ProfileController>().getProfile());
     }
-    if (!widget.isGuestMode) {
-      if (!Get.isRegistered<MyProgramController>()) {
-        Get.put(
-          MyProgramController(programInterface: Get.find<ProgramInterface>()),
-        );
-      }
-      futures.add(Get.find<MyProgramController>().getPrograms(showLoader: false));
+    if (!Get.isRegistered<MyProgramController>()) {
+      Get.put(
+        MyProgramController(programInterface: Get.find<ProgramInterface>()),
+      );
     }
+    futures.add(Get.find<MyProgramController>().getPrograms(showLoader: false));
     futures.add(
       _recipeController.refreshMealType(_selectedHomeRecipeType),
     );
-
-    if (futures.isEmpty) {
-      return;
-    }
 
     await Future.wait(futures);
   }
@@ -161,63 +153,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAppBar() {
-    if (widget.isGuestMode) {
-      return SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () => Get.find<AppGroundController>().changeIndex(4),
-                child: const CircleAvatar(
-                  radius: 26,
-                  backgroundColor: _cardBlue,
-                  child: Icon(
-                    Icons.person_outline,
-                    color: Colors.white70,
-                    size: 32,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome, Guest',
-                      style: TextStyle(
-                        color: AppColors.primaryText,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      _greetingByTime(),
-                      style: TextStyle(
-                        color: AppColors.primaryText.withValues(alpha: 0.8),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () => showGuestAuthPrompt(
-                  message: 'Sign in to view notifications and personalized updates.',
-                ),
-                child: const Icon(
-                  Icons.notifications_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     final controller = Get.find<ProfileController>();
     return SliverToBoxAdapter(
       child: Padding(
@@ -442,68 +377,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMyProgramsSection() {
-    if (widget.isGuestMode) {
-      return SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'My Programs',
-                    style: TextStyle(
-                      color: AppColors.primaryText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => showGuestAuthPrompt(
-                      message:
-                          'Sign in to browse and start fitness programs.',
-                    ),
-                    child: Text(
-                      'See all',
-                      style: TextStyle(
-                        color: _seeAllBlue,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: GestureDetector(
-                onTap: () => showGuestAuthPrompt(
-                  message: 'Sign in to browse and start fitness programs.',
-                ),
-                child: _buildProgramCard(),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (!Get.isRegistered<MyProgramController>()) {
-      Get.put(
-        MyProgramController(programInterface: Get.find<ProgramInterface>()),
-      );
-    }
-    final programController = Get.find<MyProgramController>();
-
-    final user = Get.isRegistered<ProfileController>()
-        ? Get.find<ProfileController>().user.value
-        : null;
-    final isPremium = isPremiumActiveUser(user);
-
     return SliverToBoxAdapter(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,9 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    Get.find<AppGroundController>().changeIndex(1);
-                  },
+                  onTap: _openProgramsTab,
                   child: Text(
                     'See all',
                     style: TextStyle(
@@ -538,88 +409,39 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Obx(() {
-            if (programController.isLoading.value) {
-              return SizedBox(
-                height: ProgramCard.bannerHeight,
-                child: const Center(
-                  child: CircularProgressIndicator(color: Color(0xff6FA8DC)),
-                ),
-              );
-            }
-
-            final list = programController.programList;
-            if (list.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: isPremium
-                    ? Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: _cardBlue,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white24),
-                        ),
-                        child: const Text(
-                          premiumAwaitingCoachMessage,
-                          style: TextStyle(color: Colors.white70, height: 1.4),
-                        ),
-                      )
-                    : _buildProgramCard(),
-              );
-            }
-
-            final showList = list.take(3).toList();
-            final screenWidth = MediaQuery.sizeOf(context).width;
-            final fullCardWidth = screenWidth - 40;
-            final carouselCardWidth = showList.length == 1
-                ? fullCardWidth
-                : fullCardWidth - 16;
-
-            return SizedBox(
-              height: ProgramCard.bannerHeight,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: showList.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final program = showList[index];
-                  return SizedBox(
-                    width: carouselCardWidth,
-                    child: ProgramCard(
-                      title: program.programName,
-                      image: program.programThumbnail,
-                      onTap: () {
-                        Get.to(() => ProgramDetailScreen(program: program));
-                      },
-                    ),
-                  );
-                },
-              ),
-            );
-          }),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildProgramCard(),
+          ),
         ],
       ),
     );
   }
 
+  void _openProgramsTab() {
+    if (Get.isRegistered<AppGroundController>()) {
+      Get.find<AppGroundController>().changeIndex(1);
+    }
+  }
+
   Widget _buildProgramCard() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        width: double.infinity,
-        height: ProgramCard.bannerHeight,
-        child: ColoredBox(
-          color: const Color(0xFF172435),
-          child: Image.asset(
-            'assets/image/my_programs_card.png',
-            fit: BoxFit.fitWidth,
-            width: double.infinity,
-            height: ProgramCard.bannerHeight,
-            alignment: Alignment.center,
-            errorBuilder: (_, _, _) => _buildProgramCardFallback(),
+    return GestureDetector(
+      onTap: _openProgramsTab,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          width: double.infinity,
+          height: ProgramCard.bannerHeight,
+          child: ColoredBox(
+            color: const Color(0xFF0C0C0C),
+            child: Image.asset(
+              ImagePath.welcomeProgramsCard,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: ProgramCard.bannerHeight,
+              alignment: Alignment.center,
+              errorBuilder: (_, _, _) => _buildProgramCardFallback(),
+            ),
           ),
         ),
       ),
@@ -632,44 +454,18 @@ class _HomeScreenState extends State<HomeScreen> {
       height: ProgramCard.bannerHeight,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _cardBlue,
+        color: const Color(0xFF0C0C0C),
         borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [const Color(0xFF1A204C), const Color(0xFF2E3A7E)],
-        ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '3 Days | 12 Weeks | 60 Min',
-                  style: TextStyle(
-                    color: AppColors.primaryText.withValues(alpha: 0.85),
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  "BEGINNER'S\nBLUEPRINT",
-                  style: TextStyle(
-                    color: AppColors.primaryText,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    height: 1.2,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.fitness_center, color: Colors.white54, size: 40),
-        ],
+      alignment: Alignment.centerLeft,
+      child: const Text(
+        'Welcome to the\nFitness Community!',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          height: 1.2,
+        ),
       ),
     );
   }
@@ -986,55 +782,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  VoidCallback? _guestOrAuthAction(VoidCallback action) {
-    if (widget.isGuestMode) {
-      return () => showGuestAuthPrompt();
-    }
-    return action;
-  }
-
   Widget _buildQuickActionSection() {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: widget.isGuestMode
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Quick Action',
-                    style: TextStyle(
-                      color: AppColors.primaryText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildQuickActionCard(
-                          imagePath: 'assets/image/quick_action_progress.png',
-                          label: 'Progress',
-                          fallbackIcon: Icons.show_chart_rounded,
-                          onTap: _guestOrAuthAction(() {}),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildQuickActionCard(
-                          imagePath:
-                              'assets/image/quick_action_daily_tracker.png',
-                          label: 'Daily Tracker',
-                          fallbackIcon: Icons.checklist_rounded,
-                          onTap: _guestOrAuthAction(() {}),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              )
-            : Obx(() {
+        child: Obx(() {
           final user = Get.find<ProfileController>().user.value;
           final showChat = isPremiumActiveUser(user);
           return Column(

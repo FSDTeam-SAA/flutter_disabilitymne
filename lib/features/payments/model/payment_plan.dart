@@ -29,7 +29,9 @@ class PaymentPlan {
       key: json['key']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0,
-      currency: json['currency']?.toString() ?? '',
+      currency: (json['currency']?.toString().trim().isNotEmpty == true)
+          ? json['currency'].toString().toUpperCase()
+          : 'USD',
       durationMonths: (json['durationMonths'] as num?)?.toInt() ?? 0,
       durationLabel: json['durationLabel']?.toString() ?? '',
       trialDays: (json['trialDays'] as num?)?.toInt() ?? 0,

@@ -6,6 +6,7 @@ import 'package:disabilitymne/features/programs/model/model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_screen.dart';
 import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
+import 'package:disabilitymne/features/programs/utils/countdown_sound_player.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -41,17 +42,20 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
   ChewieController? _chewieController;
   bool _isVideoLoading = false;
   bool _isVideoCompleted = false;
+  final CountdownSoundPlayer _countdownSounds = CountdownSoundPlayer();
 
   @override
   void initState() {
     super.initState();
     currentExerciseIndex = widget.initialIndex;
     _initializeExerciseVideo();
+    _countdownSounds.init();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _countdownSounds.dispose();
     _disposeVideoPlayer();
     super.dispose();
   }
@@ -142,11 +146,16 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
         _remainingSeconds = seconds;
       }
     });
+    _countdownSounds.prepareSession();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds > 0) {
         setState(() {
           _remainingSeconds--;
         });
+        _countdownSounds.playForRemaining(_remainingSeconds);
+        if (_remainingSeconds == 0) {
+          _pauseTimer();
+        }
       } else {
         _pauseTimer();
       }
@@ -228,6 +237,11 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
         ? exercises[currentExerciseIndex]
         : null;
     final totalExercises = exercises.length;
+    final screenH = MediaQuery.sizeOf(context).height;
+    final compact = screenH < 760;
+    final videoHeight = (screenH * 0.22).clamp(120.0, compact ? 156.0 : 200.0);
+    final gap = compact ? 10.0 : 16.0;
+    final buttonH = compact ? 46.0 : 50.0;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -237,7 +251,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                const SizedBox(height: 10),
+                SizedBox(height: compact ? 4 : 10),
 
                 /// TOP BAR
                 Row(
@@ -246,6 +260,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                     Row(
                       children: [
                         IconButton(
+                          visualDensity: VisualDensity.compact,
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -254,7 +269,6 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 6),
                         const Text(
                           "Back",
                           style: TextStyle(color: Colors.white),
@@ -268,7 +282,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: compact ? 8 : 12),
 
                 /// PROGRESS BAR
                 ClipRRect(
@@ -285,147 +299,141 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                SizedBox(height: gap),
 
                 /// VIDEO THUMBNAIL / VIDEO PLAYER
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    height: 200,
+                  child: SizedBox(
+                    height: videoHeight,
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                    child: ColoredBox(
                       color: Colors.black,
+                      child:
+                          _chewieController != null &&
+                              _chewieController!
+                                  .videoPlayerController
+                                  .value
+                                  .isInitialized
+                          ? Chewie(controller: _chewieController!)
+                          : Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Positioned.fill(
+                                  child: currentExercise?.image != null &&
+                                          currentExercise!.image.isNotEmpty
+                                      ? Image.network(
+                                          currentExercise.image,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.network(
+                                          "https://images.unsplash.com/photo-1517836357463-d25dfeac3438",
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                                if (_isVideoLoading)
+                                  const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                else
+                                  Container(
+                                    height: 60,
+                                    width: 60,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: .9,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.play_arrow,
+                                      size: 36,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                              ],
+                            ),
                     ),
-                    child:
-                        _chewieController != null &&
-                            _chewieController!
-                                .videoPlayerController
-                                .value
-                                .isInitialized
-                        ? Chewie(controller: _chewieController!)
-                        : Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              if (currentExercise?.image != null &&
-                                  currentExercise!.image.isNotEmpty)
-                                Image.network(
-                                  currentExercise.image,
-                                  height: 200,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                )
-                              else
-                                Image.network(
-                                  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438",
-                                  height: 200,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                              if (_isVideoLoading)
-                                const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              else
-                                Container(
-                                  height: 60,
-                                  width: 60,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: .9),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.play_arrow,
-                                    size: 36,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                            ],
-                          ),
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: gap),
 
                 /// WORKOUT CARD
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      compact ? 14 : 18,
+                      16,
+                      compact ? 16 : 22,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF334C68),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            currentExercise?.exerciseName ??
-                                "First click on start workout",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                        Text(
+                          currentExercise?.exerciseName ??
+                              "First click on start workout",
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          currentExercise != null
+                              ? "${currentExercise.defaultSets.length} sets"
+                              : "",
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                        SizedBox(height: compact ? 12 : 16),
+                        Expanded(
+                          child: Center(
+                            child: SizedBox(
+                              height: compact ? 118 : 132,
+                              width: compact ? 118 : 132,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox.expand(
+                                    child: CircularProgressIndicator(
+                                      value: seconds > 0
+                                          ? _remainingSeconds / seconds
+                                          : 0,
+                                      strokeWidth: 14,
+                                      backgroundColor: Colors.white24,
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<
+                                            Color
+                                          >(Colors.white),
+                                    ),
+                                  ),
+                                  Text(
+                                    "00:${_remainingSeconds.toString().padLeft(2, '0')}",
+                                    style: TextStyle(
+                                      fontSize: compact ? 24 : 28,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-
-                        const SizedBox(height: 6),
-
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            currentExercise != null
-                                ? "${currentExercise.defaultSets.length} sets"
-                                : "",
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        /// TIMER CIRCLE
-                        SizedBox(
-                          height: 180,
-                          width: 180,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SizedBox(
-                                height: 180,
-                                width: 180,
-                                child: CircularProgressIndicator(
-                                  value: seconds > 0
-                                      ? _remainingSeconds / seconds
-                                      : 0,
-                                  strokeWidth: 20,
-                                  backgroundColor: Colors.white24,
-                                  valueColor:
-                                      const AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                ),
-                              ),
-                              Text(
-                                "00:${_remainingSeconds.toString().padLeft(2, '0')}",
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const Spacer(),
-
-                        /// BUTTONS
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: compact ? 16 : 20),
                 Row(
                   children: [
                     /// STOP BUTTON
@@ -438,7 +446,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                           });
                         },
                         child: Container(
-                          height: 50,
+                          height: buttonH,
                           decoration: BoxDecoration(
                             color: Colors.grey,
                             borderRadius: BorderRadius.circular(10),
@@ -469,7 +477,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                           }
                         },
                         child: Container(
-                          height: 50,
+                          height: buttonH,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               begin: Alignment.topCenter,
@@ -493,13 +501,13 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: compact ? 10 : 16),
 
                 /// NEXT BUTTON
                 GestureDetector(
                   onTap: nextExercise,
                   child: Container(
-                    height: 50,
+                    height: buttonH,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
@@ -521,7 +529,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: compact ? 10 : 16),
               ],
             ),
           ),

@@ -18,6 +18,7 @@ class AppleIapService {
   Completer<CheckoutResponse>? _pendingPurchase;
   String? _pendingPlanKey;
   DateTime? _pendingStartedAt;
+  bool _isRestoring = false;
 
   static bool get isSupported => !kIsWeb && Platform.isIOS;
 
@@ -109,17 +110,24 @@ class AppleIapService {
       throw Exception('Restore purchases is only available on iOS.');
     }
 
-    await _iap.restorePurchases();
-    final receiptData = await _fetchReceiptData();
-    if (receiptData == null || receiptData.isEmpty) {
-      throw Exception('No App Store receipt found to restore.');
-    }
+    // Prevent purchaseStream "restored" events from also calling /apple/verify
+    // while /apple/restore is in flight (double-verify race).
+    _isRestoring = true;
+    try {
+      await _iap.restorePurchases();
+      final receiptData = await _fetchReceiptData();
+      if (receiptData == null || receiptData.isEmpty) {
+        throw Exception('No App Store receipt found to restore.');
+      }
 
-    final result = await _paymentPlans.restoreApplePurchase(receiptData);
-    return result.fold(
-      (failure) => throw Exception(failure.uiMessage),
-      (response) => response,
-    );
+      final result = await _paymentPlans.restoreApplePurchase(receiptData);
+      return result.fold(
+        (failure) => throw Exception(failure.uiMessage),
+        (response) => response,
+      );
+    } finally {
+      _isRestoring = false;
+    }
   }
 
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchases) async {
@@ -150,6 +158,15 @@ class AppleIapService {
 
         if (purchase.status == PurchaseStatus.purchased ||
             purchase.status == PurchaseStatus.restored) {
+          // During explicit Restore Purchases, finish StoreKit transactions
+          // locally; backend restore endpoint owns activation.
+          if (_isRestoring && purchase.status == PurchaseStatus.restored) {
+            if (purchase.pendingCompletePurchase) {
+              await _iap.completePurchase(purchase);
+            }
+            continue;
+          }
+
           final receiptData = await _resolveReceiptData(purchase);
           final planKey = _pendingPlanKey ?? _planKeyFromProduct(purchase.productID);
 

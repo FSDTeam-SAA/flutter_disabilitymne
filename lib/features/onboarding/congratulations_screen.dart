@@ -1,4 +1,5 @@
-﻿import 'package:disabilitymne/features/home/presentation/home_screen.dart';
+﻿import 'package:disabilitymne/core/auth/subscription_gate.dart';
+import 'package:disabilitymne/features/auth/model/user_model.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,12 @@ class CongratulationsScreen extends StatelessWidget {
                   ),
                   child: CupertinoButton(
                     padding: EdgeInsets.zero,
-                    onPressed: () => Get.back(),
+                    onPressed: () {
+                      final user = Get.isRegistered<ProfileController>()
+                          ? Get.find<ProfileController>().user.value
+                          : null;
+                      Get.offAll(() => screenForAuthenticatedUser(user));
+                    },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -233,10 +239,12 @@ class _StartJourneyButton extends StatelessWidget {
     final fontSize = (17 * scale).clamp(16.0, 18.0);
     return GestureDetector(
       onTap: () async {
+        UserModel? user;
         if (Get.isRegistered<ProfileController>()) {
           await Get.find<ProfileController>().getProfile();
+          user = Get.find<ProfileController>().user.value;
         }
-        Get.offAll(HomeScreen());
+        Get.offAll(() => screenForAuthenticatedUser(user));
       },
       child: Container(
         width: double.infinity,

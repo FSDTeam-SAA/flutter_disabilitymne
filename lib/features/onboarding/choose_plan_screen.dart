@@ -1,13 +1,16 @@
+import 'package:disabilitymne/core/auth/onboarding_state_holder.dart';
 import 'package:disabilitymne/core/common/widget/coustm_button.dart';
 import 'package:disabilitymne/core/constants/legal_urls.dart';
 import 'package:disabilitymne/core/helpers/premium_access.dart';
 import 'package:disabilitymne/core/helpers/typedefs.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
+import 'package:disabilitymne/features/auth/services/auth_interface.dart';
 import 'package:disabilitymne/features/payments/constants/iap_product_ids.dart';
 import 'package:disabilitymne/features/payments/model/payment_plan.dart';
 import 'package:disabilitymne/features/payments/model/premium_availability.dart';
 import 'package:disabilitymne/features/payments/services/apple_iap_service.dart';
 import 'package:disabilitymne/features/payments/services/payment_plans_interface.dart';
+import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/privacy_legal_screen.dart';
 import 'package:disabilitymne/features/profile/presentation/terms_condition_screen.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +22,11 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Payment package selection: Monthly, Quarterly, Annual, Premium.
-/// Shown when user taps Continue on Fitness experience screen.
+/// When [isPaywall] is true, unpaid users cannot leave until they subscribe.
 class ChoosePlanScreen extends StatefulWidget {
-  const ChoosePlanScreen({super.key});
+  const ChoosePlanScreen({super.key, this.isPaywall = false});
+
+  final bool isPaywall;
 
   @override
   State<ChoosePlanScreen> createState() => _ChoosePlanScreenState();
@@ -157,6 +162,14 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       return;
     }
     if (selectedPlan.price <= 0) {
+      if (widget.isPaywall) {
+        AppSnackbar.error(
+          'Subscription required',
+          'Please choose a paid plan to continue.',
+          snackPosition: SnackPosition.TOP,
+        );
+        return;
+      }
       Get.to(() => CongratulationsScreen(planName: selectedUiPlan.title));
       return;
     }
@@ -206,12 +219,15 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
     setState(() => _checkoutLoading = true);
     try {
-      await _appleIapService?.purchasePlan(
+      final checkout = await _appleIapService?.purchasePlan(
         planKey: selectedPlan.key,
         product: product,
       );
       if (!mounted) return;
-      Get.offAll(() => CongratulationsScreen(planName: selectedUiPlan.title));
+      if (Get.isRegistered<ProfileController>()) {
+        Get.find<ProfileController>().applyUserJson(checkout?.user);
+      }
+      await _enterAppAfterPayment(selectedUiPlan.title);
     } catch (error) {
       if (!mounted) return;
       AppSnackbar.error(
@@ -244,6 +260,14 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       },
       (checkoutResponse) {
         if (checkoutResponse.isFreePlan) {
+          if (widget.isPaywall) {
+            AppSnackbar.error(
+              'Subscription required',
+              'Please choose a paid plan to continue.',
+              snackPosition: SnackPosition.TOP,
+            );
+            return;
+          }
           Get.to(() => CongratulationsScreen(planName: selectedUiPlan.title));
           return;
         }
@@ -261,9 +285,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             checkoutUrl: url,
             planName: selectedUiPlan.title,
             onSuccess: () {
-              Get.offAll(
-                () => CongratulationsScreen(planName: selectedUiPlan.title),
-              );
+              _enterAppAfterPayment(selectedUiPlan.title);
             },
             onCancel: () => Get.back(),
           ),
@@ -276,8 +298,20 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     if (_checkoutLoading || _restoreLoading) return;
     setState(() => _restoreLoading = true);
     try {
-      await _appleIapService?.restorePurchases();
+      final checkout = await _appleIapService?.restorePurchases();
       if (!mounted) return;
+      if (Get.isRegistered<ProfileController>()) {
+        Get.find<ProfileController>().applyUserJson(checkout?.user);
+        await Get.find<ProfileController>().getProfile();
+      }
+      if (!mounted) return;
+      final user = Get.isRegistered<ProfileController>()
+          ? Get.find<ProfileController>().user.value
+          : null;
+      if (isPaidSubscriber(user)) {
+        await _enterAppAfterPayment('your');
+        return;
+      }
       AppSnackbar.show(
         'Restored',
         'Your subscription was restored successfully.',
@@ -292,6 +326,39 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       );
     } finally {
       if (mounted) setState(() => _restoreLoading = false);
+    }
+  }
+
+  Future<void> _enterAppAfterPayment(String planName) async {
+    if (Get.isRegistered<ProfileController>()) {
+      await Get.find<ProfileController>().getProfile();
+    }
+    if (!mounted) return;
+
+    final user = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>().user.value
+        : null;
+
+    // Only leave the paywall when backend confirms an active membership.
+    if (!isPaidSubscriber(user)) {
+      AppSnackbar.error(
+        'Subscription pending',
+        'Purchase completed, but membership is not active yet. Tap Restore Purchases or try again.',
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+
+    Get.offAll(() => CongratulationsScreen(planName: planName));
+  }
+
+  Future<void> _signOutFromPaywall() async {
+    if (Get.isRegistered<OnboardingStateHolder>()) {
+      Get.find<OnboardingStateHolder>().routeToLoginOnLogout = false;
+      Get.find<OnboardingStateHolder>().suppressAuthNavigation = false;
+    }
+    if (Get.isRegistered<AuthInterface>()) {
+      await Get.find<AuthInterface>().logout();
     }
   }
 
@@ -333,20 +400,19 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     }
   }
 
-  static String _formatPrice(
-    PaymentPlan plan,
-    Map<String, ProductDetails> storeProducts,
-  ) {
-    if (plan.price <= 0) return '00.00\$';
-    final productId = IapProductIds.forPlanKey(plan.key);
-    if (AppleIapService.isSupported) {
-      final storePrice = productId != null
-          ? storeProducts[productId]?.price
-          : null;
-      if (storePrice != null && storePrice.isNotEmpty) return storePrice;
-      return '…';
-    }
-    return '${plan.price.toStringAsFixed(2)}\$';
+  /// Always display catalog prices in USD ($) — never localize to EUR/other.
+  static String _formatUsd(double amount) {
+    if (amount <= 0) return '00.00\$';
+    final fixed = amount == amount.roundToDouble()
+        ? amount.toStringAsFixed(0)
+        : amount.toStringAsFixed(2);
+    return '$fixed\$';
+  }
+
+  static String _formatPrice(PaymentPlan plan) {
+    // Global app: show backend/catalog USD amounts on Choose Your Plan.
+    // (StoreKit may still charge the user's local App Store currency.)
+    return _formatUsd(plan.price);
   }
 
   /// Number of months for a plan, falling back to the plan key when the
@@ -376,13 +442,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     return 'Auto-renewing subscription';
   }
 
-  /// Price per month for multi-month plans (e.g. "≈ 9.99$/month").
+  /// Price per month for multi-month plans (e.g. "≈ 20$/month").
   /// Returned as null when a per-unit price is not meaningful.
   static String? _formatPerUnitPrice(PaymentPlan plan) {
     final months = _monthsForPlan(plan);
     if (plan.price <= 0 || months <= 1) return null;
     final perMonth = plan.price / months;
-    return '≈ ${perMonth.toStringAsFixed(2)}\$/month';
+    return '≈ ${_formatUsd(perMonth)}/month';
   }
 
   PlanItem _toPlanItem(PaymentPlan p) {
@@ -391,7 +457,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       id: p.key,
       title: p.name,
       description: _formatDescription(p),
-      price: _formatPrice(p, _storeProducts),
+      price: _formatPrice(p),
       perUnitPrice: _formatPerUnitPrice(p),
       accentColor: colors.accent,
       accentFill: colors.fill,
@@ -403,9 +469,11 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: BackgroundImage(
+    return PopScope(
+      canPop: !widget.isPaywall,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: BackgroundImage(
         child: SafeArea(
           child: FutureBuilder<Request<List<PaymentPlan>>>(
             future: _plansFuture,
@@ -504,18 +572,22 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                             vertical: 8,
                           ),
                           child: GestureDetector(
-                            onTap: () => Get.back(),
+                            onTap: widget.isPaywall
+                                ? _signOutFromPaywall
+                                : () => Get.back(),
                             child: Row(
-                              children: const [
+                              children: [
                                 Icon(
-                                  Icons.chevron_left,
+                                  widget.isPaywall
+                                      ? Icons.logout
+                                      : Icons.chevron_left,
                                   color: Colors.white,
                                   size: 28,
                                 ),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Text(
-                                  'Back',
-                                  style: TextStyle(
+                                  widget.isPaywall ? 'Sign out' : 'Back',
+                                  style: const TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w400,
                                     color: Colors.white,
@@ -612,7 +684,9 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Start your disability fitness journey',
+                                widget.isPaywall
+                                    ? 'Subscribe to unlock the app. You can use Disability Fitness after your plan is active.'
+                                    : 'Start your disability fitness journey',
                                 style: TextStyle(
                                   fontSize: 15,
                                   color: Colors.white.withValues(alpha: 0.7),
@@ -729,6 +803,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             },
           ),
         ),
+      ),
       ),
     );
   }

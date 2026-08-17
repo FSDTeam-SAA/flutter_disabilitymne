@@ -43,8 +43,8 @@ class AppSnackbar {
     return AppSnackbarType.info;
   }
 
-  /// Auth/session errors (e.g. calling a logged-in-only API while in guest
-  /// mode after logout) should never be surfaced to the user as a snackbar.
+  /// Auth/session errors (e.g. expired token after logout) should never be
+  /// surfaced to the user as a snackbar.
   static bool _isSuppressedAuthError(String message) {
     final normalized = message.toLowerCase();
     return normalized.contains('not logged in') ||

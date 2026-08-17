@@ -6,7 +6,7 @@ import 'package:disabilitymne/features/onboarding/payment_details_screen.dart';
 /// Select Payment Method — shown after user selects Monthly, Quarterly, Annual, or Premium plan.
 /// Displays "Bank account" option and "Continue to Pay $X.XX" button.
 class SelectPaymentMethodScreen extends StatefulWidget {
-  /// Amount to pay (e.g. 29.99 monthly, 149.99 quarterly, 144 annual, 199.99 premium).
+  /// Amount to pay in USD (e.g. 25 monthly, 60 quarterly, 144 annual, 199.99 premium).
   final double amount;
   /// Plan name for Payment Details screen (e.g. "Monthly", "Quarterly", "Annual", "Premium").
   final String planName;

@@ -128,6 +128,15 @@ class ProfileController extends GetxController {
     }
   }
 
+  /// Apply subscription/user payload returned from Apple verify/restore without
+  /// waiting for a separate /me round-trip.
+  void applyUserJson(Map<String, dynamic>? json) {
+    if (isClosed || json == null || json.isEmpty) return;
+    final userData = UserModel.fromJson(json);
+    user.value = userData;
+    _populateFormFromUser(userData);
+  }
+
   void _populateFormFromUser(UserModel? userData) {
     if (userData == null || isClosed) return;
 
