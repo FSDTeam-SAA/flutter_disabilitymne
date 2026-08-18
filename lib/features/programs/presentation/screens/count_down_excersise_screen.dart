@@ -5,7 +5,6 @@ import 'package:disabilitymne/features/programs/model/explore_program_model.dart
 import 'package:disabilitymne/features/programs/model/model.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/exercise_screen.dart';
-import 'package:disabilitymne/features/programs/utils/exercise_video_player.dart';
 import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
 import 'package:disabilitymne/features/programs/utils/countdown_sound_player.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +90,8 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
       _videoPlayerController = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
       );
-      await initializeMutedExerciseVideo(_videoPlayerController!);
+      await _videoPlayerController!.initialize();
+      await _videoPlayerController!.setVolume(0.0);
 
       _videoPlayerController!.addListener(_videoListener);
 
@@ -106,6 +106,7 @@ class _ExerciseWorkoutScreenState extends State<ExerciseWorkoutScreen> {
         looping: true,
         aspectRatio: _videoPlayerController!.value.aspectRatio,
         allowFullScreen: true,
+        allowMuting: true,
         allowPlaybackSpeedChanging: true,
         errorBuilder: (context, errorMessage) {
           return Center(
