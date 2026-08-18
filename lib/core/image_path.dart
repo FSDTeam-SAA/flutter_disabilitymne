@@ -1,6 +1,6 @@
 abstract class ImagePath {
   static String profilepic = "assets/images/profilepic.png";
-  /// Home "My Programs" placeholder until a workout is assigned
+  /// Fallback for the homepage "My Programs" banner when no server photos are set
   static String welcomeProgramsCard = "assets/image/welcome_programs_card.png";
   /// App-wide background image (splash/dark blue)
   static String appBackground = "assets/image/splash_bg.png";

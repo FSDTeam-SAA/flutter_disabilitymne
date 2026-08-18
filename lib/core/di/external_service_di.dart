@@ -12,6 +12,7 @@ import 'package:disabilitymne/features/payments/services/payment_plans_repositor
 import 'package:disabilitymne/features/progress/repository/progress_repository.dart';
 import 'package:disabilitymne/features/calculator/services/calculator_interface.dart';
 import 'package:disabilitymne/features/calculator/services/calculator_interface_impl.dart';
+import 'package:disabilitymne/features/home/services/home_banner_repository.dart';
 import 'package:get/get.dart';
 import '../constants/api_endpoints.dart';
 
@@ -53,6 +54,11 @@ void externalServiceDI() {
 
   Get.lazyPut<NutritionPlansRepository>(
     () => NutritionPlansRepository(Get.find<AuthorizedPigeon>()),
+    fenix: true,
+  );
+
+  Get.lazyPut<HomeBannerRepository>(
+    () => HomeBannerRepository(Get.find<AuthorizedPigeon>()),
     fenix: true,
   );
 

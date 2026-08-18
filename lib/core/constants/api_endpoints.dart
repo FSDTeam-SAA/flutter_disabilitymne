@@ -139,6 +139,7 @@ base class ApiEndpoints {
 
   static String get myNutritionPlans => _NutritionPlans.my;
   static String nutritionPlanDetail(String id) => _NutritionPlans.detail(id);
+  static String get homeBanners => _HomeBanners.homeBanners;
 }
 
 class _DevServer {
@@ -327,6 +328,10 @@ class _NutritionPlans {
   static String get _route => '${ApiEndpoints.baseUrl}/nutrition-plans';
   static String get my => '$_route/my';
   static String detail(String id) => '$_route/$id';
+}
+
+class _HomeBanners {
+  static String get homeBanners => '${ApiEndpoints.baseUrl}/home-banners';
 }
 
 class _Uploads {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:disabilitymne/features/programs/model/library_model.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/programs/utils/exercise_video_player.dart';
 import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
 import 'package:get/get.dart';
 import 'package:disabilitymne/core/helpers/app_snackbar.dart';
@@ -52,7 +53,7 @@ class ExerciseDetailController extends GetxController {
     isLoading.value = true;
     try {
       videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
-      await videoPlayerController!.initialize();
+      await initializeMutedExerciseVideo(videoPlayerController!);
 
       chewieController = ChewieController(
         videoPlayerController: videoPlayerController!,

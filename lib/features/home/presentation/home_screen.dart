@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:disabilitymne/app/controller/app_ground_controller.dart';
-import 'package:disabilitymne/core/image_path.dart';
 import 'package:disabilitymne/core/theme/app_colors.dart';
 import 'package:disabilitymne/features/auth/model/user_model.dart';
 import 'package:disabilitymne/features/auth/presentation/widgets/background_image.dart';
@@ -10,8 +9,10 @@ import 'package:disabilitymne/features/chat/presentation/chat_thread_screen.dart
 import 'package:disabilitymne/features/chat/repository/chat_repository.dart';
 import 'package:disabilitymne/features/daily_tracker/presentation/daily_tracker_screen.dart';
 import 'package:disabilitymne/features/programs/controller/my_program_controller.dart';
-import 'package:disabilitymne/features/programs/presentation/widgets/explore_program_widget.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/home/controller/home_banner_controller.dart';
+import 'package:disabilitymne/features/home/services/home_banner_repository.dart';
+import 'package:disabilitymne/features/home/widgets/home_program_banner.dart';
 import 'package:disabilitymne/features/home/widgets/upgrade_plan_dialog.dart';
 import 'package:disabilitymne/features/profile/controller/profile_controller.dart';
 import 'package:disabilitymne/features/profile/presentation/notification_screen.dart';
@@ -60,11 +61,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   RecipeController get _recipeController => Get.find<RecipeController>();
+  HomeBannerController get _homeBannerController {
+    if (Get.isRegistered<HomeBannerController>()) {
+      return Get.find<HomeBannerController>();
+    }
+    return Get.put(
+      HomeBannerController(repository: Get.find<HomeBannerRepository>()),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
     _recipeController.ensureMealLoaded(_selectedHomeRecipeType);
+    _homeBannerController.fetchBanners();
     _greetingTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -116,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
     futures.add(
       _recipeController.refreshMealType(_selectedHomeRecipeType),
     );
+    futures.add(_homeBannerController.fetchBanners(showLoader: false));
 
     await Future.wait(futures);
   }
@@ -425,49 +436,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildProgramCard() {
-    return GestureDetector(
-      onTap: _openProgramsTab,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: double.infinity,
-          height: ProgramCard.bannerHeight,
-          child: ColoredBox(
-            color: const Color(0xFF0C0C0C),
-            child: Image.asset(
-              ImagePath.welcomeProgramsCard,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: ProgramCard.bannerHeight,
-              alignment: Alignment.center,
-              errorBuilder: (_, _, _) => _buildProgramCardFallback(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgramCardFallback() {
-    return Container(
-      width: double.infinity,
-      height: ProgramCard.bannerHeight,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C0C0C),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      alignment: Alignment.centerLeft,
-      child: const Text(
-        'Welcome to the\nFitness Community!',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          height: 1.2,
-        ),
-      ),
-    );
+    return Obx(() {
+      final isLoading = _homeBannerController.isLoading.value;
+      final banners = _homeBannerController.banners.toList(growable: false);
+      final imageUrls = banners
+          .map((banner) => banner.imageUrl.trim())
+          .where((url) => url.isNotEmpty)
+          .toList(growable: false);
+      return HomeProgramBanner(
+        imageUrls: imageUrls,
+        isLoading: isLoading,
+        onTap: _openProgramsTab,
+      );
+    });
   }
 
   Widget _buildMyRecipesSection() {

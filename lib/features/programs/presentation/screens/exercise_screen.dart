@@ -4,6 +4,7 @@ import 'package:disabilitymne/features/programs/model/explore_program_model.dart
 import 'package:disabilitymne/features/programs/presentation/screens/congratulation_screen.dart';
 import 'package:disabilitymne/features/programs/presentation/screens/count_down_excersise_screen.dart';
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
+import 'package:disabilitymne/features/programs/utils/exercise_video_player.dart';
 import 'package:disabilitymne/features/programs/utils/video_url_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -94,7 +95,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       _videoPlayerController = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
       );
-      await _videoPlayerController!.initialize();
+      await initializeMutedExerciseVideo(_videoPlayerController!);
 
       _chewieController = ChewieController(
         videoPlayerController: _videoPlayerController!,

@@ -9,6 +9,8 @@ import 'package:disabilitymne/features/profile/controller/profile_controller.dar
 import 'package:disabilitymne/features/programs/services/program_interface.dart';
 import 'package:disabilitymne/features/programs/services/program_interface_impl.dart';
 import 'package:disabilitymne/features/calculator/controller/calculator_controller.dart';
+import 'package:disabilitymne/features/home/controller/home_banner_controller.dart';
+import 'package:disabilitymne/features/home/services/home_banner_repository.dart';
 import 'package:disabilitymne/features/recipies/controller/recipe_conreoller.dart';
 import 'package:get/get.dart';
 import '../../app/app_manager.dart';
@@ -38,5 +40,14 @@ void initServices() {
     () => CalculatorController(calculatorInterface: Get.find()),
     fenix: true,
   );
-  Get.lazyPut(() => RecipeController(), fenix: true);
+  Get.lazyPut(
+    () => RecipeController(),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => HomeBannerController(
+      repository: Get.find<HomeBannerRepository>(),
+    ),
+    fenix: true,
+  );
 }
